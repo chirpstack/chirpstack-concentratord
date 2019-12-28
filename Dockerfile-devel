@@ -1,0 +1,47 @@
+FROM rust:1.40-stretch
+
+# required by bingen
+RUN apt-get update && \
+	apt-get install -y \
+		build-essential \
+		cmake \
+		clang-3.9 \
+		libclang-3.9-dev \
+		llvm-3.9-dev \
+		gcc-arm-linux-gnueabihf \
+		g++-arm-linux-gnueabihf \
+		git && \
+	apt-get clean
+
+RUN rustup target add armv7-unknown-linux-gnueabihf
+
+RUN echo '[target.armv7-unknown-linux-gnueabihf]\n\
+linker = "arm-linux-gnueabihf-gcc"\n'\
+>> /usr/local/cargo/config
+
+RUN mkdir -p /hal/native && \
+	cd /hal/native && \
+	git clone https://github.com/Lora-net/lora_gateway.git
+
+COPY library.cfg /hal/native/lora_gateway/libloragw
+
+RUN cd /hal/native/lora_gateway && \
+	make && \
+	ln -s /hal/native/lora_gateway/libloragw/inc /usr/include/libloragw && \
+	ln -s /hal/native/lora_gateway/libloragw/libloragw.a /usr/lib/libloragw.a
+
+RUN mkdir -p /hal/arm && \
+	cd /hal/arm && \
+	git clone https://github.com/Lora-net/lora_gateway.git
+
+COPY library.cfg /hal/arm/lora_gateway/libloragw
+RUN sed -i 's/define SPI_SPEED.*/define SPI_SPEED 2000000/g' /hal/arm/lora_gateway/libloragw/src/loragw_spi.native.c
+
+RUN cd /hal/arm/lora_gateway && \
+	ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- make && \
+	ln -s /hal/arm/lora_gateway/libloragw/inc /usr/arm-linux-gnueabihf/include/libloragw && \
+	ln -s /hal/arm/lora_gateway/libloragw/libloragw.a /usr/arm-linux-gnueabihf/lib/libloragw.a
+
+ENV PROJECT_PATH=/chirpstack-concentratord
+RUN mkdir -p $PROJECT_PATH
+WORKDIR $PROJECT_PATH
