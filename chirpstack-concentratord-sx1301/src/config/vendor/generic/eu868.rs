@@ -13,6 +13,7 @@ pub fn new() -> Configuration {
         radio_tx_notch_freq: vec![0, 0],
         lora_multi_sf_bandwidth: 125000,
         tx_gain_table: vec![
+            // 0
             hal::TxGainConfig {
                 pa_gain: 0,
                 mix_gain: 8,
@@ -20,6 +21,7 @@ pub fn new() -> Configuration {
                 dig_gain: 0,
                 dac_gain: 3,
             },
+            // 1
             hal::TxGainConfig {
                 pa_gain: 0,
                 mix_gain: 10,
@@ -27,6 +29,7 @@ pub fn new() -> Configuration {
                 dig_gain: 0,
                 dac_gain: 3,
             },
+            // 2
             hal::TxGainConfig {
                 pa_gain: 0,
                 mix_gain: 12,
@@ -34,6 +37,7 @@ pub fn new() -> Configuration {
                 dig_gain: 0,
                 dac_gain: 3,
             },
+            // 3
             hal::TxGainConfig {
                 pa_gain: 1,
                 mix_gain: 8,
@@ -41,6 +45,7 @@ pub fn new() -> Configuration {
                 dig_gain: 0,
                 dac_gain: 3,
             },
+            // 4
             hal::TxGainConfig {
                 pa_gain: 1,
                 mix_gain: 10,
@@ -48,6 +53,7 @@ pub fn new() -> Configuration {
                 dig_gain: 0,
                 dac_gain: 3,
             },
+            // 5
             hal::TxGainConfig {
                 pa_gain: 1,
                 mix_gain: 12,
@@ -55,6 +61,7 @@ pub fn new() -> Configuration {
                 dig_gain: 0,
                 dac_gain: 3,
             },
+            // 6
             hal::TxGainConfig {
                 pa_gain: 1,
                 mix_gain: 13,
@@ -62,6 +69,7 @@ pub fn new() -> Configuration {
                 dig_gain: 0,
                 dac_gain: 3,
             },
+            // 7
             hal::TxGainConfig {
                 pa_gain: 2,
                 mix_gain: 9,
@@ -69,6 +77,7 @@ pub fn new() -> Configuration {
                 dig_gain: 0,
                 dac_gain: 3,
             },
+            // 8
             hal::TxGainConfig {
                 pa_gain: 1,
                 mix_gain: 15,
@@ -76,6 +85,7 @@ pub fn new() -> Configuration {
                 dig_gain: 0,
                 dac_gain: 3,
             },
+            // 9
             hal::TxGainConfig {
                 pa_gain: 2,
                 mix_gain: 10,
@@ -83,6 +93,7 @@ pub fn new() -> Configuration {
                 dig_gain: 0,
                 dac_gain: 3,
             },
+            // 10
             hal::TxGainConfig {
                 pa_gain: 2,
                 mix_gain: 11,
@@ -90,10 +101,43 @@ pub fn new() -> Configuration {
                 dig_gain: 0,
                 dac_gain: 3,
             },
+            // 11
             hal::TxGainConfig {
                 pa_gain: 3,
                 mix_gain: 9,
                 rf_power: 20,
+                dig_gain: 0,
+                dac_gain: 3,
+            },
+            // 12
+            hal::TxGainConfig {
+                pa_gain: 3,
+                mix_gain: 10,
+                rf_power: 23,
+                dig_gain: 0,
+                dac_gain: 3,
+            },
+            // 13
+            hal::TxGainConfig {
+                pa_gain: 3,
+                mix_gain: 11,
+                rf_power: 25,
+                dig_gain: 0,
+                dac_gain: 3,
+            },
+            // 14
+            hal::TxGainConfig {
+                pa_gain: 3,
+                mix_gain: 12,
+                rf_power: 26,
+                dig_gain: 0,
+                dac_gain: 3,
+            },
+            // 15
+            hal::TxGainConfig {
+                pa_gain: 3,
+                mix_gain: 14,
+                rf_power: 27,
                 dig_gain: 0,
                 dac_gain: 3,
             },
