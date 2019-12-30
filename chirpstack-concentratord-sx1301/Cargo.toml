@@ -24,6 +24,3 @@ humantime-serde = "0.1.1"
 
 [features]
 default = ['zmq/vendored']
-
-[profile.release]
-panic = "abort"

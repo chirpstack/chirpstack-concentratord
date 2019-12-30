@@ -1,7 +1,10 @@
 [workspace]
-
 members = [
 	"chirpstack-concentratord-sx1301",
 	"libloragw-sx1301",
 	"jitqueue",
 ]
+
+[profile.release]
+panic = "abort"
+lto = true
