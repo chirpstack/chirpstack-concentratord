@@ -86,6 +86,7 @@ lorawan_public=true
 # This configures various vendor and model specific settings like the min / max
 # frequency, TX gain table, ... Valid options are:
 #   * generic_eu868  - Generic EU868 model
+#   * generic_us915  - Generic US915 model
 model="generic_eu868"
 
 # Gateway ID.

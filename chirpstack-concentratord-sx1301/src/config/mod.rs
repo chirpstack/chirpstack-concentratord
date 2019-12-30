@@ -83,6 +83,7 @@ pub fn get(filename: &str) -> Configuration {
     // get model configuration
     config.gateway.model_config = match config.gateway.model.as_ref() {
         "generic_eu868" => vendor::generic::eu868::new(),
+        "generic_us915" => vendor::generic::us915::new(),
         _ => panic!("unexpected gateway model: {}", config.gateway.model),
     };
 
