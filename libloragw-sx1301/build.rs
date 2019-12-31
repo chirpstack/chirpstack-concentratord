@@ -6,7 +6,7 @@ use std::path::PathBuf;
 fn main() {
     // Tell cargo to tell rustc to link the loragw
     // shared library.
-    println!("cargo:rustc-link-lib=loragw");
+    println!("cargo:rustc-link-lib=loragw-sx1301");
 
     // The bindgen::Builder is the main entry point
     // to bindgen, and lets you build up options for

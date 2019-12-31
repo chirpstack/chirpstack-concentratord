@@ -21,26 +21,36 @@ linker = "arm-linux-gnueabihf-gcc"\n'\
 
 RUN mkdir -p /hal/native && \
 	cd /hal/native && \
-	git clone https://github.com/Lora-net/lora_gateway.git
-
-COPY library.cfg /hal/native/lora_gateway/libloragw
+	git clone https://github.com/Lora-net/lora_gateway.git && \
+	git clone https://github.com/Lora-net/sx1302_hal.git
 
 RUN cd /hal/native/lora_gateway && \
 	make && \
-	ln -s /hal/native/lora_gateway/libloragw/inc /usr/include/libloragw && \
-	ln -s /hal/native/lora_gateway/libloragw/libloragw.a /usr/lib/libloragw.a
+	ln -s /hal/native/lora_gateway/libloragw/inc /usr/include/libloragw-sx1301 && \
+	ln -s /hal/native/lora_gateway/libloragw/libloragw.a /usr/lib/libloragw-sx1301.a
+
+RUN cd /hal/native/sx1302_hal && \
+	make && \
+	ln -s /hal/native/sx1302_hal/libloragw/inc /usr/include/libloragw-sx1302 && \
+	ln -s /hal/native/sx1302_hal/libloragw/libloragw.a /usr/lib/libloragw-sx1302.a
 
 RUN mkdir -p /hal/arm && \
 	cd /hal/arm && \
-	git clone https://github.com/Lora-net/lora_gateway.git
+	git clone https://github.com/Lora-net/lora_gateway.git && \
+	git clone https://github.com/Lora-net/sx1302_hal.git
 
-COPY library.cfg /hal/arm/lora_gateway/libloragw
+# Needed for RAK shields, works with other shields too
 RUN sed -i 's/define SPI_SPEED.*/define SPI_SPEED 2000000/g' /hal/arm/lora_gateway/libloragw/src/loragw_spi.native.c
 
 RUN cd /hal/arm/lora_gateway && \
 	ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- make && \
-	ln -s /hal/arm/lora_gateway/libloragw/inc /usr/arm-linux-gnueabihf/include/libloragw && \
-	ln -s /hal/arm/lora_gateway/libloragw/libloragw.a /usr/arm-linux-gnueabihf/lib/libloragw.a
+	ln -s /hal/arm/lora_gateway/libloragw/inc /usr/arm-linux-gnueabihf/include/libloragw-sx1301 && \
+	ln -s /hal/arm/lora_gateway/libloragw/libloragw.a /usr/arm-linux-gnueabihf/lib/libloragw-sx1301.a
+
+RUN cd /hal/arm/sx1302_hal && \
+	make && \
+	ln -s /hal/arm/sx1302_hal/libloragw/inc /usr/arm-linux-gnueabihf/include/libloragw-sx1302 && \
+	ln -s /hal/arm/sx1302_hal/libloragw/libloragw.a /usr/arm-linux-gnueabihf/lib/libloragw-sx1302.a
 
 ENV PROJECT_PATH=/chirpstack-concentratord
 RUN mkdir -p $PROJECT_PATH

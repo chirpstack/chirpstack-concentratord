@@ -1,5 +1,5 @@
 #include <stdio.h>
 
-#include <libloragw/loragw_hal.h>
-#include <libloragw/loragw_reg.h>
-#include <libloragw/loragw_gps.h>
+#include <libloragw-sx1301/loragw_hal.h>
+#include <libloragw-sx1301/loragw_reg.h>
+#include <libloragw-sx1301/loragw_gps.h>
