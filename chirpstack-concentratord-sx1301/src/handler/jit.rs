@@ -9,7 +9,7 @@ use super::super::wrapper;
 use super::stats;
 use super::timersync;
 
-pub fn jit_loop(queue: Arc<Mutex<jitqueue::Queue<wrapper::TxPacket>>>) {
+pub fn jit_loop(queue: Arc<Mutex<jitqueue::Queue<wrapper::TxPacket>>>, antenna_gain: i8) {
     debug!("Starting JIT queue loop");
 
     loop {
@@ -21,7 +21,8 @@ pub fn jit_loop(queue: Arc<Mutex<jitqueue::Queue<wrapper::TxPacket>>>) {
         };
 
         let downlink_id = tx_packet.get_id();
-        let tx_packet = tx_packet.tx_packet();
+        let mut tx_packet = tx_packet.tx_packet();
+        tx_packet.rf_power = tx_packet.rf_power - antenna_gain;
 
         match hal::send(&tx_packet) {
             Ok(_) => {

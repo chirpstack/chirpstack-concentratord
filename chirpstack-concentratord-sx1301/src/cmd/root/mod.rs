@@ -47,9 +47,10 @@ pub fn run(config: config::Configuration) -> Result<(), String> {
     // jit thread
     let jit_loop = thread::spawn({
         let queue = Arc::clone(&queue);
+        let antenna_gain = config.gateway.antenna_gain;
 
         move || {
-            handler::jit::jit_loop(queue);
+            handler::jit::jit_loop(queue, antenna_gain);
         }
     });
 

@@ -87,13 +87,7 @@ pub fn get(filename: &str) -> Configuration {
         _ => panic!("unexpected gateway model: {}", config.gateway.model),
     };
 
-    // compensate antenna gain
     debug!("Antenna gain {} dBi", config.gateway.antenna_gain);
-    for i in 0..config.gateway.model_config.tx_gain_table.len() {
-        if config.gateway.model_config.tx_gain_table[i].rf_power != 0 {
-            config.gateway.model_config.tx_gain_table[i].rf_power -= config.gateway.antenna_gain;
-        }
-    }
 
     return config;
 }
