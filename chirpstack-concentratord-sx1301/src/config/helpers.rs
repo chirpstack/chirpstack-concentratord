@@ -25,14 +25,30 @@ pub fn get_radio_frequencies(config: &super::Configuration) -> Result<Vec<u32>, 
     let mut channels: Vec<ChannelConfiguration> = Vec::new();
     let mut radios = vec![0; config.gateway.model_config.radio_count];
 
-    // add channels to vector
+    // add multi-sf channels to vector
     for c in config.gateway.concentrator.multi_sf_channels.iter() {
         if *c != 0 {
             channels.push(ChannelConfiguration {
                 freq_hz: *c,
-                bandwidth: 125000,
+                bandwidth: config.gateway.model_config.lora_multi_sf_bandwidth,
             });
         }
+    }
+
+    // add LoRa Std channel to vector
+    if config.gateway.concentrator.lora_std.frequency != 0 {
+        channels.push(ChannelConfiguration {
+            freq_hz: config.gateway.concentrator.lora_std.frequency,
+            bandwidth: config.gateway.concentrator.lora_std.bandwidth,
+        });
+    }
+
+    // add FSK  channel to vector
+    if config.gateway.concentrator.fsk.frequency != 0 {
+        channels.push(ChannelConfiguration {
+            freq_hz: config.gateway.concentrator.fsk.frequency,
+            bandwidth: config.gateway.concentrator.fsk.bandwidth,
+        });
     }
 
     // sort vector by min radio freq
