@@ -27,8 +27,8 @@ pub struct LoRaStdChannel {
 #[derive(Default, Deserialize)]
 pub struct FSKChannel {
     pub frequency: u32,
-    pub bandwidth: u32,
     pub datarate: u32,
+    pub bandwidth: u32,
 }
 
 #[derive(Default, Deserialize)]

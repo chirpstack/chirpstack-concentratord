@@ -85,7 +85,11 @@ pub fn uplink_to_proto(
             tx_info.set_lora_modulation_info(mod_info);
         }
         hal::Modulation::FSK => {
-            let mod_info: chirpstack_api::gw::FSKModulationInfo = Default::default();
+            let mut mod_info: chirpstack_api::gw::FSKModulationInfo = Default::default();
+            mod_info.set_datarate(match packet.datarate {
+                hal::DataRate::FSK(v) => v * 1000,
+                _ => return Err("unexpected datarate".to_string()),
+            });
 
             tx_info.set_modulation(chirpstack_api::common::Modulation::FSK);
             tx_info.set_fsk_modulation_info(mod_info);
@@ -227,9 +231,7 @@ pub fn downlink_from_proto(
             chirpstack_api::common::Modulation::LORA => {
                 df.get_tx_info().get_lora_modulation_info().get_bandwidth()
             }
-            chirpstack_api::common::Modulation::FSK => {
-                df.get_tx_info().get_fsk_modulation_info().get_bandwidth()
-            }
+            _ => 0,
         },
         datarate: match df.get_tx_info().get_modulation() {
             chirpstack_api::common::Modulation::LORA => {
@@ -248,7 +250,7 @@ pub fn downlink_from_proto(
                 }
             }
             chirpstack_api::common::Modulation::FSK => {
-                hal::DataRate::FSK(df.get_tx_info().get_fsk_modulation_info().get_bitrate())
+                hal::DataRate::FSK(df.get_tx_info().get_fsk_modulation_info().get_datarate())
             }
         },
         coderate: match df.get_tx_info().get_modulation() {
@@ -272,7 +274,15 @@ pub fn downlink_from_proto(
             .get_tx_info()
             .get_lora_modulation_info()
             .get_polarization_inversion(),
-        f_dev: 0,
+        f_dev: match df.get_tx_info().get_modulation() {
+            chirpstack_api::common::Modulation::FSK => {
+                (df.get_tx_info()
+                    .get_fsk_modulation_info()
+                    .get_frequency_deviation()
+                    / 1000) as u8
+            }
+            _ => 0,
+        },
         preamble: 0,
         no_crc: false,
         no_header: false,
