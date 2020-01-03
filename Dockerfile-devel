@@ -32,7 +32,9 @@ RUN cd /hal/native/lora_gateway && \
 RUN cd /hal/native/sx1302_hal && \
 	make && \
 	ln -s /hal/native/sx1302_hal/libloragw/inc /usr/include/libloragw-sx1302 && \
-	ln -s /hal/native/sx1302_hal/libloragw/libloragw.a /usr/lib/libloragw-sx1302.a
+	ln -s /hal/native/sx1302_hal/libloragw/libloragw.a /usr/lib/libloragw-sx1302.a && \
+	cp /hal/native/sx1302_hal/libtools/inc/* /usr/include && \
+	cp /hal/native/sx1302_hal/libtools/*.a /usr/lib
 
 RUN mkdir -p /hal/arm && \
 	cd /hal/arm && \
@@ -48,9 +50,11 @@ RUN cd /hal/arm/lora_gateway && \
 	ln -s /hal/arm/lora_gateway/libloragw/libloragw.a /usr/arm-linux-gnueabihf/lib/libloragw-sx1301.a
 
 RUN cd /hal/arm/sx1302_hal && \
-	make && \
+	ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- make && \
 	ln -s /hal/arm/sx1302_hal/libloragw/inc /usr/arm-linux-gnueabihf/include/libloragw-sx1302 && \
-	ln -s /hal/arm/sx1302_hal/libloragw/libloragw.a /usr/arm-linux-gnueabihf/lib/libloragw-sx1302.a
+	ln -s /hal/arm/sx1302_hal/libloragw/libloragw.a /usr/arm-linux-gnueabihf/lib/libloragw-sx1302.a && \
+	cp /hal/arm/sx1302_hal/libtools/inc/* /usr/arm-linux-gnueabihf/include && \
+	cp /hal/arm/sx1302_hal/libtools/*.a /usr/arm-linux-gnueabihf/lib
 
 ENV PROJECT_PATH=/chirpstack-concentratord
 RUN mkdir -p $PROJECT_PATH

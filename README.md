@@ -125,6 +125,95 @@ gps_tty_path="/dev/ttyAMA0"
   datarate=50000
 ```
 
+### chirpstack-concentratord-sx1302
+
+The `chirpstack-concentratord-sx1302` implements the [SX1302 HAL](https://github.com/lora-net/sx1302_hal).
+It has been tested on a Raspberry Pi 3 with the Semtech SX1302 CoreCell.
+
+#### Configuration
+
+Configuration example:
+
+```toml
+# Concentratord configuration.
+[concentratord]
+
+# Log level.
+#
+# Valid options are:
+#   * TRACE
+#   * DEBUG
+#   * INFO
+#   * WARN
+#   * ERROR
+#   * OFF
+log_level="DEBUG"
+
+# Statistics interval.
+stats_interval="30s"
+
+  # Configuration for the (ZeroMQ based) API.
+  [concentratord.api]
+
+  # Event PUB socket bind.
+  event_bind="ipc:///tmp/concentratord_event"
+
+  # Command REP socket bind.
+  command_bind="ipc:///tmp/concentratord_command"
+
+
+# LoRa gateway configuration.
+[gateway]
+
+# Antenna gain (dB).
+antenna_gain=0
+
+# Public LoRaWAN network.
+lorawan_public=true
+
+# Gateway vendor / model.
+#
+# This configures various vendor and model specific settings like the min / max
+# frequency, TX gain table, ... Valid options are:
+#   * generic_sx1250_eu868
+model="generic_sx1250_eu868"
+
+# GPS TTY path.
+#
+# To disable GPS, set this to an empty string.
+gps_tty_path=""
+
+# SPI device path.
+spidev_path="/dev/spidev0.0"
+
+  # LoRa concentrator configuration.
+  [gateway.concentrator]
+
+  # Multi spreading-factor channels (LoRa).
+  multi_sf_channels=[
+    868100000,
+    868300000,
+    868500000,
+    867100000,
+    867300000,
+    867500000,
+    867700000,
+    867900000,
+  ]
+
+  # LoRa std channel (single spreading-factor).
+  [gateway.concentrator.lora_std]
+  frequency=868300000
+  bandwidth=250000
+  spreading_factor=7
+
+  # FSK channel.
+  [gateway.concentrator.fsk]
+  frequency=868800000
+  bandwidth=125000
+  datarate=50000
+```
+
 ## Building from source
 
 You must have [Docker](https://docs.docker.com/install/) and [Docker Compose](https://docs.docker.com/compose/install/)
