@@ -1,9 +1,0 @@
-[package]
-name = "jitqueue"
-version = "0.1.0"
-authors = ["Orne Brocaar <@brocaar.com>"]
-edition = "2018"
-publish = false
-
-[dependencies]
-log = "0.4"

@@ -1,13 +1,12 @@
 use std::{thread, time};
 
+use libconcentratord::{events, stats};
 use libloragw_sx1301::hal;
-use protobuf::Message;
 use uuid::Uuid;
 
 use super::super::wrapper;
-use super::stats;
 
-pub fn handle_loop(gateway_id: &[u8], publisher: zmq::Socket) {
+pub fn handle_loop(gateway_id: &[u8]) {
     debug!("Starting uplink handle loop");
 
     loop {
@@ -40,7 +39,7 @@ pub fn handle_loop(gateway_id: &[u8], publisher: zmq::Socket) {
                         stats::inc_rx_packets_received_ok();
                     }
 
-                    publish_frame(&publisher, proto);
+                    events::send_uplink(&proto).unwrap();
                 }
             }
             Err(_) => {
@@ -50,10 +49,4 @@ pub fn handle_loop(gateway_id: &[u8], publisher: zmq::Socket) {
 
         thread::sleep(time::Duration::from_millis(10));
     }
-}
-
-fn publish_frame(publisher: &zmq::Socket, frame: chirpstack_api::gw::UplinkFrame) {
-    let proto_bytes = frame.write_to_bytes().unwrap();
-    publisher.send("up", zmq::SNDMORE).unwrap();
-    publisher.send(proto_bytes, 0).unwrap();
 }

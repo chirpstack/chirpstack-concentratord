@@ -1,3 +1,4 @@
+use libconcentratord::{commands, events, jitqueue};
 use std::sync::{Arc, Mutex};
 use std::thread;
 
@@ -17,23 +18,21 @@ pub fn run(config: config::Configuration) -> Result<(), String> {
     concentrator::rxif_setconf(&config)?;
     concentrator::start(&config)?;
 
+    // setup sockets
+    events::bind_socket(&config.concentratord.api.event_bind).expect("bind event socket error");
+    let rep_sock = commands::get_socket(&config.concentratord.api.command_bind)
+        .expect("bind command socket error");
+
     // setup jit queue
     let queue: jitqueue::Queue<wrapper::TxPacket> = jitqueue::Queue::new(32);
     let queue = Arc::new(Mutex::new(queue));
 
-    // setup zeromq
-    let zmq_ctx = zmq::Context::new();
-
     // uplink thread
     let up_handler = thread::spawn({
         let gateway_id = config.gateway.gateway_id_bytes.clone();
-        let zmq_pub = zmq_ctx.socket(zmq::PUB).unwrap();
-        zmq_pub
-            .bind(&config.concentratord.api.event_bind)
-            .expect("bind event socket error");
 
         move || {
-            handler::uplink::handle_loop(&gateway_id, zmq_pub);
+            handler::uplink::handle_loop(&gateway_id);
         }
     });
 
@@ -58,14 +57,9 @@ pub fn run(config: config::Configuration) -> Result<(), String> {
     let command_loop = thread::spawn({
         let vendor_config = config.gateway.model_config.clone();
         let gateway_id = config.gateway.gateway_id_bytes.clone();
-        let queue = Arc::clone(&queue);
-        let zmq_rep = zmq_ctx.socket(zmq::REP).unwrap();
-        zmq_rep
-            .bind(&config.concentratord.api.command_bind)
-            .expect("bind command socket error");
 
         move || {
-            handler::command::handle_loop(&vendor_config, &gateway_id, zmq_rep, queue);
+            handler::command::handle_loop(&vendor_config, &gateway_id, queue, rep_sock);
         }
     });
 
@@ -91,13 +85,9 @@ pub fn run(config: config::Configuration) -> Result<(), String> {
     let stats_loop = thread::spawn({
         let gateway_id = config.gateway.gateway_id_bytes.clone();
         let stats_interval = config.concentratord.stats_interval;
-        let zmq_pub = zmq_ctx.socket(zmq::PUB).unwrap();
-        zmq_pub
-            .bind(&config.concentratord.api.event_bind)
-            .expect("bind event socket error");
 
         move || {
-            handler::stats::stats_loop(&gateway_id, &stats_interval, zmq_pub);
+            handler::stats::stats_loop(&gateway_id, &stats_interval);
         }
     });
 

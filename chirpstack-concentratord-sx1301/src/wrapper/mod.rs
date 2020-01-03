@@ -1,5 +1,6 @@
 use std::time::{Duration, UNIX_EPOCH};
 
+use libconcentratord::jitqueue;
 use libloragw_sx1301::hal;
 use protobuf::well_known_types;
 use uuid::Uuid;

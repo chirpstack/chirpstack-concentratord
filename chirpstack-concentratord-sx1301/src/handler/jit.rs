@@ -2,11 +2,11 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
 
-use jitqueue::TxPacket;
+use libconcentratord::jitqueue::TxPacket;
+use libconcentratord::{jitqueue, stats};
 use libloragw_sx1301::hal;
 
 use super::super::wrapper;
-use super::stats;
 use super::timersync;
 
 pub fn jit_loop(queue: Arc<Mutex<jitqueue::Queue<wrapper::TxPacket>>>, antenna_gain: i8) {

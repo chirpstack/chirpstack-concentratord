@@ -2,7 +2,7 @@
 members = [
 	"chirpstack-concentratord-sx1301",
 	"libloragw-sx1301",
-	"jitqueue",
+	"libconcentratord",
 ]
 
 [profile.release]

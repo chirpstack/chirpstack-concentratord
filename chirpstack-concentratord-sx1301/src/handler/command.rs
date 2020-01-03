@@ -1,82 +1,52 @@
 use std::sync::{Arc, Mutex};
 
+use libconcentratord::{commands, jitqueue, stats};
 use protobuf::Message;
 use uuid::Uuid;
 
 use super::super::config::vendor;
 use super::super::wrapper;
-use super::stats;
 use super::timersync;
 
 pub fn handle_loop(
     vendor_config: &vendor::Configuration,
     gateway_id: &[u8],
-    rep_sock: zmq::Socket,
     queue: Arc<Mutex<jitqueue::Queue<wrapper::TxPacket>>>,
+    rep_sock: zmq::Socket,
 ) {
     debug!("Starting command handler loop");
 
-    loop {
-        let msg = rep_sock.recv_multipart(0).unwrap();
+    let reader = commands::Reader::new(&rep_sock);
 
-        match handle_msg(vendor_config, gateway_id, msg, &queue) {
-            Ok(v) => {
-                rep_sock.send(v, 0).unwrap();
+    for cmd in reader {
+        let resp = match cmd {
+            commands::Command::Downlink(pl) => {
+                match handle_downlink(vendor_config, gateway_id, &queue, &pl) {
+                    Ok(v) => v,
+                    Err(_) => Vec::new(),
+                }
             }
-            Err(_) => {
-                rep_sock.send(Vec::new(), 0).unwrap();
+            commands::Command::GatewayID => gateway_id.to_vec(),
+            commands::Command::Error(err) => {
+                error!("Read command error, error: {}", err);
+                Vec::new()
+            }
+            commands::Command::Unknown(command, _) => {
+                warn!("Unknown command received, command: {}", command);
+                Vec::new()
             }
         };
+
+        rep_sock.send(resp, 0).unwrap();
     }
 }
 
-fn handle_msg(
+fn handle_downlink(
     vendor_config: &vendor::Configuration,
     gateway_id: &[u8],
-    msg: Vec<Vec<u8>>,
     queue: &Arc<Mutex<jitqueue::Queue<wrapper::TxPacket>>>,
+    pl: &chirpstack_api::gw::DownlinkFrame,
 ) -> Result<Vec<u8>, ()> {
-    if msg.len() != 2 {
-        error!("Command must have two frames, frames: {}", msg.len());
-        return Err(());
-    }
-
-    let command = match String::from_utf8(msg[0].clone()) {
-        Ok(v) => v,
-        Err(err) => {
-            error!("Decode command identifier error, error: {}", err);
-            return Err(());
-        }
-    };
-
-    debug!("Command message received, command: {}", command);
-
-    match command.as_str() {
-        "down" => {
-            return handle_down(vendor_config, gateway_id, msg[1].clone(), queue);
-        }
-        "gateway_id" => return Ok(gateway_id.to_vec()),
-        _ => {
-            error!("Unexpected command received, command: {}", command);
-            return Err(());
-        }
-    };
-}
-
-fn handle_down(
-    vendor_config: &vendor::Configuration,
-    gateway_id: &[u8],
-    msg: Vec<u8>,
-    queue: &Arc<Mutex<jitqueue::Queue<wrapper::TxPacket>>>,
-) -> Result<Vec<u8>, ()> {
-    let pl = match protobuf::parse_from_bytes::<chirpstack_api::gw::DownlinkFrame>(&msg) {
-        Ok(v) => v,
-        Err(err) => {
-            error!("Unmarshal downlink command error, error: {}", err);
-            return Err(());
-        }
-    };
-
     let id = match Uuid::from_slice(pl.get_downlink_id()) {
         Ok(v) => v,
         Err(err) => {
