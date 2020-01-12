@@ -1,4 +1,5 @@
 use std::io::{BufRead, BufReader, Read};
+use std::path::Path;
 use std::sync::Mutex;
 use std::thread;
 use std::time::{Duration, SystemTime};
@@ -27,8 +28,8 @@ const XERR_INIT_AVG: isize = 128;
 const XERR_FILT_COEF: f64 = 256.0;
 
 pub fn gps_loop(gps_tty_path: &str) {
-    if gps_tty_path.eq("") {
-        info!("No gps_tty_path configured");
+    if !has_gps_configured(gps_tty_path) {
+        info!("No gps_tty_path configured or GPS unavailable");
         return;
     }
 
@@ -109,7 +110,7 @@ pub fn gps_loop(gps_tty_path: &str) {
 }
 
 pub fn gps_validate_loop(gps_tty_path: &str) {
-    if gps_tty_path.eq("") {
+    if !has_gps_configured(gps_tty_path) {
         return;
     }
 
@@ -289,4 +290,12 @@ fn gps_process_coords() {
         coords,
         coords_error
     );
+}
+
+fn has_gps_configured(gps_tty_path: &str) -> bool {
+    if gps_tty_path.eq("") {
+        return false;
+    }
+
+    Path::new(gps_tty_path).exists()
 }

@@ -85,17 +85,14 @@ lorawan_public=true
 #
 # This configures various vendor and model specific settings like the min / max
 # frequency, TX gain table, ... Valid options are:
-#   * generic_eu868  - Generic EU868 model
-#   * generic_us915  - Generic US915 model
+#   * generic_eu868      - Generic EU868 model
+#   * generic_eu868_gps  - Generic EU868 model (with GPS)
+#   * generic_us915      - Generic US915 model
+#   * generic_us915_gps  - Generic US915 model (with GPS)
 model="generic_eu868"
 
 # Gateway ID.
 gateway_id="0202030405060708"
-
-# GPS TTY path.
-#
-# To disable GPS, set this to an empty string.
-gps_tty_path="/dev/ttyAMA0"
 
   # LoRa concentrator configuration.
   [gateway.concentrator]
@@ -175,16 +172,9 @@ lorawan_public=true
 #
 # This configures various vendor and model specific settings like the min / max
 # frequency, TX gain table, ... Valid options are:
-#   * generic_sx1250_eu868
+#   * generic_sx1250_eu868      - Generic SX1250 based EU868 model
+#   * generic_sx1250_eu868_gps  - Generic SX1250 based EU868 model (with GPS)
 model="generic_sx1250_eu868"
-
-# GPS TTY path.
-#
-# To disable GPS, set this to an empty string.
-gps_tty_path=""
-
-# SPI device path.
-spidev_path="/dev/spidev0.0"
 
   # LoRa concentrator configuration.
   [gateway.concentrator]

@@ -68,7 +68,7 @@ pub fn run(config: &config::Configuration) -> Result<(), String> {
 
     // gps thread
     let gps_thread = thread::spawn({
-        let gps_tty_path = config.gateway.gps_tty_path.clone();
+        let gps_tty_path = config.gateway.model_config.gps_tty_path.clone();
 
         move || {
             handler::gps::gps_loop(&gps_tty_path);
@@ -77,7 +77,7 @@ pub fn run(config: &config::Configuration) -> Result<(), String> {
 
     // gps validate thread
     let gps_validate_thread = thread::spawn({
-        let gps_tty_path = config.gateway.gps_tty_path.clone();
+        let gps_tty_path = config.gateway.model_config.gps_tty_path.clone();
 
         move || {
             handler::gps::gps_validate_loop(&gps_tty_path);

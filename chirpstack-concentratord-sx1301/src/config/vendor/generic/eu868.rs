@@ -2,7 +2,7 @@ use libloragw_sx1301::hal;
 
 use super::super::Configuration;
 
-pub fn new() -> Configuration {
+pub fn new(gps: bool) -> Configuration {
     Configuration {
         radio_count: 2,
         clock_source: 1,
@@ -142,5 +142,9 @@ pub fn new() -> Configuration {
                 dac_gain: 3,
             },
         ],
+        gps_tty_path: match gps {
+            true => "/dev/ttyAMA0".to_string(),
+            false => "".to_string(),
+        },
     }
 }

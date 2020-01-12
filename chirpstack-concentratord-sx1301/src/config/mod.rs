@@ -39,8 +39,6 @@ pub struct Gateway {
     pub lorawan_public: bool,
     pub model: String,
     pub gateway_id: String,
-    #[serde(default)]
-    pub gps_tty_path: String,
     pub concentrator: Concentrator,
 
     #[serde(skip)]
@@ -82,8 +80,10 @@ pub fn get(filename: &str) -> Configuration {
 
     // get model configuration
     config.gateway.model_config = match config.gateway.model.as_ref() {
-        "generic_eu868" => vendor::generic::eu868::new(),
-        "generic_us915" => vendor::generic::us915::new(),
+        "generic_eu868" => vendor::generic::eu868::new(false),
+        "generic_eu868_gps" => vendor::generic::eu868::new(true),
+        "generic_us915" => vendor::generic::us915::new(false),
+        "generic_us915_gps" => vendor::generic::us915::new(true),
         _ => panic!("unexpected gateway model: {}", config.gateway.model),
     };
 

@@ -28,11 +28,8 @@ pub struct Gateway {
     pub antenna_gain: i8,
     #[serde(default)]
     pub lorawan_public: bool,
-    #[serde(default)]
-    pub gps_tty_path: String,
 
     pub model: String,
-    pub spidev_path: String,
     pub concentrator: Concentrator,
 
     #[serde(default)]
@@ -92,7 +89,8 @@ pub fn get(filename: &str) -> Configuration {
 
     // get model configuration
     config.gateway.model_config = match config.gateway.model.as_ref() {
-        "generic_sx1250_eu868" => vendor::generic::sx1250_eu868::new(),
+        "generic_sx1250_eu868" => vendor::generic::sx1250_eu868::new(false),
+        "generic_sx1250_eu868_gps" => vendor::generic::sx1250_eu868::new(true),
         _ => panic!("unexpected gateway model: {}", config.gateway.model),
     };
 

@@ -7,7 +7,7 @@ pub fn board_setconf(config: &Configuration) -> Result<(), String> {
         lorawan_public: config.gateway.lorawan_public,
         clock_source: config.gateway.model_config.clock_source,
         full_duplex: config.gateway.model_config.full_duplex,
-        spidev_path: config.gateway.spidev_path.clone(),
+        spidev_path: config.gateway.model_config.spidev_path.clone(),
     };
 
     info!(

@@ -9,6 +9,8 @@ pub struct Configuration {
     pub full_duplex: bool,
     pub lora_multi_sf_bandwidth: u32,
     pub radio_config: Vec<RadioConfig>,
+    pub gps_tty_path: String,
+    pub spidev_path: String,
 }
 
 #[derive(Clone)]
