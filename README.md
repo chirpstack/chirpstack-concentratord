@@ -231,6 +231,13 @@ make build-armv7-release
 
 You will find the binary under `target/{ARCHITECTURE}/release`.
 
+### Compile optimizations
+
+The provided `...-release` commands are using the default Rust `release`
+mode profile. Several options can be set to minimize the size of the final
+binary (usually at the cost of features or compile time).
+See https://github.com/johnthagen/min-sized-rust for more information.
+
 ## License
 
 ChirpStack Concentratord is distributed under the MIT license. See also

@@ -6,7 +6,3 @@ members = [
 	"libloragw-sx1302",
 	"libconcentratord",
 ]
-
-[profile.release]
-panic = "abort"
-lto = true
