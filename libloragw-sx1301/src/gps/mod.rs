@@ -170,27 +170,11 @@ pub fn get(
     get_location: bool,
 ) -> Result<(SystemTime, Duration, Coordinates, Coordinates), String> {
     let _guard = mutex::CONCENTATOR.lock().unwrap();
-    let mut utc = wrapper::timespec {
-        tv_sec: 0,
-        tv_nsec: 0,
-    };
 
-    let mut gps = wrapper::timespec {
-        tv_sec: 0,
-        tv_nsec: 0,
-    };
-
-    let mut loc = wrapper::coord_s {
-        lat: 0.0,
-        lon: 0.0,
-        alt: 0,
-    };
-
-    let mut err = wrapper::coord_s {
-        lat: 0.0,
-        lon: 0.0,
-        alt: 0,
-    };
+    let mut utc: wrapper::timespec = Default::default();
+    let mut gps: wrapper::timespec = Default::default();
+    let mut loc: wrapper::coord_s = Default::default();
+    let mut err: wrapper::coord_s = Default::default();
 
     let timespec_null: *mut wrapper::timespec = ptr::null_mut();
     let coords_null: *mut wrapper::coord_s = ptr::null_mut();

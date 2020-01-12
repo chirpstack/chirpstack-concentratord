@@ -362,6 +362,7 @@ pub fn rxif_setconf(if_chain: u8, conf: &RxIfConfig) -> Result<(), String> {
         implicit_payload_length: conf.implicit_payload_length,
         implicit_crc_en: conf.implicit_crc_enable,
         implicit_coderate: map_code_rate(conf.implicit_coderate),
+        ..Default::default()
     };
 
     let _guard = mutex::CONCENTATOR.lock().unwrap();

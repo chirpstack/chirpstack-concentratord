@@ -280,6 +280,7 @@ pub fn rxif_setconf(if_chain: u8, conf: &RxIfConfig) -> Result<(), String> {
         datarate: map_data_rate(conf.datarate),
         sync_word_size: conf.sync_word_size,
         sync_word: conf.sync_word,
+        ..Default::default()
     };
 
     let _guard = mutex::CONCENTATOR.lock().unwrap();
