@@ -91,6 +91,8 @@ pub fn get(filename: &str) -> Configuration {
     config.gateway.model_config = match config.gateway.model.as_ref() {
         "generic_sx1250_eu868" => vendor::generic::sx1250_eu868::new(false),
         "generic_sx1250_eu868_gps" => vendor::generic::sx1250_eu868::new(true),
+        "generic_sx1250_us915" => vendor::generic::sx1250_us915::new(false),
+        "generic_sx1250_us915_gps" => vendor::generic::sx1250_us915::new(true),
         _ => panic!("unexpected gateway model: {}", config.gateway.model),
     };
 

@@ -174,6 +174,8 @@ lorawan_public=true
 # frequency, TX gain table, ... Valid options are:
 #   * generic_sx1250_eu868      - Generic SX1250 based EU868 model
 #   * generic_sx1250_eu868_gps  - Generic SX1250 based EU868 model (with GPS)
+#   * generic_sx1250_us915      - Generic SX1250 based US915 model
+#   * generic_sx1250_us915_gps  - Generic SX1250 based US915 model (with GPS)
 model="generic_sx1250_eu868"
 
   # LoRa concentrator configuration.
