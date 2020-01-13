@@ -96,6 +96,8 @@ lorawan_public=true
 # frequency, TX gain table, ... Valid options are:
 #   * generic_as923      - Generic AS923 model
 #   * generic_as923_gps  - Generic AS923 model (with GPS)
+#   * generic_au915      - Generic AU915 model
+#   * generic_au915_gps  - Generic AU915 model (with GPS)
 #   * generic_eu868      - Generic EU868 model
 #   * generic_eu868_gps  - Generic EU868 model (with GPS)
 #   * generic_us915      - Generic US915 model

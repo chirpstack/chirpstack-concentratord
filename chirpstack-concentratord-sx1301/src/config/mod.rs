@@ -82,6 +82,8 @@ pub fn get(filename: &str) -> Configuration {
     config.gateway.model_config = match config.gateway.model.as_ref() {
         "generic_as923" => vendor::generic::as923::new(false),
         "generic_as923_gps" => vendor::generic::as923::new(true),
+        "generic_au915" => vendor::generic::au915::new(false),
+        "generic_au915_gps" => vendor::generic::au915::new(true),
         "generic_eu868" => vendor::generic::eu868::new(false),
         "generic_eu868_gps" => vendor::generic::eu868::new(true),
         "generic_us915" => vendor::generic::us915::new(false),
