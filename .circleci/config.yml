@@ -1,0 +1,20 @@
+version: 2
+jobs:
+  test:
+    machine:
+      image: circleci/classic:latest
+
+    steps:
+      - checkout
+      - run:
+          name: run tests
+          command: docker-compose run --rm chirpstack-concentratord make test
+
+workflows:
+  version: 2
+  test:
+    jobs:
+      - test:
+          filters:
+            tags:
+              only: /.*/

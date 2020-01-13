@@ -9,3 +9,6 @@ build-armv7-debug:
 
 build-armv7-release:
 	BINDGEN_EXTRA_CLANG_ARGS="--sysroot=/usr/arm-linux-gnueabihf" cargo build --target armv7-unknown-linux-gnueabihf --release
+
+test:
+	cargo test
