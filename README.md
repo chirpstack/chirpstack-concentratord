@@ -98,6 +98,8 @@ lorawan_public=true
 #   * generic_as923_gps  - Generic AS923 model (with GPS)
 #   * generic_au915      - Generic AU915 model
 #   * generic_au915_gps  - Generic AU915 model (with GPS)
+#   * generic_cn470      - Generic CN470 model
+#   * generic_cn470_gps  - Generic CN470 model (with GPS)
 #   * generic_eu868      - Generic EU868 model
 #   * generic_eu868_gps  - Generic EU868 model (with GPS)
 #   * generic_us915      - Generic US915 model
