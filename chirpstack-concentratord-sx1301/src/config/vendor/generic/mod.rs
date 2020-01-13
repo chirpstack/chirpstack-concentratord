@@ -3,4 +3,5 @@ pub mod au915;
 pub mod cn470;
 pub mod eu868;
 pub mod in865;
+pub mod kr920;
 pub mod us915;

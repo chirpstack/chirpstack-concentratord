@@ -90,6 +90,8 @@ pub fn get(filename: &str) -> Configuration {
         "generic_eu868_gps" => vendor::generic::eu868::new(true),
         "generic_in865" => vendor::generic::in865::new(false),
         "generic_in865_gps" => vendor::generic::in865::new(true),
+        "generic_kr920" => vendor::generic::kr920::new(false),
+        "generic_kr920_gps" => vendor::generic::kr920::new(true),
         "generic_us915" => vendor::generic::us915::new(false),
         "generic_us915_gps" => vendor::generic::us915::new(true),
         _ => panic!("unexpected gateway model: {}", config.gateway.model),
