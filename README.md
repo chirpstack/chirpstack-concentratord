@@ -68,6 +68,11 @@ Configuration example:
 #   * OFF
 log_level="INFO"
 
+# Log to syslog.
+#
+# When set to true, log messages are being written to syslog instead of stdout.
+log_to_syslog=false
+
 # Statistics interval.
 stats_interval="30s"
 
@@ -166,6 +171,11 @@ Configuration example:
 #   * ERROR
 #   * OFF
 log_level="DEBUG"
+
+# Log to syslog.
+#
+# When set to true, log messages are being written to syslog instead of stdout.
+log_to_syslog=false
 
 # Statistics interval.
 stats_interval="30s"

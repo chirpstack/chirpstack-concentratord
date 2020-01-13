@@ -50,6 +50,8 @@ pub struct Gateway {
 #[derive(Default, Deserialize)]
 pub struct Concentratord {
     pub log_level: String,
+    #[serde(default)]
+    pub log_to_syslog: bool,
     #[serde(with = "humantime_serde")]
     pub stats_interval: Duration,
     pub api: API,

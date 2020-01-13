@@ -21,6 +21,7 @@ lazy_static = "1.4"
 uuid = { version = "0.8.1", features = ["v4"] }
 chrono = "0.4"
 humantime-serde = "0.1.1"
+syslog = "5.0.0"
 
 [features]
 default = ['zmq/vendored']
