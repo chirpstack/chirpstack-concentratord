@@ -102,6 +102,8 @@ lorawan_public=true
 #   * generic_cn470_gps  - Generic CN470 model (with GPS)
 #   * generic_eu868      - Generic EU868 model
 #   * generic_eu868_gps  - Generic EU868 model (with GPS)
+#   * generic_in865      - Generic IN865 model
+#   * generic_in865_gps  - Generic IN865 model (with GPS)
 #   * generic_us915      - Generic US915 model
 #   * generic_us915_gps  - Generic US915 model (with GPS)
 model="generic_eu868"
