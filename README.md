@@ -22,6 +22,10 @@ for the Protobuf message definitions).
 
 Uplink received by the gateway (`UplinkFrame` Protobuf message). 
 
+### `stats`
+
+Gateway statistics (`GatewayStats` Protobuf message).
+
 ## Commands
 
 Commands can be sent to Concentratord using a [ZeroMQ REQ](http://zguide.zeromq.org/page:all#toc52)
@@ -32,6 +36,11 @@ data-frame holds the command payload encoded using Protobuf.
 
 Request to enqueue the given frame for downlink (`DownlinkFrame` Protobuf
 message). A downlink command is responded by a `DownlinkTXAck` message.
+
+### `gateway_id`
+
+Request the Gateway ID (the data-frame is empty). The response is the 8byte
+Gateway ID.
 
 ## Supported hardware
 
