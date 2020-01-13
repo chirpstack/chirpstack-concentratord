@@ -163,7 +163,7 @@ mod tests {
             config.gateway.concentrator.lora_std.bandwidth = lora_std_bw;
             config.gateway.concentrator.fsk.frequency = fsk_freq;
             config.gateway.concentrator.fsk.bandwidth = fsk_bw;
-            config.gateway.model_config = generic::eu868::new();
+            config.gateway.model_config = generic::eu868::new(true);
 
             let radios = super::get_radio_frequencies(&config).unwrap();
             assert_eq!(radios, expected);
