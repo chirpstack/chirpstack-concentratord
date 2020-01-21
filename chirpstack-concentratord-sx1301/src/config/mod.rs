@@ -31,6 +31,15 @@ pub struct FSKChannel {
     pub bandwidth: u32,
 }
 
+#[derive(Default, Deserialize, Clone)]
+pub struct Beacon {
+    pub compulsory_rfu_size: usize,
+    pub frequencies: Vec<u32>,
+    pub spreading_factor: u32,
+    pub bandwidth: u32,
+    pub tx_power: u32,
+}
+
 #[derive(Default, Deserialize)]
 pub struct Gateway {
     #[serde(default)]
@@ -40,6 +49,8 @@ pub struct Gateway {
     pub model: String,
     pub gateway_id: String,
     pub concentrator: Concentrator,
+    #[serde(default)]
+    pub beacon: Beacon,
 
     #[serde(skip)]
     pub gateway_id_bytes: Vec<u8>,

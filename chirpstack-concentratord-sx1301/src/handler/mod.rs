@@ -1,3 +1,4 @@
+pub mod beacon;
 pub mod command;
 pub mod gps;
 pub mod jit;

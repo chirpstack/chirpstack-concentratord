@@ -57,6 +57,7 @@ pub fn run(config: config::Configuration) -> Result<(), String> {
     let command_loop = thread::spawn({
         let vendor_config = config.gateway.model_config.clone();
         let gateway_id = config.gateway.gateway_id_bytes.clone();
+        let queue = Arc::clone(&queue);
 
         move || {
             handler::command::handle_loop(&vendor_config, &gateway_id, queue, rep_sock);
@@ -91,6 +92,16 @@ pub fn run(config: config::Configuration) -> Result<(), String> {
         }
     });
 
+    // beacon thread
+    let beacon_loop = thread::spawn({
+        let beacon_config = config.gateway.beacon.clone();
+        let queue = Arc::clone(&queue);
+
+        move || {
+            handler::beacon::beacon_loop(&beacon_config, queue);
+        }
+    });
+
     up_handler.join().unwrap();
     time_sync.join().unwrap();
     jit_loop.join().unwrap();
@@ -98,6 +109,7 @@ pub fn run(config: config::Configuration) -> Result<(), String> {
     gps_loop.join().unwrap();
     gps_validate_loop.join().unwrap();
     stats_loop.join().unwrap();
+    beacon_loop.join().unwrap();
 
     return Ok(());
 }
