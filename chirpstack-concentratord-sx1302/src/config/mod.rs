@@ -85,8 +85,13 @@ pub struct Configuration {
     pub gateway: Gateway,
 }
 
-pub fn get(filename: &str) -> Configuration {
-    let content = fs::read_to_string(filename).expect("Error reading config file");
+pub fn get(filenames: Vec<String>) -> Configuration {
+    let mut content: String = String::new();
+
+    for file_name in &filenames {
+        content.push_str(&fs::read_to_string(&file_name).expect("Error reading config file"));
+    }
+
     let mut config: Configuration = toml::from_str(&content).expect("Error parsing config file");
 
     // get model configuration

@@ -28,15 +28,17 @@ fn main() {
                 .short("c")
                 .long("config")
                 .value_name("FILE")
+                .multiple(true)
+                .number_of_values(1)
                 .help("Path to configuration file")
                 .takes_value(true),
         )
         .get_matches();
 
-    let config_filename = matches
-        .value_of("config")
-        .unwrap_or("chirpstack-concentratord-sx1301.toml");
-    let config = config::get(config_filename);
+    let config_files = matches
+        .values_of_lossy("config")
+        .unwrap_or(vec!["chirpstack-concentratord-sx1301.toml".to_string()]);
+    let config = config::get(config_files);
 
     if config.concentratord.log_to_syslog {
         let formatter = Formatter3164 {
