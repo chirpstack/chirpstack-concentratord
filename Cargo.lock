@@ -91,7 +91,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "chirpstack-concentratord-sx1301"
-version = "3.0.0-test.1"
+version = "3.0.0-test.2"
 dependencies = [
  "chirpstack_api 3.0.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "chrono 0.4.10 (registry+https://github.com/rust-lang/crates.io-index)",

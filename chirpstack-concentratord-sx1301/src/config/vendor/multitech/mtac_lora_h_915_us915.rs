@@ -7,7 +7,7 @@ pub enum Port {
     AP2,
 }
 
-// source: http://git.multitech.net/cgi-bin/cgit.cgi/meta-mlinux.git/tree/recipes-connectivity/lora/lora-packet-forwarder/global_conf.json.3.0.0.MTAC_LORA_1_5.EU868.basic.clksrc0
+// source: http://git.multitech.net/cgi-bin/cgit.cgi/meta-mlinux.git/tree/recipes-connectivity/lora/lora-packet-forwarder/global_conf.json.3.0.0.MTAC_LORA_1_5.US915.basic.clksrc0
 pub fn new(gps: bool, port: Port) -> Configuration {
     Configuration {
         radio_count: 2,
@@ -15,7 +15,7 @@ pub fn new(gps: bool, port: Port) -> Configuration {
         radio_rssi_offset: vec![-162.0, -162.0],
         radio_tx_enabled: vec![true, false],
         radio_type: vec![hal::RadioType::SX1257, hal::RadioType::SX1257],
-        radio_min_max_tx_freq: vec![(863000000, 870000000), (863000000, 870000000)],
+        radio_min_max_tx_freq: vec![(902000000, 928000000), (902000000, 928000000)],
         radio_tx_notch_freq: vec![0, 0],
         lora_multi_sf_bandwidth: 125000,
         tx_gain_table: vec![

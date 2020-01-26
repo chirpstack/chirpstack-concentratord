@@ -119,6 +119,10 @@ lorawan_public=true
 #   * multitech_mtac_lora_h_868_eu868_ap1_gps  - Multitech Conduit - MTAC-LORA-H-868 - EU868 - AP1 slot (with GPS)
 #   * multitech_mtac_lora_h_868_eu868_ap2      - Multitech Conduit - MTAC-LORA-H-868 - EU868 - AP2 slot
 #   * multitech_mtac_lora_h_868_eu868_ap2_gps  - Multitech Conduit - MTAC-LORA-H-868 - EU868 - AP2 slot (with GPS)
+#   * multitech_mtac_lora_h_915_us915_ap1      - Multitech Conduit - MTAC-LORA-H-915 - US915 - AP1 slot
+#   * multitech_mtac_lora_h_915_us915_ap1_gps  - Multitech Conduit - MTAC-LORA-H-915 - US915 - AP1 slot (with GPS)
+#   * multitech_mtac_lora_h_915_us915_ap2      - Multitech Conduit - MTAC-LORA-H-915 - US915 - AP2 slot
+#   * multitech_mtac_lora_h_915_us915_ap2_gps  - Multitech Conduit - MTAC-LORA-H-915 - US915 - AP2 slot (with GPS)
 model="generic_eu868"
 
 # Gateway ID.

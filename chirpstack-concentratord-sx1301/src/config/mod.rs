@@ -130,6 +130,22 @@ pub fn get(filenames: Vec<String>) -> Configuration {
             true,
             vendor::multitech::mtac_lora_h_868_eu868::Port::AP2,
         ),
+        "multitech_mtac_lora_h_915_us915_ap1" => vendor::multitech::mtac_lora_h_915_us915::new(
+            false,
+            vendor::multitech::mtac_lora_h_915_us915::Port::AP1,
+        ),
+        "multitech_mtac_lora_h_915_us915_ap1_gps" => vendor::multitech::mtac_lora_h_915_us915::new(
+            true,
+            vendor::multitech::mtac_lora_h_915_us915::Port::AP1,
+        ),
+        "multitech_mtac_lora_h_915_us915_ap2" => vendor::multitech::mtac_lora_h_915_us915::new(
+            false,
+            vendor::multitech::mtac_lora_h_915_us915::Port::AP2,
+        ),
+        "multitech_mtac_lora_h_915_us915_ap2_gps" => vendor::multitech::mtac_lora_h_915_us915::new(
+            true,
+            vendor::multitech::mtac_lora_h_915_us915::Port::AP2,
+        ),
         _ => panic!("unexpected gateway model: {}", config.gateway.model),
     };
 
