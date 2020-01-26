@@ -274,8 +274,11 @@ docker-compose run --rm chirpstack-concentratord bash
 ```
 
 ```bash
-# Compile ARMv7 binary
-make build-armv7-release
+# Compile ARMv5 binary
+make build-armv5-release
+
+# Compile ARMv7hf binary
+make build-armv7hf-release
 ```
 
 You will find the binary under `target/{ARCHITECTURE}/release`.

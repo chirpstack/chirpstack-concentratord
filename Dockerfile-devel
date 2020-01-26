@@ -1,23 +1,19 @@
-FROM rust:1.40-buster
+FROM rust:1.40-stretch
 
 # required by bingen
 RUN apt-get update && \
 	apt-get install -y \
 		build-essential \
 		cmake \
-		clang \
-		libclang-dev \
-		llvm-dev \
+		clang-3.9 \
+		libclang-3.9-dev \
+		llvm-3.9-dev \
+		gcc-arm-linux-gnueabi \
+		g++-arm-linux-gnueabi \
 		gcc-arm-linux-gnueabihf \
 		g++-arm-linux-gnueabihf \
 		git && \
 	apt-get clean
-
-RUN rustup target add armv7-unknown-linux-gnueabihf
-
-RUN echo '[target.armv7-unknown-linux-gnueabihf]\n\
-linker = "arm-linux-gnueabihf-gcc"\n'\
->> /usr/local/cargo/config
 
 RUN mkdir -p /hal/native && \
 	cd /hal/native && \
@@ -36,25 +32,52 @@ RUN cd /hal/native/sx1302_hal && \
 	cp /hal/native/sx1302_hal/libtools/inc/* /usr/include && \
 	cp /hal/native/sx1302_hal/libtools/*.a /usr/lib
 
-RUN mkdir -p /hal/arm && \
-	cd /hal/arm && \
+RUN mkdir -p /hal/armv5 && \
+	cd /hal/armv5 && \
+	git clone https://github.com/Lora-net/lora_gateway.git -b v5.0.1 && \
+	git clone https://github.com/Lora-net/sx1302_hal.git -b V1.0.4
+
+RUN mkdir -p /hal/armv7hf && \
+	cd /hal/armv7hf && \
 	git clone https://github.com/Lora-net/lora_gateway.git -b v5.0.1 && \
 	git clone https://github.com/Lora-net/sx1302_hal.git -b V1.0.4
 
 # Needed for RAK shields, works with other shields too
-RUN sed -i 's/define SPI_SPEED.*/define SPI_SPEED 2000000/g' /hal/arm/lora_gateway/libloragw/src/loragw_spi.native.c
+RUN sed -i 's/define SPI_SPEED.*/define SPI_SPEED 2000000/g' /hal/armv5/lora_gateway/libloragw/src/loragw_spi.native.c
+RUN sed -i 's/define SPI_SPEED.*/define SPI_SPEED 2000000/g' /hal/armv7hf/lora_gateway/libloragw/src/loragw_spi.native.c
 
-RUN cd /hal/arm/lora_gateway && \
-	ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- make && \
-	ln -s /hal/arm/lora_gateway/libloragw/inc /usr/arm-linux-gnueabihf/include/libloragw-sx1301 && \
-	ln -s /hal/arm/lora_gateway/libloragw/libloragw.a /usr/arm-linux-gnueabihf/lib/libloragw-sx1301.a
+RUN cd /hal/armv5/lora_gateway && \
+	ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- make && \
+	ln -s /hal/armv5/lora_gateway/libloragw/inc /usr/arm-linux-gnueabi/include/libloragw-sx1301 && \
+	ln -s /hal/armv5/lora_gateway/libloragw/libloragw.a /usr/arm-linux-gnueabi/lib/libloragw-sx1301.a
 
-RUN cd /hal/arm/sx1302_hal && \
+RUN cd /hal/armv5/sx1302_hal && \
+	ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- make && \
+	ln -s /hal/armv5/sx1302_hal/libloragw/inc /usr/arm-linux-gnueabi/include/libloragw-sx1302 && \
+	ln -s /hal/armv5/sx1302_hal/libloragw/libloragw.a /usr/arm-linux-gnueabi/lib/libloragw-sx1302.a && \
+	cp /hal/armv5/sx1302_hal/libtools/inc/* /usr/arm-linux-gnueabi/include && \
+	cp /hal/armv5/sx1302_hal/libtools/*.a /usr/arm-linux-gnueabi/lib
+
+RUN cd /hal/armv7hf/lora_gateway && \
 	ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- make && \
-	ln -s /hal/arm/sx1302_hal/libloragw/inc /usr/arm-linux-gnueabihf/include/libloragw-sx1302 && \
-	ln -s /hal/arm/sx1302_hal/libloragw/libloragw.a /usr/arm-linux-gnueabihf/lib/libloragw-sx1302.a && \
-	cp /hal/arm/sx1302_hal/libtools/inc/* /usr/arm-linux-gnueabihf/include && \
-	cp /hal/arm/sx1302_hal/libtools/*.a /usr/arm-linux-gnueabihf/lib
+	ln -s /hal/armv7hf/lora_gateway/libloragw/inc /usr/arm-linux-gnueabihf/include/libloragw-sx1301 && \
+	ln -s /hal/armv7hf/lora_gateway/libloragw/libloragw.a /usr/arm-linux-gnueabihf/lib/libloragw-sx1301.a
+
+RUN cd /hal/armv7hf/sx1302_hal && \
+	ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- make && \
+	ln -s /hal/armv7hf/sx1302_hal/libloragw/inc /usr/arm-linux-gnueabihf/include/libloragw-sx1302 && \
+	ln -s /hal/armv7hf/sx1302_hal/libloragw/libloragw.a /usr/arm-linux-gnueabihf/lib/libloragw-sx1302.a && \
+	cp /hal/armv7hf/sx1302_hal/libtools/inc/* /usr/arm-linux-gnueabihf/include && \
+	cp /hal/armv7hf/sx1302_hal/libtools/*.a /usr/arm-linux-gnueabihf/lib
+
+RUN rustup target add armv5te-unknown-linux-gnueabi
+RUN rustup target add arm-unknown-linux-gnueabihf
+
+RUN echo '[target.armv5te-unknown-linux-gnueabi]\n\
+linker = "arm-linux-gnueabi-gcc"\n\
+[target.arm-unknown-linux-gnueabihf]\n\
+linker = "arm-linux-gnueabihf-gcc"\n'\
+>> /usr/local/cargo/config
 
 ENV PROJECT_PATH=/chirpstack-concentratord
 RUN mkdir -p $PROJECT_PATH
