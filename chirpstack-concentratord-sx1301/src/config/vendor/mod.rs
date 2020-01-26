@@ -1,6 +1,7 @@
 use libloragw_sx1301::hal;
 
 pub mod generic;
+pub mod multitech;
 
 #[derive(Default, Clone)]
 pub struct Configuration {
@@ -14,4 +15,5 @@ pub struct Configuration {
     pub lora_multi_sf_bandwidth: u32,
     pub tx_gain_table: Vec<hal::TxGainConfig>,
     pub gps_tty_path: String,
+    pub spidev_path: String,
 }

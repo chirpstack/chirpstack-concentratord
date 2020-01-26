@@ -146,5 +146,6 @@ pub fn new(gps: bool) -> Configuration {
             true => "/dev/ttyAMA0".to_string(),
             false => "".to_string(),
         },
+        spidev_path: "/dev/spidev0.0".to_string(),
     }
 }

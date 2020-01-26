@@ -17,7 +17,7 @@ RUN apt-get update && \
 
 RUN mkdir -p /hal/native && \
 	cd /hal/native && \
-	git clone https://github.com/Lora-net/lora_gateway.git -b v5.0.1 && \
+	git clone https://github.com/brocaar/lora_gateway.git -b v5.0.1r2 && \
 	git clone https://github.com/Lora-net/sx1302_hal.git -b V1.0.4
 
 RUN cd /hal/native/lora_gateway && \
@@ -34,17 +34,17 @@ RUN cd /hal/native/sx1302_hal && \
 
 RUN mkdir -p /hal/armv5 && \
 	cd /hal/armv5 && \
-	git clone https://github.com/Lora-net/lora_gateway.git -b v5.0.1 && \
+	git clone https://github.com/brocaar/lora_gateway.git -b v5.0.1r2 && \
 	git clone https://github.com/Lora-net/sx1302_hal.git -b V1.0.4
 
 RUN mkdir -p /hal/armv7hf && \
 	cd /hal/armv7hf && \
-	git clone https://github.com/Lora-net/lora_gateway.git -b v5.0.1 && \
+	git clone https://github.com/brocaar/lora_gateway.git -b v5.0.1r2 && \
 	git clone https://github.com/Lora-net/sx1302_hal.git -b V1.0.4
 
 # Needed for RAK shields, works with other shields too
-RUN sed -i 's/define SPI_SPEED.*/define SPI_SPEED 2000000/g' /hal/armv5/lora_gateway/libloragw/src/loragw_spi.native.c
-RUN sed -i 's/define SPI_SPEED.*/define SPI_SPEED 2000000/g' /hal/armv7hf/lora_gateway/libloragw/src/loragw_spi.native.c
+# RUN sed -i 's/define SPI_SPEED.*/define SPI_SPEED 2000000/g' /hal/armv5/lora_gateway/libloragw/src/loragw_spi.native.c
+# RUN sed -i 's/define SPI_SPEED.*/define SPI_SPEED 2000000/g' /hal/armv7hf/lora_gateway/libloragw/src/loragw_spi.native.c
 
 RUN cd /hal/armv5/lora_gateway && \
 	ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- make && \

@@ -12,6 +12,7 @@ pub fn run(config: config::Configuration) -> Result<(), String> {
     );
 
     // setup concentrator
+    concentrator::set_spidev_path(&config)?;
     concentrator::board_setconf(&config)?;
     concentrator::txgain_setconf(&config)?;
     concentrator::rxrf_setconf(&config)?;

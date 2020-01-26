@@ -1,6 +1,16 @@
-use libloragw_sx1301::hal;
+use libloragw_sx1301::{hal, spi};
 
 use super::config::{helpers, Configuration};
+
+pub fn set_spidev_path(config: &Configuration) -> Result<(), String> {
+    info!(
+        "Setting spi device path, spidev_path: {}",
+        config.gateway.model_config.spidev_path
+    );
+    spi::set_path(&config.gateway.model_config.spidev_path)?;
+
+    return Ok(());
+}
 
 pub fn board_setconf(config: &Configuration) -> Result<(), String> {
     let board_config = hal::BoardConfig {
