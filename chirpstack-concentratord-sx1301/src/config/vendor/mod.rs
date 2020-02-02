@@ -1,6 +1,7 @@
 use libloragw_sx1301::hal;
 
 pub mod generic;
+pub mod imst;
 pub mod multitech;
 
 #[derive(Default, Clone)]

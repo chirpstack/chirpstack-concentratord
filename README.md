@@ -115,6 +115,7 @@ lorawan_public=true
 #   * generic_ru864_gps  - Generic RU864 model (with GPS)
 #   * generic_us915      - Generic US915 model
 #   * generic_us915_gps  - Generic US915 model (with GPS)
+#   * imst_ic880a_eu868                        - IMST iC880A - EU868
 #   * multitech_mtac_lora_h_868_eu868_ap1      - Multitech Conduit - MTAC-LORA-H-868 - EU868 - AP1 slot
 #   * multitech_mtac_lora_h_868_eu868_ap1_gps  - Multitech Conduit - MTAC-LORA-H-868 - EU868 - AP1 slot (with GPS)
 #   * multitech_mtac_lora_h_868_eu868_ap2      - Multitech Conduit - MTAC-LORA-H-868 - EU868 - AP2 slot

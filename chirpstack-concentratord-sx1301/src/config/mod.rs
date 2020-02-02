@@ -114,6 +114,7 @@ pub fn get(filenames: Vec<String>) -> Configuration {
         "generic_ru864_gps" => vendor::generic::ru864::new(true),
         "generic_us915" => vendor::generic::us915::new(false),
         "generic_us915_gps" => vendor::generic::us915::new(true),
+        "imst_ic880a_eu868" => vendor::imst::ic880a_eu868::new(),
         "multitech_mtac_lora_h_868_eu868_ap1" => vendor::multitech::mtac_lora_h_868_eu868::new(
             false,
             vendor::multitech::mtac_lora_h_868_eu868::Port::AP1,
