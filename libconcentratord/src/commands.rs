@@ -1,4 +1,5 @@
 use log::info;
+use prost::Message;
 
 use super::socket::ZMQ_CONTEXT;
 
@@ -63,7 +64,7 @@ fn handle_message(msg: Vec<Vec<u8>>) -> Result<Command, String> {
 }
 
 fn parse_down(msg: &[u8]) -> Result<chirpstack_api::gw::DownlinkFrame, String> {
-    match protobuf::parse_from_bytes::<chirpstack_api::gw::DownlinkFrame>(&msg) {
+    match chirpstack_api::gw::DownlinkFrame::decode(msg) {
         Ok(v) => Ok(v),
         Err(err) => Err(err.to_string()),
     }

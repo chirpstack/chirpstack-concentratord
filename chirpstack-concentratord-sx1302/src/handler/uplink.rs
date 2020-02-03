@@ -22,7 +22,8 @@ pub fn handle_loop(gateway_id: &[u8]) {
                         }
                     };
 
-                    let uuid = Uuid::from_slice(proto.get_rx_info().get_uplink_id()).unwrap();
+                    let rx_info = proto.rx_info.as_ref().unwrap();
+                    let uuid = Uuid::from_slice(&rx_info.uplink_id).unwrap();
 
                     info!(
                         "Frame received, uplink_id: {}, count_us: {}, freq: {}, bw: {}, mod: {:?}, dr: {:?}",
@@ -35,8 +36,7 @@ pub fn handle_loop(gateway_id: &[u8]) {
                     );
 
                     stats::inc_rx_packets_received();
-                    if proto.get_rx_info().get_crc_status() == chirpstack_api::gw::CRCStatus::CRC_OK
-                    {
+                    if rx_info.crc_status() == chirpstack_api::gw::CrcStatus::CrcOk {
                         stats::inc_rx_packets_received_ok();
                     }
 

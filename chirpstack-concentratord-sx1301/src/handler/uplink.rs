@@ -1,4 +1,5 @@
-use std::{thread, time};
+use std::thread;
+use std::time::Duration;
 
 use libconcentratord::{events, stats};
 use libloragw_sx1301::hal;
@@ -21,7 +22,8 @@ pub fn handle_loop(gateway_id: &[u8]) {
                         }
                     };
 
-                    let uuid = Uuid::from_slice(proto.get_rx_info().get_uplink_id()).unwrap();
+                    let rx_info = proto.rx_info.as_ref().unwrap();
+                    let uuid = Uuid::from_slice(&rx_info.uplink_id).unwrap();
 
                     info!(
                         "Frame received, uplink_id: {}, count_us: {}, freq: {}, bw: {}, mod: {:?}, dr: {:?}",
@@ -34,19 +36,16 @@ pub fn handle_loop(gateway_id: &[u8]) {
                     );
 
                     stats::inc_rx_packets_received();
-                    if proto.get_rx_info().get_crc_status() == chirpstack_api::gw::CRCStatus::CRC_OK
-                    {
+                    if rx_info.crc_status() == chirpstack_api::gw::CrcStatus::CrcOk {
                         stats::inc_rx_packets_received_ok();
                     }
 
                     events::send_uplink(&proto).unwrap();
                 }
             }
-            Err(_) => {
-                error!("Receive error");
-            }
+            Err(_) => error!("Receive error"),
         };
 
-        thread::sleep(time::Duration::from_millis(10));
+        thread::sleep(Duration::from_millis(10));
     }
 }

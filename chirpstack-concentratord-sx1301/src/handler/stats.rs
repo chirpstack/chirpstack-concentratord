@@ -14,11 +14,14 @@ pub fn stats_loop(gateway_id: &[u8], stats_interval: &Duration) {
         // fetch the current gps coordinates
         let loc = match gps::get_coords() {
             Ok(v) => Some({
-                let mut loc = chirpstack_api::common::Location::default();
-                loc.set_latitude(v.latitude);
-                loc.set_longitude(v.longitude);
-                loc.set_altitude(v.altitude as f64);
-                loc.set_source(chirpstack_api::common::LocationSource::GPS);
+                let mut loc = chirpstack_api::common::Location {
+                    latitude: v.latitude,
+                    longitude: v.longitude,
+                    altitude: v.altitude as f64,
+                    ..Default::default()
+                };
+
+                loc.set_source(chirpstack_api::common::LocationSource::Gps);
                 loc
             }),
             Err(err) => {

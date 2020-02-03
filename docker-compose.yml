@@ -6,3 +6,4 @@ services:
       dockerfile: Dockerfile-devel
     volumes:
       - ./:/chirpstack-concentratord
+      - /home/brocaar/Work/Projects/ChirpStack/Repos/chirpstack-api/:/chirpstack-api

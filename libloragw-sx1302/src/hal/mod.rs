@@ -278,6 +278,30 @@ pub struct TxPacket {
     pub payload: [u8; 256],
 }
 
+impl Default for TxPacket {
+    fn default() -> Self {
+        TxPacket {
+            freq_hz: 0,
+            tx_mode: TxMode::Immediate,
+            count_us: 0,
+            rf_chain: 0,
+            rf_power: 0,
+            modulation: Modulation::Undefined,
+            freq_offset: 0,
+            bandwidth: 0,
+            datarate: DataRate::Undefined,
+            coderate: CodeRate::Undefined,
+            invert_pol: false,
+            f_dev: 0,
+            preamble: 0,
+            no_crc: false,
+            no_header: false,
+            size: 0,
+            payload: [0; 256],
+        }
+    }
+}
+
 /// Configuration structure for the timestamp.
 pub struct TimestampConfig {
     pub enable_precision_ts: bool,

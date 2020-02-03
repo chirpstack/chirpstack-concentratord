@@ -1,7 +1,7 @@
 use std::sync::{Arc, Mutex};
 
 use libconcentratord::{commands, jitqueue, stats};
-use protobuf::Message;
+use prost::Message;
 use uuid::Uuid;
 
 use super::super::config::vendor;
@@ -47,7 +47,7 @@ fn handle_downlink(
     queue: &Arc<Mutex<jitqueue::Queue<wrapper::TxPacket>>>,
     pl: &chirpstack_api::gw::DownlinkFrame,
 ) -> Result<Vec<u8>, ()> {
-    let id = match Uuid::from_slice(pl.get_downlink_id()) {
+    let id = match Uuid::from_slice(&pl.downlink_id) {
         Ok(v) => v,
         Err(err) => {
             error!("Decode downlink_id error: {}", err);
@@ -69,12 +69,12 @@ fn handle_downlink(
 
     stats::inc_tx_packets_received();
 
-    let mut tx_ack = chirpstack_api::gw::DownlinkTXAck::default();
+    let mut tx_ack = chirpstack_api::gw::DownlinkTxAck::default();
     let mut valid = true;
 
-    tx_ack.set_token(pl.get_token());
-    tx_ack.set_downlink_id(pl.get_downlink_id().to_vec());
-    tx_ack.set_gateway_id(gateway_id.to_vec());
+    tx_ack.token = pl.token;
+    tx_ack.downlink_id = pl.downlink_id.to_vec();
+    tx_ack.gateway_id = gateway_id.to_vec();
 
     let freqs = vendor_config.radio_min_max_tx_freq[tx_packet.tx_packet().rf_chain as usize];
 
@@ -84,7 +84,7 @@ fn handle_downlink(
             "Frequency is not within min/max gateway frequency, downlink_id: {}, min_freq: {}, max_freq: {}",
             id, freqs.0, freqs.1
         );
-        tx_ack.set_error("TX_FREQ".to_string());
+        tx_ack.error = "TX_FREQ".to_string();
     }
 
     if valid {
@@ -102,17 +102,18 @@ fn handle_downlink(
 
                 match err {
                     jitqueue::EnqueueError::Collision => {
-                        tx_ack.set_error("COLLISION_PACKET".to_string())
+                        tx_ack.error = "COLLISION_PACKET".to_string()
                     }
-                    jitqueue::EnqueueError::FullQueue => tx_ack.set_error("QUEUE_FULL".to_string()),
-                    jitqueue::EnqueueError::TooLate => tx_ack.set_error("TOO_LATE".to_string()),
-                    jitqueue::EnqueueError::TooEarly => tx_ack.set_error("TOO_EARLY".to_string()),
-                    jitqueue::EnqueueError::Unknown(err) => tx_ack.set_error(err),
+                    jitqueue::EnqueueError::FullQueue => tx_ack.error = "QUEUE_FULL".to_string(),
+                    jitqueue::EnqueueError::TooLate => tx_ack.error = "TOO_LATE".to_string(),
+                    jitqueue::EnqueueError::TooEarly => tx_ack.error = "TOO_EARLY".to_string(),
+                    jitqueue::EnqueueError::Unknown(err) => tx_ack.error = err,
                 }
             }
         };
     }
 
-    let tx_ack_bytes = tx_ack.write_to_bytes().unwrap();
-    return Ok(tx_ack_bytes);
+    let mut buf = Vec::new();
+    tx_ack.encode(&mut buf).unwrap();
+    return Ok(buf);
 }
