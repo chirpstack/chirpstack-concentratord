@@ -1,5 +1,11 @@
 # Changelog
 
+## v3.0.0-test.4
+
+#### Internal changes
+
+* Update to chirpstack_api v3.1.1.
+
 ## v3.0.0-test.3
 
 ### Internal changes
