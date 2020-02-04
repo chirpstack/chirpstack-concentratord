@@ -70,7 +70,6 @@ RUN cd /hal/armv7hf/sx1302_hal && \
 	cp /hal/armv7hf/sx1302_hal/libtools/inc/* /usr/arm-linux-gnueabihf/include && \
 	cp /hal/armv7hf/sx1302_hal/libtools/*.a /usr/arm-linux-gnueabihf/lib
 
-RUN rustup component add rustfmt
 RUN rustup target add armv5te-unknown-linux-gnueabi
 RUN rustup target add arm-unknown-linux-gnueabihf
 

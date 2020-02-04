@@ -156,7 +156,7 @@ checksum = "4785bdd1c96b2a846b2bd7cc02e86b6b3dbf14e7e53446c4f54c92a361040822"
 
 [[package]]
 name = "chirpstack-concentratord-sx1301"
-version = "3.0.0-test.4"
+version = "3.0.0-test.5"
 dependencies = [
  "chirpstack_api",
  "chrono",
@@ -179,7 +179,7 @@ dependencies = [
 
 [[package]]
 name = "chirpstack-concentratord-sx1302"
-version = "3.0.0-test.4"
+version = "3.0.0-test.5"
 dependencies = [
  "chirpstack_api",
  "chrono",
@@ -202,9 +202,9 @@ dependencies = [
 
 [[package]]
 name = "chirpstack_api"
-version = "3.1.1"
+version = "3.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "efafe6a6ddb56dcd4b266452ba52dfa1b33657f04b3180a94267b3f71e52c1c0"
+checksum = "22925e263d1488c0ec6144353b21fda0db455cbc637576312a09e74f725458ef"
 dependencies = [
  "prost",
  "prost-types",
@@ -469,7 +469,7 @@ checksum = "d515b1f41455adea1313a4a2ac8a8a477634fbae63cc6100e3aebb207ce61558"
 
 [[package]]
 name = "libconcentratord"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
  "chirpstack_api",
  "lazy_static",

@@ -1,6 +1,6 @@
 [package]
 name = "chirpstack-concentratord-sx1302"
-version = "3.0.0-test.4"
+version = "3.0.0-test.5"
 authors = ["Orne Brocaar <info@brocaar.com>"]
 edition = "2018"
 publish = false
@@ -8,7 +8,7 @@ publish = false
 [dependencies]
 libloragw-sx1302 = {path = "../libloragw-sx1302"}
 libconcentratord = {path = "../libconcentratord"}
-chirpstack_api = { version = "3.1.1", default-features = false }
+chirpstack_api = { version = "3.1.2", default-features = false }
 serde = { version = "1.0", features = ["derive"] }
 toml = "0.5"
 clap = "2.33.0"

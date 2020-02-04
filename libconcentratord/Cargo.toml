@@ -1,6 +1,6 @@
 [package]
 name = "libconcentratord"
-version = "1.0.1"
+version = "1.0.2"
 authors = ["Orne Brocaar <@brocaar.com>"]
 edition = "2018"
 publish = false
@@ -9,7 +9,7 @@ publish = false
 log = "0.4"
 zmq = "0.9.1"
 lazy_static = "1.4"
-chirpstack_api = { version = "3.1.1", default-features = false }
+chirpstack_api = { version = "3.1.2", default-features = false }
 uuid = { version = "0.8.1", features = ["v4"] }
 prost = "0.6"
 prost-types = "0.6"
