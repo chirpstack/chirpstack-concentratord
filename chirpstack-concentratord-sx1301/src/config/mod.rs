@@ -148,6 +148,7 @@ pub fn get(filenames: Vec<String>) -> Configuration {
             true,
             vendor::multitech::mtac_lora_h_915_us915::Port::AP2,
         ),
+        "wifx_lorix_one_eu868" => vendor::wifx::lorix_one_eu868::new(),
         _ => panic!("unexpected gateway model: {}", config.gateway.model),
     };
 
