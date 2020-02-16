@@ -99,23 +99,24 @@ lorawan_public=true
 #
 # This configures various vendor and model specific settings like the min / max
 # frequency, TX gain table, ... Valid options are:
-#   * generic_as923      - Generic AS923 model
-#   * generic_as923_gps  - Generic AS923 model (with GPS)
-#   * generic_au915      - Generic AU915 model
-#   * generic_au915_gps  - Generic AU915 model (with GPS)
-#   * generic_cn470      - Generic CN470 model
-#   * generic_cn470_gps  - Generic CN470 model (with GPS)
-#   * generic_eu868      - Generic EU868 model
-#   * generic_eu868_gps  - Generic EU868 model (with GPS)
-#   * generic_in865      - Generic IN865 model
-#   * generic_in865_gps  - Generic IN865 model (with GPS)
-#   * generic_kr920      - Generic KR920 model
-#   * generic_kr920_gps  - Generic KR920 model (with GPS)
-#   * generic_ru864      - Generic RU864 model
-#   * generic_ru864_gps  - Generic RU864 model (with GPS)
-#   * generic_us915      - Generic US915 model
-#   * generic_us915_gps  - Generic US915 model (with GPS)
+#   * generic_as923                            - Generic AS923 model
+#   * generic_as923_gps                        - Generic AS923 model (with GPS)
+#   * generic_au915                            - Generic AU915 model
+#   * generic_au915_gps                        - Generic AU915 model (with GPS)
+#   * generic_cn470                            - Generic CN470 model
+#   * generic_cn470_gps                        - Generic CN470 model (with GPS)
+#   * generic_eu868                            - Generic EU868 model
+#   * generic_eu868_gps                        - Generic EU868 model (with GPS)
+#   * generic_in865                            - Generic IN865 model
+#   * generic_in865_gps                        - Generic IN865 model (with GPS)
+#   * generic_kr920                            - Generic KR920 model
+#   * generic_kr920_gps                        - Generic KR920 model (with GPS)
+#   * generic_ru864                            - Generic RU864 model
+#   * generic_ru864_gps                        - Generic RU864 model (with GPS)
+#   * generic_us915                            - Generic US915 model
+#   * generic_us915_gps                        - Generic US915 model (with GPS)
 #   * imst_ic880a_eu868                        - IMST iC880A - EU868
+#   * kerlink_ifemtocell_eu868                 - Kerlink iFemtoCell - EU868
 #   * multitech_mtac_lora_h_868_eu868_ap1      - Multitech Conduit - MTAC-LORA-H-868 - EU868 - AP1 slot
 #   * multitech_mtac_lora_h_868_eu868_ap1_gps  - Multitech Conduit - MTAC-LORA-H-868 - EU868 - AP1 slot (with GPS)
 #   * multitech_mtac_lora_h_868_eu868_ap2      - Multitech Conduit - MTAC-LORA-H-868 - EU868 - AP2 slot
