@@ -99,37 +99,37 @@ lorawan_public=true
 #
 # This configures various vendor and model specific settings like the min / max
 # frequency, TX gain table, ... Valid options are:
-#   * generic_as923                            - Generic AS923 model
-#   * generic_as923_gps                        - Generic AS923 model (with GPS)
-#   * generic_au915                            - Generic AU915 model
-#   * generic_au915_gps                        - Generic AU915 model (with GPS)
-#   * generic_cn470                            - Generic CN470 model
-#   * generic_cn470_gps                        - Generic CN470 model (with GPS)
-#   * generic_eu868                            - Generic EU868 model
-#   * generic_eu868_gps                        - Generic EU868 model (with GPS)
-#   * generic_in865                            - Generic IN865 model
-#   * generic_in865_gps                        - Generic IN865 model (with GPS)
-#   * generic_kr920                            - Generic KR920 model
-#   * generic_kr920_gps                        - Generic KR920 model (with GPS)
-#   * generic_ru864                            - Generic RU864 model
-#   * generic_ru864_gps                        - Generic RU864 model (with GPS)
-#   * generic_us915                            - Generic US915 model
-#   * generic_us915_gps                        - Generic US915 model (with GPS)
-#   * imst_ic880a_eu868                        - IMST iC880A - EU868
-#   * kerlink_ifemtocell_eu868                 - Kerlink iFemtoCell - EU868
-#   * multitech_mtac_lora_h_868_eu868_ap1      - Multitech Conduit - MTAC-LORA-H-868 - EU868 - AP1 slot
-#   * multitech_mtac_lora_h_868_eu868_ap1_gps  - Multitech Conduit - MTAC-LORA-H-868 - EU868 - AP1 slot (with GPS)
-#   * multitech_mtac_lora_h_868_eu868_ap2      - Multitech Conduit - MTAC-LORA-H-868 - EU868 - AP2 slot
-#   * multitech_mtac_lora_h_868_eu868_ap2_gps  - Multitech Conduit - MTAC-LORA-H-868 - EU868 - AP2 slot (with GPS)
-#   * multitech_mtac_lora_h_915_us915_ap1      - Multitech Conduit - MTAC-LORA-H-915 - US915 - AP1 slot
-#   * multitech_mtac_lora_h_915_us915_ap1_gps  - Multitech Conduit - MTAC-LORA-H-915 - US915 - AP1 slot (with GPS)
-#   * multitech_mtac_lora_h_915_us915_ap2      - Multitech Conduit - MTAC-LORA-H-915 - US915 - AP2 slot
-#   * multitech_mtac_lora_h_915_us915_ap2_gps  - Multitech Conduit - MTAC-LORA-H-915 - US915 - AP2 slot (with GPS)
-#   * wifx_lorix_one_eu868                     - Wifx - LORIX One - EU868
+#   * generic_as923                    - Generic AS923 model
+#   * generic_au915                    - Generic AU915 model
+#   * generic_cn470                    - Generic CN470 model
+#   * generic_eu868                    - Generic EU868 model
+#   * generic_in865                    - Generic IN865 model
+#   * generic_kr920                    - Generic KR920 model
+#   * generic_ru864                    - Generic RU864 model
+#   * generic_us915                    - Generic US915 model
+#   * imst_ic880a_eu868                - IMST iC880A - EU868
+#   * kerlink_ifemtocell_eu868         - Kerlink iFemtoCell - EU868
+#   * multitech_mtac_lora_h_868_eu868  - Multitech Conduit - MTAC-LORA-H-868 - EU868
+#   * multitech_mtac_lora_h_915_us915  - Multitech Conduit - MTAC-LORA-H-915 - US915
+#   * wifx_lorix_one_eu868             - Wifx - LORIX One - EU868
 model="generic_eu868"
+
+# Gateway vendor / model flags.
+#
+# Flag can be used to configure additional vendor / model features. The
+# following flags can be used:
+#
+#   Global flags:
+#     GNSS - Enable GNSS / GPS support
+#
+#   Multitech:
+#     AP1  - Module is in AP1 slot (default)
+#     AP2  - Module is in AP2 slot
+model_flags=[]
 
 # Gateway ID.
 gateway_id="0202030405060708"
+
 
   # LoRa concentrator configuration.
   [gateway.concentrator]
@@ -240,11 +240,19 @@ lorawan_public=true
 #
 # This configures various vendor and model specific settings like the min / max
 # frequency, TX gain table, ... Valid options are:
-#   * generic_sx1250_eu868      - Generic SX1250 based EU868 model
-#   * generic_sx1250_eu868_gps  - Generic SX1250 based EU868 model (with GPS)
-#   * generic_sx1250_us915      - Generic SX1250 based US915 model
-#   * generic_sx1250_us915_gps  - Generic SX1250 based US915 model (with GPS)
+#   * generic_sx1250_eu868  - Generic SX1250 based EU868 model
+#   * generic_sx1250_us915  - Generic SX1250 based US915 model
 model="generic_sx1250_eu868"
+
+# Gateway vendor / model flags.
+#
+# Flag can be used to configure additional vendor / model features. The
+# following flags can be used:
+#
+#   Global flags:
+#     GNSS - Enable GNSS / GPS support
+model_flags=[]
+
 
   # LoRa concentrator configuration.
   [gateway.concentrator]

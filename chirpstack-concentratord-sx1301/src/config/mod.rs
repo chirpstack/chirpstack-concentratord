@@ -47,6 +47,8 @@ pub struct Gateway {
     #[serde(default)]
     pub lorawan_public: bool,
     pub model: String,
+    #[serde(default)]
+    pub model_flags: Vec<String>,
     pub gateway_id: String,
     pub concentrator: Concentrator,
     #[serde(default)]
@@ -98,56 +100,18 @@ pub fn get(filenames: Vec<String>) -> Configuration {
 
     // get model configuration
     config.gateway.model_config = match config.gateway.model.as_ref() {
-        "generic_as923" => vendor::generic::as923::new(false),
-        "generic_as923_gps" => vendor::generic::as923::new(true),
-        "generic_au915" => vendor::generic::au915::new(false),
-        "generic_au915_gps" => vendor::generic::au915::new(true),
-        "generic_cn470" => vendor::generic::cn470::new(false),
-        "generic_cn470_gps" => vendor::generic::cn470::new(true),
-        "generic_eu868" => vendor::generic::eu868::new(false),
-        "generic_eu868_gps" => vendor::generic::eu868::new(true),
-        "generic_in865" => vendor::generic::in865::new(false),
-        "generic_in865_gps" => vendor::generic::in865::new(true),
-        "generic_kr920" => vendor::generic::kr920::new(false),
-        "generic_kr920_gps" => vendor::generic::kr920::new(true),
-        "generic_ru864" => vendor::generic::ru864::new(false),
-        "generic_ru864_gps" => vendor::generic::ru864::new(true),
-        "generic_us915" => vendor::generic::us915::new(false),
-        "generic_us915_gps" => vendor::generic::us915::new(true),
+        "generic_as923" => vendor::generic::as923::new(&config),
+        "generic_au915" => vendor::generic::au915::new(&config),
+        "generic_cn470" => vendor::generic::cn470::new(&config),
+        "generic_eu868" => vendor::generic::eu868::new(&config),
+        "generic_in865" => vendor::generic::in865::new(&config),
+        "generic_kr920" => vendor::generic::kr920::new(&config),
+        "generic_ru864" => vendor::generic::ru864::new(&config),
+        "generic_us915" => vendor::generic::us915::new(&config),
         "imst_ic880a_eu868" => vendor::imst::ic880a_eu868::new(),
         "kerlink_ifemtocell_eu868" => vendor::kerlink::ifemtocell_eu868::new(),
-        "multitech_mtac_lora_h_868_eu868_ap1" => vendor::multitech::mtac_lora_h_868_eu868::new(
-            false,
-            vendor::multitech::mtac_lora_h_868_eu868::Port::AP1,
-        ),
-        "multitech_mtac_lora_h_868_eu868_ap1_gps" => vendor::multitech::mtac_lora_h_868_eu868::new(
-            true,
-            vendor::multitech::mtac_lora_h_868_eu868::Port::AP1,
-        ),
-        "multitech_mtac_lora_h_868_eu868_ap2" => vendor::multitech::mtac_lora_h_868_eu868::new(
-            false,
-            vendor::multitech::mtac_lora_h_868_eu868::Port::AP2,
-        ),
-        "multitech_mtac_lora_h_868_eu868_ap2_gps" => vendor::multitech::mtac_lora_h_868_eu868::new(
-            true,
-            vendor::multitech::mtac_lora_h_868_eu868::Port::AP2,
-        ),
-        "multitech_mtac_lora_h_915_us915_ap1" => vendor::multitech::mtac_lora_h_915_us915::new(
-            false,
-            vendor::multitech::mtac_lora_h_915_us915::Port::AP1,
-        ),
-        "multitech_mtac_lora_h_915_us915_ap1_gps" => vendor::multitech::mtac_lora_h_915_us915::new(
-            true,
-            vendor::multitech::mtac_lora_h_915_us915::Port::AP1,
-        ),
-        "multitech_mtac_lora_h_915_us915_ap2" => vendor::multitech::mtac_lora_h_915_us915::new(
-            false,
-            vendor::multitech::mtac_lora_h_915_us915::Port::AP2,
-        ),
-        "multitech_mtac_lora_h_915_us915_ap2_gps" => vendor::multitech::mtac_lora_h_915_us915::new(
-            true,
-            vendor::multitech::mtac_lora_h_915_us915::Port::AP2,
-        ),
+        "multitech_mtac_lora_h_868_eu868" => vendor::multitech::mtac_lora_h_868_eu868::new(&config),
+        "multitech_mtac_lora_h_915_us915" => vendor::multitech::mtac_lora_h_915_us915::new(&config),
         "wifx_lorix_one_eu868" => vendor::wifx::lorix_one_eu868::new(),
         _ => panic!("unexpected gateway model: {}", config.gateway.model),
     };

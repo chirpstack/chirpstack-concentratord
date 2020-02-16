@@ -1,8 +1,11 @@
 use libloragw_sx1301::hal;
 
+use super::super::super::super::config;
 use super::super::Configuration;
 
-pub fn new(gps: bool) -> Configuration {
+pub fn new(conf: &config::Configuration) -> Configuration {
+    let gps = conf.gateway.model_flags.contains(&"GNSS".to_string());
+
     Configuration {
         radio_count: 2,
         clock_source: 1,

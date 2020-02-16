@@ -1,5 +1,6 @@
 use libloragw_sx1301::hal;
 
+use super::super::super::super::config;
 use super::super::Configuration;
 
 pub enum Port {
@@ -8,7 +9,14 @@ pub enum Port {
 }
 
 // source: http://git.multitech.net/cgi-bin/cgit.cgi/meta-mlinux.git/tree/recipes-connectivity/lora/lora-packet-forwarder/global_conf.json.3.0.0.MTAC_LORA_1_5.EU868.basic.clksrc0
-pub fn new(gps: bool, port: Port) -> Configuration {
+pub fn new(conf: &config::Configuration) -> Configuration {
+    let gps = conf.gateway.model_flags.contains(&"GNSS".to_string());
+    let port = if conf.gateway.model_flags.contains(&"AP2".to_string()) {
+        Port::AP2
+    } else {
+        Port::AP1
+    };
+
     Configuration {
         radio_count: 2,
         clock_source: 0,
