@@ -46,7 +46,7 @@ pub fn beacon_loop(conf: &config::Beacon, queue: Arc<Mutex<jitqueue::Queue<wrapp
                 "Beacon enqueued, beacon_time_gps_epoch: {:?}",
                 next_beacon_time
             ),
-            Err(err) => error!("Sending beacon failed, error: {}", err),
+            Err(err) => warn!("Enqueue beacon failed, error: {}", err),
         }
     }
 }
@@ -63,11 +63,16 @@ fn send_beacon(
     beacon_pl.resize(data.len(), 0);
     data.copy_from_slice(&beacon_pl);
 
+    let xtal_correct = match gps::get_xtal_correct() {
+        Ok(v) => v,
+        Err(err) => return Err(err),
+    };
+
     let tx_freq = conf.frequencies
         [((beacon_time.as_secs() % (1 << 32)) % conf.frequencies.len() as u64) as usize];
     let tx_packet = hal::TxPacket {
-        freq_hz: tx_freq,
-        tx_mode: hal::TxMode::Timestamped,
+        freq_hz: (tx_freq as f64 * xtal_correct) as u32,
+        tx_mode: hal::TxMode::OnGPS,
         count_us: match gps::epoch2cnt(&beacon_time) {
             Ok(v) => v,
             Err(err) => return Err(err),

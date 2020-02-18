@@ -22,6 +22,7 @@ lazy_static! {
     });
     static ref GPS_TIME_REF_VALID: Mutex<bool> = Mutex::new(false);
     static ref XTAL_CORRECT_OK: Mutex<bool> = Mutex::new(false);
+    static ref XTAL_CORRECT: Mutex<f64> = Mutex::new(1.0);
 }
 
 const XERR_INIT_AVG: isize = 128;
@@ -116,7 +117,6 @@ pub fn gps_validate_loop(gps_tty_path: &str) {
 
     info!("Starting GPS validation loop");
 
-    let mut xtal_correct: f64 = 0.0;
     let mut init_cpt: isize = 0;
     let mut init_acc: f64 = 0.0;
 
@@ -128,6 +128,7 @@ pub fn gps_validate_loop(gps_tty_path: &str) {
             let time_ref = GPS_TIME_REF.lock().unwrap();
             let mut gps_ref_valid = GPS_TIME_REF_VALID.lock().unwrap();
             let mut xtal_correct_ok = XTAL_CORRECT_OK.lock().unwrap();
+            let mut xtal_correct = XTAL_CORRECT.lock().unwrap();
 
             // validate the age of last gps time reference
             let systime_diff = match SystemTime::now().duration_since(time_ref.system_time) {
@@ -152,7 +153,7 @@ pub fn gps_validate_loop(gps_tty_path: &str) {
             // manage xtal correction
             if *gps_ref_valid == false {
                 *xtal_correct_ok = false;
-                xtal_correct = 1.0;
+                *xtal_correct = 1.0;
                 init_cpt = 0;
                 init_acc = 0.0;
             } else {
@@ -166,7 +167,7 @@ pub fn gps_validate_loop(gps_tty_path: &str) {
                         init_cpt
                     );
                 } else if init_cpt == XERR_INIT_AVG {
-                    xtal_correct = XERR_INIT_AVG as f64 / init_acc;
+                    *xtal_correct = XERR_INIT_AVG as f64 / init_acc;
                     *xtal_correct_ok = true;
                     init_cpt += 1;
                     trace!(
@@ -176,8 +177,8 @@ pub fn gps_validate_loop(gps_tty_path: &str) {
                     );
                 } else {
                     let x = 1.0 / time_ref.xtal_err;
-                    xtal_correct =
-                        xtal_correct - xtal_correct / XERR_FILT_COEF + x / XERR_FILT_COEF;
+                    *xtal_correct =
+                        *xtal_correct - *xtal_correct / XERR_FILT_COEF + x / XERR_FILT_COEF;
                     trace!(
                         "Tracking with low-pass filter, x: {}, xtal_correct: {}",
                         x,
@@ -235,6 +236,14 @@ pub fn get_gps_epoch() -> Result<Duration, String> {
     }
 
     return Ok(GPS_TIME_REF.lock().unwrap().gps_epoch);
+}
+
+pub fn get_xtal_correct() -> Result<f64, String> {
+    if *XTAL_CORRECT_OK.lock().unwrap() == false {
+        return Err("no valid xtal correction value available yet".to_string());
+    }
+
+    return Ok(*XTAL_CORRECT.lock().unwrap());
 }
 
 fn gps_process_sync() {

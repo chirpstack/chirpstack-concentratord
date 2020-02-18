@@ -106,7 +106,14 @@ impl<T: TxPacket + Copy> Queue<T> {
                     concentrator_count,
                 );
             }
-            TxMode::OnGPS => {}
+            TxMode::OnGPS => {
+                info!(
+                    "Enqueueing packet on pps, downlink_id: {}, counter_us: {}, current_counter_us: {}",
+                    packet.get_id(),
+                    packet.get_count_us(),
+                    concentrator_count,
+                );
+            }
         }
 
         if self.full() {
@@ -154,7 +161,9 @@ impl<T: TxPacket + Copy> Queue<T> {
                 return Err(EnqueueError::Collision);
             }
         } else if item.packet.get_tx_mode() == TxMode::OnGPS {
-            return Err(EnqueueError::Unknown("TODO".to_string()));
+            if self.collision_test(item.packet.get_count_us(), item.pre_delay, item.post_delay) {
+                return Err(EnqueueError::Collision);
+            }
         }
 
         // Is it too late to send this packet?

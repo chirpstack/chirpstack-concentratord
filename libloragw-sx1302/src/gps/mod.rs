@@ -194,7 +194,7 @@ pub fn get(
 
     let gps_time = timespec_to_system_time(&utc);
     let gps_epoch =
-        Duration::from_secs(gps.tv_sec as u64) + Duration::from_nanos(gps.tv_sec as u64);
+        Duration::from_secs(gps.tv_sec as u64) + Duration::from_nanos(gps.tv_nsec as u64);
     let loc = Coordinates {
         latitude: loc.lat,
         longitude: loc.lon,
