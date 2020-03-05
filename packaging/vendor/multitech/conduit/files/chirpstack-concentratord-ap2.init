@@ -5,7 +5,7 @@ DESC="ChirpStack Concentratord"
 DAEMON_BIN=/opt/$NAME/$NAME
 DAEMON_PID=/var/run/$NAME.pid
 
-AP=ap1
+AP=ap2
 GPS_TTY_PATH=/dev/ttyXRUSB2
 CONF_DIR=/var/config/chirpstack-concentratord
 
