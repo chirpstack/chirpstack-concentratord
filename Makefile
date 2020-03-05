@@ -4,6 +4,9 @@ build: build-armv5-release build-armv7hf-release
 
 package: build package-multitech
 
+clean:
+	rm -rf dist
+
 build-native-debug:
 	docker-compose run --rm chirpstack-concentratord cargo build
 

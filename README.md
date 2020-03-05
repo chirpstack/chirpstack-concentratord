@@ -288,19 +288,18 @@ You must have [Docker](https://docs.docker.com/install/) and [Docker Compose](ht
 installed for these instructions.
 
 ```bash
-# enter development environment
-docker-compose run --rm chirpstack-concentratord bash
-```
-
-```bash
 # Compile ARMv5 binary
 make build-armv5-release
 
 # Compile ARMv7hf binary
 make build-armv7hf-release
+
+# Create .ipk for Multitech Conduit
+make package-multitech-conduit
 ```
 
-You will find the binary under `target/{ARCHITECTURE}/release`.
+* Binaries are located under `target/{ARCHITECTURE}/release`
+* `.ipk` packages are located under `dist/{VENDOR}/{MODEL}`
 
 ### Compile optimizations
 
