@@ -31,16 +31,16 @@ copy_config() {
 		model="${lora_id,,}"
 		model="${model//-/_}"
 		model="${model}_eu868"
-		band_config="eu868.toml"
-		channel_config="eu868_0.toml"
+		band_config="eu868"
+		channel_config="eu868_0"
 	fi
 
 	if [ $lora_id == "MTAC-LORA-H-915" ]; then
 		model="${lora_id,,}"
 		model="${model//-/_}"
 		model="${model}_us915"
-		band_config="us915.toml"
-		channel_config="us915_0.toml"
+		band_config="us915"
+		channel_config="us915_0"
 	fi
 
     if [ -e $GPS_TTY_PATH ]; then
@@ -49,13 +49,14 @@ copy_config() {
         model_flags="\"${AP^^}\""
     fi
 
-	cp $CONF_DIR/examples/global.toml $CONF_DIR/global.toml
-	cp $CONF_DIR/examples/$band_config.toml $CONF_DIR/band.toml
-	cp $CONF_DIR/examples/$channel_config.toml $CONF_DIR/channels.toml
+	mkdir -p $CONF_DIR/$AP
+	cp $CONF_DIR/examples/global.toml $CONF_DIR/$AP/global.toml
+	cp $CONF_DIR/examples/$band_config.toml $CONF_DIR/$AP/band.toml
+	cp $CONF_DIR/examples/$channel_config.toml $CONF_DIR/$AP/channels.toml
 
-	sed -i "s/gateway_id=.*/gateway_id=\"${lora_eui_raw}\"/" $CONF_DIR/global.toml
-	sed -i "s/model=.*/model=\"multitech_${model}\"/" $CONF_DIR/global.toml
-	sed -i "s/model_flags=.*/model_flags=[${model_flags}]/" $CONF_DIR/global.toml
+	sed -i "s/gateway_id=.*/gateway_id=\"${lora_eui_raw}\"/" $CONF_DIR/$AP/global.toml
+	sed -i "s/model=.*/model=\"multitech_${model}\"/" $CONF_DIR/$AP/global.toml
+	sed -i "s/model_flags=.*/model_flags=[${model_flags}]/" $CONF_DIR/$AP/global.toml
 }
 
 function do_start {
@@ -67,7 +68,7 @@ function do_start {
 		exit 1
 	fi
 
-	if ! [ -f "$CONF_DIR/global.toml" ]; then
+	if ! [ -f "$CONF_DIR/$AP/global.toml" ]; then
 		copy_config
 	fi
 
@@ -77,7 +78,7 @@ function do_start {
         --background \
         --make-pidfile \
         --pidfile $DAEMON_PID \
-        --exec $DAEMON_BIN -- -c $CONF_DIR/global.toml -c $CONF_DIR/band.toml -c $CONF_DIR/channels.toml
+        --exec $DAEMON_BIN -- -c $CONF_DIR/$AP/global.toml -c $CONF_DIR/$AP/band.toml -c $CONF_DIR/$AP/channels.toml
 }
 
 function do_stop {
