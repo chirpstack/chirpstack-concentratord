@@ -1,0 +1,23 @@
+# LoRa concentrator configuration.
+[gateway.concentrator]
+
+# Multi spreading-factor channels (LoRa).
+#
+# Note: this is for channels 0 - 7 + 64. For more US915 examples see:
+# https://github.com/brocaar/chirpstack-gateway-os/tree/master/layers/targets/meta-raspberrypi/recipes-chirpstack/chirpstack-concentratord/files/sx1301
+multi_sf_channels=[
+  902300000,
+  902500000,
+  902700000,
+  902900000,
+  903100000,
+  903300000,
+  903500000,
+  903700000,
+]
+
+# LoRa std channel (single spreading-factor).
+[gateway.concentrator.lora_std]
+frequency=903000000
+bandwidth=500000
+spreading_factor=8

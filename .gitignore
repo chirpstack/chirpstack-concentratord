@@ -1,5 +1,13 @@
 # hidden files
 .*
 
+
 # rust builds / cache
 target
+
+# dist folder
+/dist
+
+# build folders
+/packaging/vendor/*/*/package
+/packaging/vendor/*/*/*.ipk

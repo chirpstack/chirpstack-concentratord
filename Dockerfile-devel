@@ -79,6 +79,12 @@ linker = "arm-linux-gnueabi-gcc"\n\
 linker = "arm-linux-gnueabihf-gcc"\n'\
 >> /usr/local/cargo/config
 
+RUN mkdir -p /tmp
+RUN cd /tmp && git clone https://github.com/seife/opkg-utils.git && cd /tmp/opkg-utils && PREFIX=/usr make install
+
 ENV PROJECT_PATH=/chirpstack-concentratord
 RUN mkdir -p $PROJECT_PATH
 WORKDIR $PROJECT_PATH
+
+COPY . /chirpstack-concentratord
+RUN cargo fetch

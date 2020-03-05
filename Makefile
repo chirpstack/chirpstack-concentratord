@@ -1,19 +1,34 @@
+VERSION := $(shell git describe --always |sed -e "s/^v//")
+
+build: build-armv5-release build-armv7hf-release
+
+package: build package-multitech
+
 build-native-debug:
-	cargo build
+	docker-compose run --rm chirpstack-concentratord cargo build
 
 build-native-release:
-	cargo build --release
+	docker-compose run --rm chirpstack-concentratord cargo build --release
 
 build-armv5-debug:
-	BINDGEN_EXTRA_CLANG_ARGS="--sysroot=/usr/arm-linux-gnueabi" cargo build --target armv5te-unknown-linux-gnueabi
+	docker-compose run -e BINDGEN_EXTRA_CLANG_ARGS="--sysroot=/usr/arm-linux-gnueabi" --rm chirpstack-concentratord cargo build --target armv5te-unknown-linux-gnueabi
 
 build-armv5-release:
-	BINDGEN_EXTRA_CLANG_ARGS="--sysroot=/usr/arm-linux-gnueabi" cargo build --target armv5te-unknown-linux-gnueabi --release
+	docker-compose run -e BINDGEN_EXTRA_CLANG_ARGS="--sysroot=/usr/arm-linux-gnueabi" --rm chirpstack-concentratord cargo build --target armv5te-unknown-linux-gnueabi --release
 
 build-armv7hf-debug:
-	BINDGEN_EXTRA_CLANG_ARGS="--sysroot=/usr/arm-linux-gnueabihf" cargo build --target arm-unknown-linux-gnueabihf
+	docker-compose run -e BINDGEN_EXTRA_CLANG_ARGS="--sysroot=/usr/arm-linux-gnueabihf" --rm chirpstack-concentratord cargo build --target arm-unknown-linux-gnueabihf
 
 build-armv7hf-release:
-	BINDGEN_EXTRA_CLANG_ARGS="--sysroot=/usr/arm-linux-gnueabihf" cargo build --target arm-unknown-linux-gnueabihf --release
+	docker-compose run -e BINDGEN_EXTRA_CLANG_ARGS="--sysroot=/usr/arm-linux-gnueabihf" --rm chirpstack-concentratord cargo build --target arm-unknown-linux-gnueabihf --release
+
+package-multitech: package-multitech-conduit
+
+package-multitech-conduit:
+	mkdir -p dist/multitech/conduit
+	rm -f packaging/vendor/multitech/conduit/*.ipk
+	docker-compose run --rm chirpstack-concentratord bash -c 'cd packaging/vendor/multitech/conduit && ./package.sh ${VERSION}'
+	cp packaging/vendor/multitech/conduit/*.ipk dist/multitech/conduit
+
 test:
-	cargo test
+	docker-compose run --rm chirpstack-concentratord cargo test

@@ -8,7 +8,7 @@ jobs:
       - checkout
       - run:
           name: run tests
-          command: docker-compose run --rm chirpstack-concentratord make test
+          command: make test
 
 workflows:
   version: 2
