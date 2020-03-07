@@ -47,7 +47,6 @@ Gateway ID.
 ### chirpstack-concentratord-sx1301
 
 The `chirpstack-concentratord-sx1301` implements the [SX1301 HAL](https://github.com/lora-net/lora_gateway).
-It has been tested on Raspberry Pi based gateways.
 
 #### Configuration
 
@@ -188,7 +187,6 @@ gateway_id="0202030405060708"
 ### chirpstack-concentratord-sx1302
 
 The `chirpstack-concentratord-sx1302` implements the [SX1302 HAL](https://github.com/lora-net/sx1302_hal).
-It has been tested on a Raspberry Pi 3 with the Semtech SX1302 CoreCell.
 
 #### Configuration
 
