@@ -107,7 +107,7 @@ pub fn get_radio_for_channel(
 
 #[cfg(test)]
 mod tests {
-    use super::super::vendor::generic;
+    use super::super::vendor::semtech;
 
     #[test]
     fn test_get_radio_frequencies() {
@@ -165,7 +165,7 @@ mod tests {
             config.gateway.concentrator.lora_std.bandwidth = lora_std_bw;
             config.gateway.concentrator.fsk.frequency = fsk_freq;
             config.gateway.concentrator.fsk.bandwidth = fsk_bw;
-            config.gateway.model_config = generic::sx1250_eu868::new(&config);
+            config.gateway.model_config = semtech::sx1302c868gw1_eu868::new(&config);
 
             let radios = super::get_radio_frequencies(&config).unwrap();
             assert_eq!(radios, expected);
