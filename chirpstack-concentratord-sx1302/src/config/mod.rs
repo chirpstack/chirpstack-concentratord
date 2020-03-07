@@ -98,8 +98,8 @@ pub fn get(filenames: Vec<String>) -> Configuration {
 
     // get model configuration
     config.gateway.model_config = match config.gateway.model.as_ref() {
-        "generic_sx1250_eu868" => vendor::generic::sx1250_eu868::new(&config),
-        "generic_sx1250_us915" => vendor::generic::sx1250_us915::new(&config),
+        "semtech_sx1302c868gw1_eu868" => vendor::semtech::sx1302c868gw1_eu868::new(&config),
+        "semtech_sx1302c915gw1_us915" => vendor::semtech::sx1302c915gw1_us915::new(&config),
         _ => panic!("unexpected gateway model: {}", config.gateway.model),
     };
 

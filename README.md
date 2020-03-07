@@ -238,9 +238,9 @@ lorawan_public=true
 #
 # This configures various vendor and model specific settings like the min / max
 # frequency, TX gain table, ... Valid options are:
-#   * generic_sx1250_eu868  - Generic SX1250 based EU868 model
-#   * generic_sx1250_us915  - Generic SX1250 based US915 model
-model="generic_sx1250_eu868"
+#   * semtech_sx1302c868gw1_eu868  - Semtech CoreCell EU868 model
+#   * semtech_sx1302c915gw1_us915  - Semtech CoreCell US915 model
+model="semtech_sx1302c868gw1_eu868"
 
 # Gateway vendor / model flags.
 #

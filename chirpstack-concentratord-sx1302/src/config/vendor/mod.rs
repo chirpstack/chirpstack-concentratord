@@ -1,6 +1,6 @@
 use libloragw_sx1302::hal;
 
-pub mod generic;
+pub mod semtech;
 
 #[derive(Default, Clone)]
 pub struct Configuration {
