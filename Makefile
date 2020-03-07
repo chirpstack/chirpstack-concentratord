@@ -2,7 +2,7 @@ VERSION := $(shell git describe --always |sed -e "s/^v//")
 
 build: build-armv5-release build-armv7hf-release
 
-package: build package-multitech
+package: build package-kerlink package-multitech
 
 clean:
 	rm -rf dist
@@ -27,11 +27,18 @@ build-armv7hf-release:
 
 package-multitech: package-multitech-conduit
 
+package-kerlink: package-kerlink-ifemtocell
+
 package-multitech-conduit:
 	mkdir -p dist/multitech/conduit
 	rm -f packaging/vendor/multitech/conduit/*.ipk
 	docker-compose run --rm chirpstack-concentratord bash -c 'cd packaging/vendor/multitech/conduit && ./package.sh ${VERSION}'
 	cp packaging/vendor/multitech/conduit/*.ipk dist/multitech/conduit
+
+package-kerlink-ifemtocell:
+	mkdir -p dist/kerlink/ifemtocell
+	docker-compose run --rm chirpstack-concentratord bash -c 'cd packaging/vendor/kerlink/ifemtocell && ./package.sh ${VERSION}'
+	cp packaging/vendor/kerlink/ifemtocell/*.ipk dist/kerlink/ifemtocell
 
 test:
 	docker-compose run --rm chirpstack-concentratord cargo test

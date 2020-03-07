@@ -294,6 +294,9 @@ make build-armv5-release
 # Compile ARMv7hf binary
 make build-armv7hf-release
 
+# Create .ipk for Kerlink iFemtoCell
+make package-kerlink-ifemtocell
+
 # Create .ipk for Multitech Conduit
 make package-multitech-conduit
 ```
