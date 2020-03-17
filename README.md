@@ -110,6 +110,8 @@ lorawan_public=true
 #   * kerlink_ifemtocell_eu868         - Kerlink iFemtoCell - EU868
 #   * multitech_mtac_lora_h_868_eu868  - Multitech Conduit - MTAC-LORA-H-868 - EU868
 #   * multitech_mtac_lora_h_915_us915  - Multitech Conduit - MTAC-LORA-H-915 - US915
+#   * multitech_mtcap_lora_868_eu868   - Multitech Conduit AP - EU868
+#   * multitech_mtcap_lora_915_us915   - Multitech Conduit AP - US915
 #   * wifx_lorix_one_eu868             - Wifx - LORIX One - EU868
 model="generic_eu868"
 
@@ -297,6 +299,9 @@ make package-kerlink-ifemtocell
 
 # Create .ipk for Multitech Conduit
 make package-multitech-conduit
+
+# Create .ipk for Multitech Conduit AP
+make package-multitech-conduit-ap
 ```
 
 * Binaries are located under `target/{ARCHITECTURE}/release`

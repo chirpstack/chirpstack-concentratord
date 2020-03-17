@@ -25,7 +25,7 @@ build-armv7hf-debug:
 build-armv7hf-release:
 	docker-compose run -e BINDGEN_EXTRA_CLANG_ARGS="--sysroot=/usr/arm-linux-gnueabihf" --rm chirpstack-concentratord cargo build --target arm-unknown-linux-gnueabihf --release
 
-package-multitech: package-multitech-conduit
+package-multitech: package-multitech-conduit package-multitech-conduit-ap
 
 package-kerlink: package-kerlink-ifemtocell
 
@@ -34,6 +34,12 @@ package-multitech-conduit:
 	rm -f packaging/vendor/multitech/conduit/*.ipk
 	docker-compose run --rm chirpstack-concentratord bash -c 'cd packaging/vendor/multitech/conduit && ./package.sh ${VERSION}'
 	cp packaging/vendor/multitech/conduit/*.ipk dist/multitech/conduit
+
+package-multitech-conduit-ap:
+	mkdir -p dist/multitech/conduit-ap
+	rm -f packaging/vendor/multitech/conduit-ap/*.ipk
+	docker-compose run --rm chirpstack-concentratord bash -c 'cd packaging/vendor/multitech/conduit-ap && ./package.sh ${VERSION}'
+	cp packaging/vendor/multitech/conduit-ap/*.ipk dist/multitech/conduit-ap
 
 package-kerlink-ifemtocell:
 	mkdir -p dist/kerlink/ifemtocell

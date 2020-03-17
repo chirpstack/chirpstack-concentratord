@@ -112,6 +112,8 @@ pub fn get(filenames: Vec<String>) -> Configuration {
         "kerlink_ifemtocell_eu868" => vendor::kerlink::ifemtocell_eu868::new(),
         "multitech_mtac_lora_h_868_eu868" => vendor::multitech::mtac_lora_h_868_eu868::new(&config),
         "multitech_mtac_lora_h_915_us915" => vendor::multitech::mtac_lora_h_915_us915::new(&config),
+        "multitech_mtcap_lora_868_eu868" => vendor::multitech::mtcap_lora_868_eu868::new(),
+        "multitech_mtcap_lora_915_us915" => vendor::multitech::mtcap_lora_915_us915::new(),
         "wifx_lorix_one_eu868" => vendor::wifx::lorix_one_eu868::new(&config),
         _ => panic!("unexpected gateway model: {}", config.gateway.model),
     };
