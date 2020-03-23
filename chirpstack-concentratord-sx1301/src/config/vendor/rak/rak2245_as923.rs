@@ -3,7 +3,7 @@ use libloragw_sx1301::hal;
 use super::super::super::super::config;
 use super::super::Configuration;
 
-// source: https://github.com/RAKWireless/rak_common_for_gateway/blob/7f110c2f00831a33be72f378b7129cae4b2eb906/lora/rak2245/global_conf/global_conf.as_923.json
+// source: https://github.com/RAKWireless/rak_common_for_gateway/blob/099555865a42238f125c68ded5233a985747c40d/lora/rak2245/global_conf/global_conf.as_923.json
 pub fn new(conf: &config::Configuration) -> Configuration {
     let gps = conf.gateway.model_flags.contains(&"GNSS".to_string());
 
@@ -28,7 +28,7 @@ pub fn new(conf: &config::Configuration) -> Configuration {
             // 1
             hal::TxGainConfig {
                 pa_gain: 0,
-                mix_gain: 10,
+                mix_gain: 11,
                 rf_power: -3,
                 dig_gain: 0,
                 dac_gain: 3,
@@ -36,7 +36,7 @@ pub fn new(conf: &config::Configuration) -> Configuration {
             // 2
             hal::TxGainConfig {
                 pa_gain: 0,
-                mix_gain: 12,
+                mix_gain: 14,
                 rf_power: 0,
                 dig_gain: 0,
                 dac_gain: 3,
@@ -54,21 +54,21 @@ pub fn new(conf: &config::Configuration) -> Configuration {
                 pa_gain: 1,
                 mix_gain: 10,
                 rf_power: 6,
-                dig_gain: 3,
+                dig_gain: 0,
                 dac_gain: 3,
             },
             // 5
             hal::TxGainConfig {
                 pa_gain: 1,
-                mix_gain: 12,
+                mix_gain: 14,
                 rf_power: 10,
                 dig_gain: 0,
                 dac_gain: 3,
             },
             // 6
             hal::TxGainConfig {
-                pa_gain: 1,
-                mix_gain: 13,
+                pa_gain: 2,
+                mix_gain: 8,
                 rf_power: 11,
                 dig_gain: 0,
                 dac_gain: 3,
@@ -76,15 +76,15 @@ pub fn new(conf: &config::Configuration) -> Configuration {
             // 7
             hal::TxGainConfig {
                 pa_gain: 2,
-                mix_gain: 19,
+                mix_gain: 8,
                 rf_power: 12,
                 dig_gain: 0,
                 dac_gain: 3,
             },
             // 8
             hal::TxGainConfig {
-                pa_gain: 1,
-                mix_gain: 15,
+                pa_gain: 2,
+                mix_gain: 9,
                 rf_power: 13,
                 dig_gain: 0,
                 dac_gain: 3,
@@ -108,7 +108,7 @@ pub fn new(conf: &config::Configuration) -> Configuration {
             // 11
             hal::TxGainConfig {
                 pa_gain: 3,
-                mix_gain: 9,
+                mix_gain: 8,
                 rf_power: 20,
                 dig_gain: 0,
                 dac_gain: 3,
@@ -116,7 +116,7 @@ pub fn new(conf: &config::Configuration) -> Configuration {
             // 12
             hal::TxGainConfig {
                 pa_gain: 3,
-                mix_gain: 10,
+                mix_gain: 9,
                 rf_power: 23,
                 dig_gain: 0,
                 dac_gain: 3,
@@ -132,7 +132,7 @@ pub fn new(conf: &config::Configuration) -> Configuration {
             // 14
             hal::TxGainConfig {
                 pa_gain: 3,
-                mix_gain: 12,
+                mix_gain: 13,
                 rf_power: 26,
                 dig_gain: 0,
                 dac_gain: 3,
