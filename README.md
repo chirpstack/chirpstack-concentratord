@@ -20,7 +20,7 @@ for the Protobuf message definitions).
 
 ### `up`
 
-Uplink received by the gateway (`UplinkFrame` Protobuf message). 
+Uplink received by the gateway (`UplinkFrame` Protobuf message).
 
 ### `stats`
 
@@ -113,6 +113,7 @@ lorawan_public=true
 #   * multitech_mtcap_lora_868_eu868   - Multitech Conduit AP - EU868
 #   * multitech_mtcap_lora_915_us915   - Multitech Conduit AP - US915
 #   * wifx_lorix_one_eu868             - Wifx - LORIX One - EU868
+#   * rak_2245_as923                   - RAKWireless - 2245 PiHat - AS923
 model="generic_eu868"
 
 # Gateway vendor / model flags.

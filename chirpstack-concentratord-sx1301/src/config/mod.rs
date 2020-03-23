@@ -115,6 +115,7 @@ pub fn get(filenames: Vec<String>) -> Configuration {
         "multitech_mtcap_lora_868_eu868" => vendor::multitech::mtcap_lora_868_eu868::new(),
         "multitech_mtcap_lora_915_us915" => vendor::multitech::mtcap_lora_915_us915::new(),
         "wifx_lorix_one_eu868" => vendor::wifx::lorix_one_eu868::new(&config),
+        "rak_2245_as923" => vendor::rak::rak2245_as923::new(&config),
         _ => panic!("unexpected gateway model: {}", config.gateway.model),
     };
 
