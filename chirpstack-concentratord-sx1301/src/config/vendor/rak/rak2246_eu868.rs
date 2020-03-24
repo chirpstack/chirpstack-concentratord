@@ -4,7 +4,7 @@ use super::super::super::super::config;
 use super::super::Configuration;
 
 // source:
-// https://github.com/RAKWireless/rak_common_for_gateway/blob/7f110c2f00/lora/rak2246/global_conf/global_conf.eu_863_870.json
+// https://github.com/RAKWireless/rak_common_for_gateway/blob/713ebf74f65beecdbc0304c7d880d05890f84315/lora/rak2246/global_conf/global_conf.eu_863_870.json
 pub fn new(conf: &config::Configuration) -> Configuration {
     let gps = conf.gateway.model_flags.contains(&"GNSS".to_string());
 

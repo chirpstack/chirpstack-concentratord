@@ -4,7 +4,7 @@ use super::super::super::super::config;
 use super::super::Configuration;
 
 // source:
-// https://github.com/RAKWireless/rak_common_for_gateway/blob/7f110c2f00/lora/rak2246/global_conf/global_conf.kr_920_923.json
+// https://github.com/RAKWireless/rak_common_for_gateway/blob/713ebf74f65beecdbc0304c7d880d05890f84315/lora/rak2246/global_conf/global_conf.kr_920_923.json
 pub fn new(conf: &config::Configuration) -> Configuration {
     let gps = conf.gateway.model_flags.contains(&"GNSS".to_string());
 
@@ -22,127 +22,63 @@ pub fn new(conf: &config::Configuration) -> Configuration {
             hal::TxGainConfig {
                 pa_gain: 0,
                 mix_gain: 8,
-                rf_power: -6,
+                rf_power: 13,
                 dig_gain: 0,
                 dac_gain: 3,
             },
             // 1
             hal::TxGainConfig {
                 pa_gain: 0,
-                mix_gain: 10,
-                rf_power: -3,
+                mix_gain: 9,
+                rf_power: 15,
                 dig_gain: 0,
                 dac_gain: 3,
             },
             // 2
             hal::TxGainConfig {
                 pa_gain: 0,
-                mix_gain: 12,
-                rf_power: 0,
+                mix_gain: 10,
+                rf_power: 17,
                 dig_gain: 0,
                 dac_gain: 3,
             },
             // 3
             hal::TxGainConfig {
-                pa_gain: 1,
-                mix_gain: 8,
-                rf_power: 3,
+                pa_gain: 0,
+                mix_gain: 11,
+                rf_power: 18,
                 dig_gain: 0,
                 dac_gain: 3,
             },
             // 4
             hal::TxGainConfig {
-                pa_gain: 1,
-                mix_gain: 10,
-                rf_power: 6,
+                pa_gain: 0,
+                mix_gain: 12,
+                rf_power: 19,
                 dig_gain: 0,
                 dac_gain: 3,
             },
             // 5
             hal::TxGainConfig {
-                pa_gain: 1,
-                mix_gain: 12,
-                rf_power: 10,
+                pa_gain: 0,
+                mix_gain: 13,
+                rf_power: 20,
                 dig_gain: 0,
                 dac_gain: 3,
             },
             // 6
             hal::TxGainConfig {
-                pa_gain: 1,
-                mix_gain: 13,
-                rf_power: 11,
+                pa_gain: 0,
+                mix_gain: 14,
+                rf_power: 21,
                 dig_gain: 0,
                 dac_gain: 3,
             },
             // 7
             hal::TxGainConfig {
                 pa_gain: 2,
-                mix_gain: 9,
-                rf_power: 12,
-                dig_gain: 0,
-                dac_gain: 3,
-            },
-            // 8
-            hal::TxGainConfig {
-                pa_gain: 1,
                 mix_gain: 15,
-                rf_power: 13,
-                dig_gain: 0,
-                dac_gain: 3,
-            },
-            // 9
-            hal::TxGainConfig {
-                pa_gain: 2,
-                mix_gain: 10,
-                rf_power: 14,
-                dig_gain: 0,
-                dac_gain: 3,
-            },
-            // 10
-            hal::TxGainConfig {
-                pa_gain: 2,
-                mix_gain: 11,
-                rf_power: 16,
-                dig_gain: 0,
-                dac_gain: 3,
-            },
-            // 11
-            hal::TxGainConfig {
-                pa_gain: 3,
-                mix_gain: 9,
-                rf_power: 20,
-                dig_gain: 0,
-                dac_gain: 3,
-            },
-            // 12
-            hal::TxGainConfig {
-                pa_gain: 3,
-                mix_gain: 10,
-                rf_power: 23,
-                dig_gain: 0,
-                dac_gain: 3,
-            },
-            // 13
-            hal::TxGainConfig {
-                pa_gain: 3,
-                mix_gain: 11,
-                rf_power: 25,
-                dig_gain: 0,
-                dac_gain: 3,
-            },
-            // 14
-            hal::TxGainConfig {
-                pa_gain: 3,
-                mix_gain: 12,
-                rf_power: 26,
-                dig_gain: 0,
-                dac_gain: 3,
-            },
-            // 15
-            hal::TxGainConfig {
-                pa_gain: 3,
-                mix_gain: 14,
-                rf_power: 27,
+                rf_power: 22,
                 dig_gain: 0,
                 dac_gain: 3,
             },
