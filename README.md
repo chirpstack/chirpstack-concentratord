@@ -112,8 +112,15 @@ lorawan_public=true
 #   * multitech_mtac_lora_h_915_us915  - Multitech Conduit - MTAC-LORA-H-915 - US915
 #   * multitech_mtcap_lora_868_eu868   - Multitech Conduit AP - EU868
 #   * multitech_mtcap_lora_915_us915   - Multitech Conduit AP - US915
+#   * rak_2245_as923                   - RAK - 2245 - AS923
+#   * rak_2246_as923                   - RAK - 2246 - AS923
+#   * rak_2246_au915                   - RAK - 2246 - AU915
+#   * rak_2246_eu868                   - RAK - 2246 - EU868
+#   * rak_2246_in865                   - RAK - 2246 - IN865
+#   * rak_2246_kr920                   - RAK - 2246 - KR920
+#   * rak_2246_ru864                   - RAK - 2246 - RU864
+#   * rak_2246_us915                   - RAK - 2246 - US915
 #   * wifx_lorix_one_eu868             - Wifx - LORIX One - EU868
-#   * rak_2245_as923                   - RAKWireless - 2245 PiHat - AS923
 model="generic_eu868"
 
 # Gateway vendor / model flags.

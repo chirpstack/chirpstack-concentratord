@@ -4,8 +4,8 @@ pub mod generic;
 pub mod imst;
 pub mod kerlink;
 pub mod multitech;
-pub mod wifx;
 pub mod rak;
+pub mod wifx;
 
 #[derive(Default, Clone)]
 pub struct Configuration {
