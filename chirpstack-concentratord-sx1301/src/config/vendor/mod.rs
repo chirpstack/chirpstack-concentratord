@@ -6,7 +6,6 @@ pub mod kerlink;
 pub mod multitech;
 pub mod rak;
 pub mod wifx;
-pub mod rak;
 
 #[derive(Default, Clone)]
 pub struct Configuration {
