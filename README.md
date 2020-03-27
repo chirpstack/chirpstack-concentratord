@@ -113,6 +113,14 @@ lorawan_public=true
 #   * multitech_mtcap_lora_868_eu868   - Multitech Conduit AP - EU868
 #   * multitech_mtcap_lora_915_us915   - Multitech Conduit AP - US915
 #   * rak_2245_as923                   - RAK - 2245 - AS923
+#   * rak_2245_au915                   - RAK - 2245 - AU915
+#   * rak_2245_cn470                   - RAK - 2245 - CN470
+#   * rak_2245_eu433                   - RAK - 2245 - EU433
+#   * rak_2245_eu868                   - RAK - 2245 - EU868
+#   * rak_2245_in865                   - RAK - 2245 - IN865
+#   * rak_2245_kr920                   - RAK - 2245 - KR920
+#   * rak_2245_ru864                   - RAK - 2245 - RU864
+#   * rak_2245_us915                   - RAK - 2245 - US915
 #   * rak_2246_as923                   - RAK - 2246 - AS923
 #   * rak_2246_au915                   - RAK - 2246 - AU915
 #   * rak_2246_eu868                   - RAK - 2246 - EU868
