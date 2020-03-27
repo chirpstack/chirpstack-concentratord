@@ -119,6 +119,7 @@ lorawan_public=true
 #   * rak_2245_eu868                   - RAK - 2245 - EU868
 #   * rak_2245_in865                   - RAK - 2245 - IN865
 #   * rak_2245_kr920                   - RAK - 2245 - KR920
+#   * rak_2245_ru864                   - RAK - 2245 - RU864
 #   * rak_2246_as923                   - RAK - 2246 - AS923
 #   * rak_2246_au915                   - RAK - 2246 - AU915
 #   * rak_2246_eu868                   - RAK - 2246 - EU868
