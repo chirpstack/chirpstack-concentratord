@@ -4,6 +4,7 @@ pub mod rak2245_cn470;
 pub mod rak2245_eu433;
 pub mod rak2245_eu868;
 pub mod rak2245_in865;
+pub mod rak2245_kr920;
 pub mod rak2246_as923;
 pub mod rak2246_au915;
 pub mod rak2246_eu868;
