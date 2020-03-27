@@ -119,6 +119,7 @@ pub fn get(filenames: Vec<String>) -> Configuration {
         "rak_2245_cn470" => vendor::rak::rak2245_cn470::new(&config),
         "rak_2245_eu433" => vendor::rak::rak2245_eu433::new(&config),
         "rak_2245_eu868" => vendor::rak::rak2245_eu868::new(&config),
+        "rak_2245_in865" => vendor::rak::rak2245_in865::new(&config),
         "rak_2246_as923" => vendor::rak::rak2246_as923::new(&config),
         "rak_2246_au915" => vendor::rak::rak2246_au915::new(&config),
         "rak_2246_eu868" => vendor::rak::rak2246_eu868::new(&config),
