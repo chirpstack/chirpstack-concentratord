@@ -1,0 +1,11 @@
+[package]
+name = "gateway-id"
+version = "3.0.0-test.9"
+authors = ["Orne Brocaar <info@brocaar.com>"]
+edition = "2018"
+publish = false
+
+[dependencies]
+zmq = "0.9.1"
+clap = "2.33.0"
+hex = "0.4.0"

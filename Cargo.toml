@@ -2,6 +2,7 @@
 members = [
 	"chirpstack-concentratord-sx1301",
 	"chirpstack-concentratord-sx1302",
+	"gateway-id",
 	"libloragw-sx1301",
 	"libloragw-sx1302",
 	"libconcentratord",

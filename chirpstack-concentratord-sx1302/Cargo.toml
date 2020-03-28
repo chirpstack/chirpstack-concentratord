@@ -1,6 +1,6 @@
 [package]
 name = "chirpstack-concentratord-sx1302"
-version = "3.0.0-test.5"
+version = "3.0.0-test.9"
 authors = ["Orne Brocaar <info@brocaar.com>"]
 edition = "2018"
 publish = false
