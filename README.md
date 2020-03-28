@@ -128,6 +128,8 @@ lorawan_public=true
 #   * rak_2246_kr920                   - RAK - 2246 - KR920
 #   * rak_2246_ru864                   - RAK - 2246 - RU864
 #   * rak_2246_us915                   - RAK - 2246 - US915
+#   * sandbox_lorago_port_eu868        - Sandbox - LoRaGo PORT - EU868
+#   * sandbox_lorago_port_us915        - Sandbox - LoRaGo PORT - US915
 #   * wifx_lorix_one_eu868             - Wifx - LORIX One - EU868
 model="generic_eu868"
 

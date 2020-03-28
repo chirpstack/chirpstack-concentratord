@@ -5,6 +5,7 @@ pub mod imst;
 pub mod kerlink;
 pub mod multitech;
 pub mod rak;
+pub mod sandbox;
 pub mod wifx;
 
 #[derive(Default, Clone)]
