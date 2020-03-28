@@ -44,9 +44,38 @@ Gateway ID.
 
 ## Supported hardware
 
+
 ### chirpstack-concentratord-sx1301
 
 The `chirpstack-concentratord-sx1301` implements the [SX1301 HAL](https://github.com/lora-net/lora_gateway).
+
+| Vendor | Gateway / Shield | Model flags | Model |
+| --- | --- | --- | --- |
+| IMST | iC880A | | imst_ic880a_eu868 |
+| Kerlink | iFemtoCell | | kerlink_ifemtocell_eu868 |
+| Multitech | Multitech Conduit AP EU868 | | multitech_mtcap_lora_868_eu868 |
+| Multitech | Multitech Conduit AP US915 | | multitech_mtcap_lora_915_us915 |
+| Multitech | Multitech Conduit MTAC-LORA-H-868 | AP1, AP2, GNSS | multitech_mtac_lora_h_868_eu868 |
+| Multitech | Multitech Conduit MTAC-LORA-H-915 | AP1, AP2, GNSS | multitech_mtac_lora_h_915_us915 |
+| RAK | RAK2245 AS923 | GNSS | rak_2245_as923 |
+| RAK | RAK2245 AU915 | GNSS | rak_2245_au915 |
+| RAK | RAK2245 CN470 | GNSS | rak_2245_cn470 |
+| RAK | RAK2245 EU433 | GNSS | rak_2245_eu433 |
+| RAK | RAK2245 EU868 | GNSS | rak_2245_eu868 |
+| RAK | RAK2245 IN865 | GNSS | rak_2245_in865 |
+| RAK | RAK2245 KR920 | GNSS | rak_2245_kr920 |
+| RAK | RAK2245 RU864 | GNSS | rak_2245_ru864 |
+| RAK | RAK2245 US915 | GNSS | rak_2245_us915 |
+| RAK | RAK2246 AS923 | GNSS | rak_2246_as923 |
+| RAK | RAK2246 AU915 | GNSS | rak_2246_au915 |
+| RAK | RAK2246 EU868 | GNSS | rak_2246_eu868 |
+| RAK | RAK2246 IN865 | GNSS | rak_2246_in865 |
+| RAK | RAK2246 KR920 | GNSS | rak_2246_kr920 |
+| RAK | RAK2246 RU864 | GNSS | rak_2246_ru864 |
+| RAK | RAK2246 US915 | GNSS | rak_2246_us915 |
+| Sandbox | LoRaGo Port EU868 | | sandbox_lorago_port_eu868 |
+| Sandbox | LoRaGo Port US915 | | sandbox_lorago_port_us915 |
+| Wifx | LORIX One EU868 | | wifx_lorix_one_eu868 |
 
 #### Configuration
 
@@ -97,41 +126,8 @@ lorawan_public=true
 # Gateway vendor / model.
 #
 # This configures various vendor and model specific settings like the min / max
-# frequency, TX gain table, ... Valid options are:
-#   * generic_as923                    - Generic AS923 model
-#   * generic_au915                    - Generic AU915 model
-#   * generic_cn470                    - Generic CN470 model
-#   * generic_eu868                    - Generic EU868 model
-#   * generic_in865                    - Generic IN865 model
-#   * generic_kr920                    - Generic KR920 model
-#   * generic_ru864                    - Generic RU864 model
-#   * generic_us915                    - Generic US915 model
-#   * imst_ic880a_eu868                - IMST iC880A - EU868
-#   * kerlink_ifemtocell_eu868         - Kerlink iFemtoCell - EU868
-#   * multitech_mtac_lora_h_868_eu868  - Multitech Conduit - MTAC-LORA-H-868 - EU868
-#   * multitech_mtac_lora_h_915_us915  - Multitech Conduit - MTAC-LORA-H-915 - US915
-#   * multitech_mtcap_lora_868_eu868   - Multitech Conduit AP - EU868
-#   * multitech_mtcap_lora_915_us915   - Multitech Conduit AP - US915
-#   * rak_2245_as923                   - RAK - 2245 - AS923
-#   * rak_2245_au915                   - RAK - 2245 - AU915
-#   * rak_2245_cn470                   - RAK - 2245 - CN470
-#   * rak_2245_eu433                   - RAK - 2245 - EU433
-#   * rak_2245_eu868                   - RAK - 2245 - EU868
-#   * rak_2245_in865                   - RAK - 2245 - IN865
-#   * rak_2245_kr920                   - RAK - 2245 - KR920
-#   * rak_2245_ru864                   - RAK - 2245 - RU864
-#   * rak_2245_us915                   - RAK - 2245 - US915
-#   * rak_2246_as923                   - RAK - 2246 - AS923
-#   * rak_2246_au915                   - RAK - 2246 - AU915
-#   * rak_2246_eu868                   - RAK - 2246 - EU868
-#   * rak_2246_in865                   - RAK - 2246 - IN865
-#   * rak_2246_kr920                   - RAK - 2246 - KR920
-#   * rak_2246_ru864                   - RAK - 2246 - RU864
-#   * rak_2246_us915                   - RAK - 2246 - US915
-#   * sandbox_lorago_port_eu868        - Sandbox - LoRaGo PORT - EU868
-#   * sandbox_lorago_port_us915        - Sandbox - LoRaGo PORT - US915
-#   * wifx_lorix_one_eu868             - Wifx - LORIX One - EU868
-model="generic_eu868"
+# frequency and TX gain table.
+model=""
 
 # Gateway vendor / model flags.
 #
@@ -208,6 +204,11 @@ gateway_id="0202030405060708"
 
 The `chirpstack-concentratord-sx1302` implements the [SX1302 HAL](https://github.com/lora-net/sx1302_hal).
 
+| Vendor | Gateway / Shield | Model flags | Model |
+| --- | --- | --- | --- |
+| Semtech | CoreCell EU868 | | semtech_sx1302c868gw1_eu868 |
+| Semtech | CoreCell US915 | | semtech_sx1302c915gw1_us915 |
+
 #### Configuration
 
 Configuration example:
@@ -257,10 +258,8 @@ lorawan_public=true
 # Gateway vendor / model.
 #
 # This configures various vendor and model specific settings like the min / max
-# frequency, TX gain table, ... Valid options are:
-#   * semtech_sx1302c868gw1_eu868  - Semtech CoreCell EU868 model
-#   * semtech_sx1302c915gw1_us915  - Semtech CoreCell US915 model
-model="semtech_sx1302c868gw1_eu868"
+# frequency and TX gain table.
+model=""
 
 # Gateway vendor / model flags.
 #
