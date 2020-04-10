@@ -200,6 +200,7 @@ dependencies = [
  "prost",
  "prost-types",
  "serde",
+ "signal-hook",
  "simple_logger",
  "syslog",
  "toml 0.5.6",

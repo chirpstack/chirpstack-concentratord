@@ -43,7 +43,7 @@ pub struct Gateway {
     pub model_config: vendor::Configuration,
 }
 
-#[derive(Default, Deserialize)]
+#[derive(Default, Deserialize, Debug, PartialEq)]
 pub struct Concentrator {
     pub multi_sf_channels: [u32; 8],
     #[serde(default)]
@@ -52,7 +52,7 @@ pub struct Concentrator {
     pub fsk: FSKChannel,
 }
 
-#[derive(Default, Deserialize)]
+#[derive(Default, Deserialize, Debug, PartialEq)]
 pub struct LoRaStdChannel {
     pub frequency: u32,
     pub bandwidth: u32,
@@ -67,7 +67,7 @@ pub struct LoRaStdChannel {
     pub implicit_coderate: String,
 }
 
-#[derive(Default, Deserialize)]
+#[derive(Default, Deserialize, Debug, PartialEq)]
 pub struct FSKChannel {
     pub frequency: u32,
     pub bandwidth: u32,

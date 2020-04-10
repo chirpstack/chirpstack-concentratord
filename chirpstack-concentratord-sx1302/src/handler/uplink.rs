@@ -1,16 +1,26 @@
+use std::sync::mpsc::Receiver;
 use std::thread;
 use std::time::Duration;
 
+use libconcentratord::signals::Signal;
 use libconcentratord::{events, stats};
 use libloragw_sx1302::hal;
 use uuid::Uuid;
 
 use super::super::wrapper;
 
-pub fn handle_loop(gateway_id: &[u8]) {
+pub fn handle_loop(gateway_id: &[u8], stop_receive: Receiver<Signal>) {
     debug!("Starting uplink handle loop");
 
     loop {
+        match stop_receive.recv_timeout(Duration::from_millis(0)) {
+            Ok(v) => {
+                debug!("Received stop signal, signal: {:?}", v);
+                return;
+            }
+            _ => {}
+        };
+
         match hal::receive() {
             Ok(frames) => {
                 for frame in frames {

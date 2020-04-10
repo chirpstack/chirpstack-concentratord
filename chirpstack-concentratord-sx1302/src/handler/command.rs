@@ -1,6 +1,8 @@
+use std::sync::mpsc::{Receiver, Sender};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
+use libconcentratord::signals::Signal;
 use libconcentratord::{commands, jitqueue, stats};
 use libloragw_sx1302::hal;
 use prost::Message;
@@ -14,12 +16,23 @@ pub fn handle_loop(
     gateway_id: &[u8],
     queue: Arc<Mutex<jitqueue::Queue<wrapper::TxPacket>>>,
     rep_sock: zmq::Socket,
+    stop_receive: Receiver<Signal>,
+    stop_send: Sender<Signal>,
 ) {
     debug!("Starting command handler loop");
 
+    // A timeout is used so that we can consume from the stop signal.
     let reader = commands::Reader::new(&rep_sock, Duration::from_millis(100));
 
     for cmd in reader {
+        match stop_receive.recv_timeout(Duration::from_millis(0)) {
+            Ok(v) => {
+                debug!("Received stop signal, signal: {:?}", v);
+                return;
+            }
+            _ => {}
+        };
+
         let resp = match cmd {
             commands::Command::Timeout => {
                 continue;
@@ -31,7 +44,12 @@ pub fn handle_loop(
                 }
             }
             commands::Command::GatewayID => gateway_id.to_vec(),
-            commands::Command::Configuration(_) => Vec::new(), // TODO: implement
+            commands::Command::Configuration(pl) => {
+                match handle_configuration(stop_send.clone(), pl) {
+                    Ok(v) => v,
+                    Err(_) => Vec::new(),
+                }
+            }
             commands::Command::Error(err) => {
                 error!("Read command error, error: {}", err);
                 Vec::new()
@@ -121,4 +139,12 @@ fn handle_downlink(
     let mut buf = Vec::new();
     tx_ack.encode(&mut buf).unwrap();
     return Ok(buf);
+}
+
+fn handle_configuration(
+    stop_send: Sender<Signal>,
+    pl: chirpstack_api::gw::GatewayConfiguration,
+) -> Result<Vec<u8>, ()> {
+    stop_send.send(Signal::Configuration(pl)).unwrap();
+    return Ok(Vec::new());
 }

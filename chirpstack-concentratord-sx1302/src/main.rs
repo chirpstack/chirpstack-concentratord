@@ -7,16 +7,21 @@ extern crate syslog;
 
 use std::process;
 use std::str::FromStr;
+use std::sync::mpsc::channel;
+use std::sync::Arc;
+use std::thread;
 
+use clap::{App, Arg};
+use signal_hook::{iterator::Signals, SIGINT};
 use syslog::{BasicLogger, Facility, Formatter3164};
+
+use libconcentratord::signals::Signal;
 
 mod cmd;
 mod concentrator;
 mod config;
 mod handler;
 mod wrapper;
-
-use clap::{App, Arg};
 
 fn main() {
     let matches = App::new("chirpstack-concentratord-sx1302")
@@ -38,7 +43,7 @@ fn main() {
     let config_files = matches
         .values_of_lossy("config")
         .unwrap_or(vec!["chirpstack-concentratord-sx1302.toml".to_string()]);
-    let config = config::get(config_files);
+    let mut config = config::get(config_files);
 
     if config.concentratord.log_to_syslog {
         let formatter = Formatter3164 {
@@ -64,5 +69,31 @@ fn main() {
         .unwrap();
     }
 
-    cmd::root::run(&config).unwrap();
+    let signals = Signals::new(&[SIGINT]).expect("error registering channels");
+    let (stop_send, stop_receive) = channel();
+    let stop_receive = Arc::new(stop_receive);
+
+    thread::spawn({
+        let stop_send = stop_send.clone();
+
+        move || {
+            let mut signal_iter = signals.forever();
+            let _ = signal_iter.next();
+            warn!("Received stop signal, stopping Concentratord");
+            stop_send.send(Signal::Stop).unwrap();
+            let _ = signal_iter.next();
+            warn!("Received stop signal, terminating Concentratord immediately");
+            process::exit(0);
+        }
+    });
+
+    loop {
+        match cmd::root::run(&config, stop_send.clone(), stop_receive.clone()).unwrap() {
+            Signal::Stop => process::exit(0),
+            Signal::Configuration(new_config) => {
+                handler::config::update_configuration(&mut config, &new_config)
+                    .expect("update configuration failed")
+            }
+        }
+    }
 }
