@@ -1,4 +1,5 @@
 use std::sync::{Arc, Mutex};
+use std::time::Duration;
 
 use libconcentratord::{commands, jitqueue, stats};
 use libloragw_sx1302::hal;
@@ -16,10 +17,13 @@ pub fn handle_loop(
 ) {
     debug!("Starting command handler loop");
 
-    let reader = commands::Reader::new(&rep_sock);
+    let reader = commands::Reader::new(&rep_sock, Duration::from_millis(100));
 
     for cmd in reader {
         let resp = match cmd {
+            commands::Command::Timeout => {
+                continue;
+            }
             commands::Command::Downlink(pl) => {
                 match handle_downlink(vendor_config, gateway_id, &queue, &pl) {
                     Ok(v) => v,
@@ -27,6 +31,7 @@ pub fn handle_loop(
                 }
             }
             commands::Command::GatewayID => gateway_id.to_vec(),
+            commands::Command::Configuration(_) => Vec::new(), // TODO: implement
             commands::Command::Error(err) => {
                 error!("Read command error, error: {}", err);
                 Vec::new()

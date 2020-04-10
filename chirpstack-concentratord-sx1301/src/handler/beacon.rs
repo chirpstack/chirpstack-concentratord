@@ -1,8 +1,10 @@
+use std::sync::mpsc::Receiver;
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
 
 use libconcentratord::jitqueue;
+use libconcentratord::signals::Signal;
 use libloragw_sx1301::hal;
 use uuid::Uuid;
 
@@ -12,16 +14,22 @@ use super::{gps, timersync};
 const PERIOD: u64 = 128;
 const MARGIN: Duration = Duration::from_secs(5);
 
-pub fn beacon_loop(conf: &config::Beacon, queue: Arc<Mutex<jitqueue::Queue<wrapper::TxPacket>>>) {
+pub fn beacon_loop(
+    conf: &config::Beacon,
+    queue: Arc<Mutex<jitqueue::Queue<wrapper::TxPacket>>>,
+    stop_receive: Receiver<Signal>,
+) {
     debug!("Starting beacon loop");
 
-    if conf.frequencies.len() == 0 {
-        debug!("No beacon frequencies configured, disabling beaconing");
-        return;
-    }
-
     loop {
-        thread::sleep(MARGIN);
+        // Instead of a MARGIN sleep, we receive from the stop channel with a
+        // timeout of MARGIN seconds.
+        match stop_receive.recv_timeout(MARGIN) {
+            Ok(v) => {
+                debug!("Received stop signal, signal: {:?}", v);
+            }
+            _ => {}
+        };
 
         let gps_epoch = match gps::get_gps_epoch() {
             Ok(v) => v,
@@ -39,7 +47,14 @@ pub fn beacon_loop(conf: &config::Beacon, queue: Arc<Mutex<jitqueue::Queue<wrapp
             None => continue,
         };
 
-        thread::sleep(sleep_time);
+        // Instead of a sleep_time sleep, we receive from the stop channel with a
+        // timeout of sleep_time.
+        match stop_receive.recv_timeout(sleep_time) {
+            Ok(v) => {
+                debug!("Received stop signal, signal: {:?}", v);
+            }
+            _ => {}
+        };
 
         match send_beacon(conf, next_beacon_time, &queue) {
             Ok(_) => info!(

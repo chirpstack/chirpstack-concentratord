@@ -153,8 +153,15 @@ pub fn rxif_setconf(config: &Configuration) -> Result<(), String> {
 }
 
 pub fn start(_config: &Configuration) -> Result<(), String> {
-    info!("Starting the the concentrator");
+    info!("Starting the concentrator");
     hal::start()?;
+
+    return Ok(());
+}
+
+pub fn stop(_config: &Configuration) -> Result<(), String> {
+    info!("Stopping the concentrator");
+    hal::stop()?;
 
     return Ok(());
 }

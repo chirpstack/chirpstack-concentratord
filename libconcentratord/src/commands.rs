@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use log::info;
 use prost::Message;
 
@@ -13,20 +15,36 @@ pub fn get_socket(bind: &str) -> Result<zmq::Socket, zmq::Error> {
 }
 
 pub enum Command {
+    // Reading command timed out.
+    Timeout,
+
+    // Error reading command.
     Error(String),
+
+    // Unknown command.
     Unknown(String, Vec<u8>),
 
+    // Downlink enqueue.
     Downlink(chirpstack_api::gw::DownlinkFrame),
+
+    // Gateway ID request.
     GatewayID,
+
+    // Gateway configuration.
+    Configuration(chirpstack_api::gw::GatewayConfiguration),
 }
 
 pub struct Reader<'a> {
     rep_sock: &'a zmq::Socket,
+    timeout: Duration,
 }
 
 impl<'a> Reader<'a> {
-    pub fn new(sock: &'a zmq::Socket) -> Self {
-        Reader { rep_sock: sock }
+    pub fn new(sock: &'a zmq::Socket, timeout: Duration) -> Self {
+        Reader {
+            rep_sock: sock,
+            timeout: timeout,
+        }
     }
 }
 
@@ -34,8 +52,14 @@ impl Iterator for Reader<'_> {
     type Item = Command;
 
     fn next(&mut self) -> Option<Command> {
-        let msg = self.rep_sock.recv_multipart(0).unwrap();
+        // set poller so that we can timeout
+        let mut items = [self.rep_sock.as_poll_item(zmq::POLLIN)];
+        zmq::poll(&mut items, self.timeout.as_millis() as i64).unwrap();
+        if !items[0].is_readable() {
+            return Some(Command::Timeout);
+        }
 
+        let msg = self.rep_sock.recv_multipart(0).unwrap();
         match handle_message(msg) {
             Ok(v) => Some(v),
             Err(err) => Some(Command::Error(err.to_string())),
@@ -58,6 +82,10 @@ fn handle_message(msg: Vec<Vec<u8>>) -> Result<Command, String> {
             Ok(v) => Command::Downlink(v),
             Err(err) => Command::Error(err),
         },
+        "config" => match parse_config(&msg[1]) {
+            Ok(v) => Command::Configuration(v),
+            Err(err) => Command::Error(err),
+        },
         "gateway_id" => Command::GatewayID,
         _ => Command::Unknown(command, msg[1].clone()),
     })
@@ -65,6 +93,13 @@ fn handle_message(msg: Vec<Vec<u8>>) -> Result<Command, String> {
 
 fn parse_down(msg: &[u8]) -> Result<chirpstack_api::gw::DownlinkFrame, String> {
     match chirpstack_api::gw::DownlinkFrame::decode(msg) {
+        Ok(v) => Ok(v),
+        Err(err) => Err(err.to_string()),
+    }
+}
+
+fn parse_config(msg: &[u8]) -> Result<chirpstack_api::gw::GatewayConfiguration, String> {
+    match chirpstack_api::gw::GatewayConfiguration::decode(msg) {
         Ok(v) => Ok(v),
         Err(err) => Err(err.to_string()),
     }

@@ -1,19 +1,32 @@
+use std::sync::mpsc::Receiver;
 use std::sync::{Arc, Mutex};
-use std::thread;
 use std::time::Duration;
 
 use libconcentratord::jitqueue::TxPacket;
+use libconcentratord::signals::Signal;
 use libconcentratord::{jitqueue, stats};
 use libloragw_sx1301::hal;
 
 use super::super::wrapper;
 use super::timersync;
 
-pub fn jit_loop(queue: Arc<Mutex<jitqueue::Queue<wrapper::TxPacket>>>, antenna_gain: i8) {
+pub fn jit_loop(
+    queue: Arc<Mutex<jitqueue::Queue<wrapper::TxPacket>>>,
+    antenna_gain: i8,
+    stop_receive: Receiver<Signal>,
+) {
     debug!("Starting JIT queue loop");
 
     loop {
-        thread::sleep(Duration::from_millis(10));
+        // Instead of a 10ms sleep, we receive from the stop channel with a
+        // timeout of 10ms.
+        match stop_receive.recv_timeout(Duration::from_millis(10)) {
+            Ok(v) => {
+                debug!("Received stop signal, signal: {:?}", v);
+                return;
+            }
+            _ => {}
+        };
 
         let tx_packet = match get_tx_packet(&queue) {
             Some(v) => v,

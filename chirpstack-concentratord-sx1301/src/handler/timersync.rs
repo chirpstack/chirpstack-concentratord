@@ -1,7 +1,8 @@
+use std::sync::mpsc::Receiver;
 use std::sync::Mutex;
-use std::thread;
 use std::time::{Duration, SystemTime};
 
+use libconcentratord::signals::Signal;
 use libloragw_sx1301::{hal, reg, wrapper};
 
 lazy_static! {
@@ -13,14 +14,23 @@ lazy_static! {
     );
 }
 
-pub fn timesync_loop() {
+pub fn timesync_loop(stop_receive: Receiver<Signal>) {
     debug!("Starting timesync loop");
 
     loop {
         // The timesync is in a separate function to make sure that the
         // mutex guard is dereferenced as soon as the function returns.
         timesync();
-        thread::sleep(Duration::from_secs(60));
+
+        // Instead of a 60s sleep, we receive from the stop channel with a
+        // timeout of 60 seconds.
+        match stop_receive.recv_timeout(Duration::from_secs(60)) {
+            Ok(v) => {
+                debug!("Received stop signal, signal: {:?}", v);
+                return;
+            }
+            _ => {}
+        };
     }
 }
 

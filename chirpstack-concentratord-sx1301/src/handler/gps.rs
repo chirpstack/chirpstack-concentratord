@@ -1,11 +1,12 @@
 use std::io::{BufRead, BufReader, Read};
-use std::path::Path;
+use std::sync::mpsc::Receiver;
 use std::sync::Mutex;
-use std::thread;
 use std::time::{Duration, SystemTime};
 
 use chrono::offset::Utc;
 use chrono::DateTime;
+
+use libconcentratord::signals::Signal;
 use libloragw_sx1301::{gps, hal};
 
 lazy_static! {
@@ -28,12 +29,7 @@ lazy_static! {
 const XERR_INIT_AVG: isize = 128;
 const XERR_FILT_COEF: f64 = 256.0;
 
-pub fn gps_loop(gps_tty_path: &str) {
-    if !has_gps_configured(gps_tty_path) {
-        info!("No gps_tty_path configured or GPS unavailable");
-        return;
-    }
-
+pub fn gps_loop(gps_tty_path: &str, stop_receive: Receiver<Signal>) {
     debug!("Starting GPS loop");
 
     let gps_file = gps::enable(gps_tty_path, gps::GPSFamily::UBX7, 0)
@@ -46,6 +42,14 @@ pub fn gps_loop(gps_tty_path: &str) {
     );
 
     loop {
+        match stop_receive.recv_timeout(Duration::from_millis(0)) {
+            Ok(v) => {
+                debug!("Received stop signal, signal: {:?}", v);
+                return;
+            }
+            _ => {}
+        };
+
         let mut buffer = vec![0; 1];
         gps_reader
             .read_exact(&mut buffer)
@@ -110,18 +114,22 @@ pub fn gps_loop(gps_tty_path: &str) {
     }
 }
 
-pub fn gps_validate_loop(gps_tty_path: &str) {
-    if !has_gps_configured(gps_tty_path) {
-        return;
-    }
-
+pub fn gps_validate_loop(stop_receive: Receiver<Signal>) {
     info!("Starting GPS validation loop");
 
     let mut init_cpt: isize = 0;
     let mut init_acc: f64 = 0.0;
 
     loop {
-        thread::sleep(Duration::from_secs(1));
+        // Instead of a 1s sleep, we receive from the stop channel with a
+        // timeout of 1 second.
+        match stop_receive.recv_timeout(Duration::from_secs(1)) {
+            Ok(v) => {
+                debug!("Received stop signal, signal: {:?}", v);
+                return;
+            }
+            _ => {}
+        };
 
         // Scope to make sure the mutex guard is dereferenced after validation.
         {
@@ -307,12 +315,4 @@ fn gps_process_coords() {
         coords,
         coords_error
     );
-}
-
-fn has_gps_configured(gps_tty_path: &str) -> bool {
-    if gps_tty_path.eq("") {
-        return false;
-    }
-
-    Path::new(gps_tty_path).exists()
 }

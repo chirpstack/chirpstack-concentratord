@@ -8,7 +8,7 @@ pub mod vendor;
 
 pub const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 
-#[derive(Default, Deserialize)]
+#[derive(Default, Deserialize, Debug, PartialEq)]
 pub struct Concentrator {
     pub multi_sf_channels: [u32; 8],
     #[serde(default)]
@@ -17,14 +17,14 @@ pub struct Concentrator {
     pub fsk: FSKChannel,
 }
 
-#[derive(Default, Deserialize)]
+#[derive(Default, Deserialize, Debug, PartialEq)]
 pub struct LoRaStdChannel {
     pub frequency: u32,
     pub bandwidth: u32,
     pub spreading_factor: u8,
 }
 
-#[derive(Default, Deserialize)]
+#[derive(Default, Deserialize, Debug, PartialEq)]
 pub struct FSKChannel {
     pub frequency: u32,
     pub datarate: u32,

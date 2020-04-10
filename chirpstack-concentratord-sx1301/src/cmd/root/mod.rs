@@ -1,10 +1,19 @@
-use libconcentratord::{commands, events, jitqueue};
+use std::path::Path;
+use std::sync::mpsc::{Receiver, Sender};
 use std::sync::{Arc, Mutex};
 use std::thread;
 
+use libconcentratord::signals;
+use libconcentratord::signals::Signal;
+use libconcentratord::{commands, events, jitqueue};
+
 use super::super::{concentrator, config, handler, wrapper};
 
-pub fn run(config: config::Configuration) -> Result<(), String> {
+pub fn run(
+    config: &config::Configuration,
+    stop_send: Sender<Signal>,
+    stop_receive: Arc<Receiver<Signal>>,
+) -> Result<Signal, String> {
     info!(
         "Starting Concentratord SX1301 (version: {}, docs: {})",
         config::VERSION,
@@ -28,89 +37,121 @@ pub fn run(config: config::Configuration) -> Result<(), String> {
     let queue: jitqueue::Queue<wrapper::TxPacket> = jitqueue::Queue::new(32);
     let queue = Arc::new(Mutex::new(queue));
 
+    // setup threads
+    let mut signal_pool = signals::SignalPool::new();
+    let mut threads: Vec<thread::JoinHandle<()>> = vec![];
+
     // uplink thread
-    let up_handler = thread::spawn({
+    threads.push(thread::spawn({
+        let stop_receive = signal_pool.new_receiver();
         let gateway_id = config.gateway.gateway_id_bytes.clone();
 
         move || {
-            handler::uplink::handle_loop(&gateway_id);
+            handler::uplink::handle_loop(&gateway_id, stop_receive);
         }
-    });
+    }));
 
     // timer sync thread
-    let time_sync = thread::spawn({
+    threads.push(thread::spawn({
+        let stop_receive = signal_pool.new_receiver();
+
         move || {
-            handler::timersync::timesync_loop();
+            handler::timersync::timesync_loop(stop_receive);
         }
-    });
+    }));
 
     // jit thread
-    let jit_loop = thread::spawn({
+    threads.push(thread::spawn({
         let queue = Arc::clone(&queue);
+        let stop_receive = signal_pool.new_receiver();
         let antenna_gain = config.gateway.antenna_gain;
 
         move || {
-            handler::jit::jit_loop(queue, antenna_gain);
+            handler::jit::jit_loop(queue, antenna_gain, stop_receive);
         }
-    });
+    }));
 
     // gateway command thread
-    let command_loop = thread::spawn({
+    threads.push(thread::spawn({
         let vendor_config = config.gateway.model_config.clone();
         let gateway_id = config.gateway.gateway_id_bytes.clone();
         let queue = Arc::clone(&queue);
+        let stop_receive = signal_pool.new_receiver();
+        let stop_send = stop_send.clone();
 
         move || {
-            handler::command::handle_loop(&vendor_config, &gateway_id, queue, rep_sock);
+            handler::command::handle_loop(
+                &vendor_config,
+                &gateway_id,
+                queue,
+                rep_sock,
+                stop_receive,
+                stop_send,
+            );
         }
-    });
-
-    // gps thread
-    let gps_loop = thread::spawn({
-        let gps_tty_path = config.gateway.model_config.gps_tty_path.clone();
-
-        move || {
-            handler::gps::gps_loop(&gps_tty_path);
-        }
-    });
-
-    // gps validate thread
-    let gps_validate_loop = thread::spawn({
-        let gps_tty_path = config.gateway.model_config.gps_tty_path.clone();
-
-        move || {
-            handler::gps::gps_validate_loop(&gps_tty_path);
-        }
-    });
+    }));
 
     // stats thread
-    let stats_loop = thread::spawn({
+    threads.push(thread::spawn({
         let gateway_id = config.gateway.gateway_id_bytes.clone();
         let stats_interval = config.concentratord.stats_interval;
+        let stop_receive = signal_pool.new_receiver();
 
         move || {
-            handler::stats::stats_loop(&gateway_id, &stats_interval);
+            handler::stats::stats_loop(&gateway_id, &stats_interval, stop_receive);
         }
-    });
+    }));
 
-    // beacon thread
-    let beacon_loop = thread::spawn({
-        let beacon_config = config.gateway.beacon.clone();
-        let queue = Arc::clone(&queue);
+    if has_gps_configured(&config.gateway.model_config.gps_tty_path) {
+        // gps thread
+        threads.push(thread::spawn({
+            let gps_tty_path = config.gateway.model_config.gps_tty_path.clone();
+            let stop_receive = signal_pool.new_receiver();
 
-        move || {
-            handler::beacon::beacon_loop(&beacon_config, queue);
+            move || {
+                handler::gps::gps_loop(&gps_tty_path, stop_receive);
+            }
+        }));
+
+        // gps validate thread
+        threads.push(thread::spawn({
+            let stop_receive = signal_pool.new_receiver();
+
+            move || {
+                handler::gps::gps_validate_loop(stop_receive);
+            }
+        }));
+
+        // beacon thread
+        if config.gateway.beacon.frequencies.len() != 0 {
+            threads.push(thread::spawn({
+                let beacon_config = config.gateway.beacon.clone();
+                let queue = Arc::clone(&queue);
+                let stop_receive = signal_pool.new_receiver();
+
+                move || {
+                    handler::beacon::beacon_loop(&beacon_config, queue, stop_receive);
+                }
+            }));
         }
-    });
+    }
 
-    up_handler.join().unwrap();
-    time_sync.join().unwrap();
-    jit_loop.join().unwrap();
-    command_loop.join().unwrap();
-    gps_loop.join().unwrap();
-    gps_validate_loop.join().unwrap();
-    stats_loop.join().unwrap();
-    beacon_loop.join().unwrap();
+    let stop_signal = stop_receive.recv().unwrap();
+    signal_pool.send_signal(stop_signal.clone());
 
-    return Ok(());
+    for t in threads {
+        t.join().unwrap();
+    }
+
+    concentrator::stop(&config)?;
+
+    return Ok(stop_signal);
+}
+
+fn has_gps_configured(gps_tty_path: &str) -> bool {
+    if gps_tty_path.eq("") {
+        return false;
+    }
+
+    Path::new(gps_tty_path).exists()
 }
