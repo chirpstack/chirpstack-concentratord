@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::sync::mpsc::Receiver;
 use std::time::Duration;
 
@@ -6,7 +7,12 @@ use libconcentratord::stats;
 
 use super::gps;
 
-pub fn stats_loop(gateway_id: &[u8], stats_interval: &Duration, stop_receive: Receiver<Signal>) {
+pub fn stats_loop(
+    gateway_id: &[u8],
+    stats_interval: &Duration,
+    stop_receive: Receiver<Signal>,
+    metadata: &HashMap<String, String>,
+) {
     debug!("Starting stats loop, stats_interval: {:?}", stats_interval);
 
     loop {
@@ -39,6 +45,6 @@ pub fn stats_loop(gateway_id: &[u8], stats_interval: &Duration, stop_receive: Re
             }
         };
 
-        stats::send_and_reset(gateway_id, loc).expect("sending stats failed");
+        stats::send_and_reset(gateway_id, loc, metadata).expect("sending stats failed");
     }
 }

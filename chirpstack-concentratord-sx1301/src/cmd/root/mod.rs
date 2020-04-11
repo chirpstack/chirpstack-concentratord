@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::path::Path;
 use std::sync::mpsc::{Receiver, Sender};
 use std::sync::{Arc, Mutex};
@@ -96,9 +97,16 @@ pub fn run(
         let gateway_id = config.gateway.gateway_id_bytes.clone();
         let stats_interval = config.concentratord.stats_interval;
         let stop_receive = signal_pool.new_receiver();
+        let mut metadata = HashMap::new();
+        metadata.insert(
+            "config_version".to_string(),
+            config.gateway.config_version.clone(),
+        );
+
+        warn!("meta-data is: {:?}", metadata);
 
         move || {
-            handler::stats::stats_loop(&gateway_id, &stats_interval, stop_receive);
+            handler::stats::stats_loop(&gateway_id, &stats_interval, stop_receive, &metadata);
         }
     }));
 

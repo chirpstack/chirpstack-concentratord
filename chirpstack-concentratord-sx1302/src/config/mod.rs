@@ -41,6 +41,9 @@ pub struct Gateway {
 
     #[serde(skip)]
     pub model_config: vendor::Configuration,
+
+    #[serde(skip)]
+    pub config_version: String,
 }
 
 #[derive(Default, Deserialize, Debug, PartialEq)]

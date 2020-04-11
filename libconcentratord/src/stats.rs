@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::sync::Mutex;
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -32,6 +33,7 @@ pub fn inc_tx_packets_emitted() {
 pub fn send_and_reset(
     gateway_id: &[u8],
     location: Option<chirpstack_api::common::Location>,
+    metadata: &HashMap<String, String>,
 ) -> Result<(), String> {
     let mut stats = STATS.lock().unwrap();
 
@@ -45,6 +47,7 @@ pub fn send_and_reset(
         nanos: now_since_unix.subsec_nanos() as i32,
     });
     stats.location = location;
+    stats.meta_data = metadata.clone();
 
     events::send_stats(&stats, &stats_id).unwrap();
 

@@ -58,6 +58,8 @@ pub struct Gateway {
     pub gateway_id_bytes: Vec<u8>,
     #[serde(skip)]
     pub model_config: vendor::Configuration,
+    #[serde(skip)]
+    pub config_version: String,
 }
 
 #[derive(Default, Deserialize)]
