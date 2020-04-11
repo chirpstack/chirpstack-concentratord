@@ -15,7 +15,7 @@ pub fn handle_loop(gateway_id: &[u8], stop_receive: Receiver<Signal>) {
     loop {
         match stop_receive.recv_timeout(Duration::from_millis(0)) {
             Ok(v) => {
-                debug!("Received stop signal, signal: {:?}", v);
+                debug!("Received stop signal, signal: {}", v);
                 return;
             }
             _ => {}

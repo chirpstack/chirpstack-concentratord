@@ -27,7 +27,7 @@ pub fn handle_loop(
     for cmd in reader {
         match stop_receive.recv_timeout(Duration::from_millis(0)) {
             Ok(v) => {
-                debug!("Received stop signal, signal: {:?}", v);
+                debug!("Received stop signal, signal: {}", v);
                 return;
             }
             _ => {}

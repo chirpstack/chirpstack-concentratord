@@ -21,7 +21,7 @@ pub fn jit_loop(
         // timeout of 10ms.
         match stop_receive.recv_timeout(Duration::from_millis(10)) {
             Ok(v) => {
-                debug!("Received stop signal, signal: {:?}", v);
+                debug!("Received stop signal, signal: {}", v);
                 return;
             }
             _ => {}

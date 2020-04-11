@@ -26,7 +26,7 @@ pub fn beacon_loop(
         // timeout of MARGIN seconds.
         match stop_receive.recv_timeout(MARGIN) {
             Ok(v) => {
-                debug!("Received stop signal, signal: {:?}", v);
+                debug!("Received stop signal, signal: {}", v);
             }
             _ => {}
         };
@@ -51,7 +51,7 @@ pub fn beacon_loop(
         // timeout of sleep_time.
         match stop_receive.recv_timeout(sleep_time) {
             Ok(v) => {
-                debug!("Received stop signal, signal: {:?}", v);
+                debug!("Received stop signal, signal: {}", v);
             }
             _ => {}
         };

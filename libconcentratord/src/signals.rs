@@ -1,9 +1,19 @@
+use std::fmt;
 use std::sync::mpsc::{channel, Receiver, Sender};
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub enum Signal {
     Stop,
     Configuration(chirpstack_api::gw::GatewayConfiguration),
+}
+
+impl fmt::Display for Signal {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            Signal::Stop => write!(f, "Stop"),
+            Signal::Configuration(_) => write!(f, "Configuration"),
+        }
+    }
 }
 
 pub struct SignalPool {

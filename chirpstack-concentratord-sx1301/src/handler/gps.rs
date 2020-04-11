@@ -44,7 +44,7 @@ pub fn gps_loop(gps_tty_path: &str, stop_receive: Receiver<Signal>) {
     loop {
         match stop_receive.recv_timeout(Duration::from_millis(0)) {
             Ok(v) => {
-                debug!("Received stop signal, signal: {:?}", v);
+                debug!("Received stop signal, signal: {}", v);
                 return;
             }
             _ => {}
@@ -125,7 +125,7 @@ pub fn gps_validate_loop(stop_receive: Receiver<Signal>) {
         // timeout of 1 second.
         match stop_receive.recv_timeout(Duration::from_secs(1)) {
             Ok(v) => {
-                debug!("Received stop signal, signal: {:?}", v);
+                debug!("Received stop signal, signal: {}", v);
                 return;
             }
             _ => {}

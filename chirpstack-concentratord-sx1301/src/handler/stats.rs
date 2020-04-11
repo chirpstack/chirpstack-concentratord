@@ -14,7 +14,7 @@ pub fn stats_loop(gateway_id: &[u8], stats_interval: &Duration, stop_receive: Re
         // timeout equal to the 'stats interval'.
         match stop_receive.recv_timeout(*stats_interval) {
             Ok(v) => {
-                debug!("Received stop signal, signal: {:?}", v);
+                debug!("Received stop signal, signal: {}", v);
                 return;
             }
             _ => {}
