@@ -1,5 +1,7 @@
-use super::{mutex, wrapper};
+use std::ffi::CStr;
 use std::time::Duration;
+
+use super::{mutex, wrapper};
 
 // ConvertBandwidth is a trait to convert the bandwidth from / to the HAL
 // enum constants. A trait is needed as it is the only way to add methods to
@@ -676,4 +678,13 @@ pub fn time_on_air(pkt: &TxPacket) -> Result<Duration, String> {
 
     let ms = unsafe { wrapper::lgw_time_on_air(&mut pkt) };
     return Ok(Duration::from_millis(ms as u64));
+}
+
+/// Allow user to check the version/options of the library once compiled.
+pub fn version_info() -> String {
+    unsafe {
+        CStr::from_ptr(wrapper::lgw_version_info())
+            .to_string_lossy()
+            .into_owned()
+    }
 }

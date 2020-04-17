@@ -7,6 +7,7 @@ use std::thread;
 use libconcentratord::signals;
 use libconcentratord::signals::Signal;
 use libconcentratord::{commands, events, jitqueue};
+use libloragw_sx1301::hal;
 
 use super::super::{concentrator, config, handler, wrapper};
 
@@ -102,8 +103,12 @@ pub fn run(
             "config_version".to_string(),
             config.gateway.config_version.clone(),
         );
-
-        warn!("meta-data is: {:?}", metadata);
+        metadata.insert(
+            "concentratord_version".to_string(),
+            config::VERSION.to_string(),
+        );
+        metadata.insert("model".to_string(), config.gateway.model.clone());
+        metadata.insert("hal_version".to_string(), hal::version_info());
 
         move || {
             handler::stats::stats_loop(&gateway_id, &stats_interval, stop_receive, &metadata);
