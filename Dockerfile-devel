@@ -18,7 +18,7 @@ RUN apt-get update && \
 RUN mkdir -p /hal/native && \
 	cd /hal/native && \
 	git clone https://github.com/brocaar/lora_gateway.git -b v5.0.1r2 && \
-	git clone https://github.com/Lora-net/sx1302_hal.git -b V1.0.4
+	git clone https://github.com/Lora-net/sx1302_hal.git -b V1.0.5
 
 RUN cd /hal/native/lora_gateway && \
 	make && \
