@@ -4,6 +4,7 @@ use std::time::Duration;
 
 use libconcentratord::signals::Signal;
 use libconcentratord::stats;
+use libloragw_sx1302::hal;
 
 use super::gps;
 
@@ -11,7 +12,7 @@ pub fn stats_loop(
     gateway_id: &[u8],
     stats_interval: &Duration,
     stop_receive: Receiver<Signal>,
-    metadata: &HashMap<String, String>,
+    mut metadata: HashMap<String, String>,
 ) {
     debug!("Starting stats loop, stats_interval: {:?}", stats_interval);
 
@@ -45,6 +46,17 @@ pub fn stats_loop(
             }
         };
 
-        stats::send_and_reset(gateway_id, loc, metadata).expect("sending stats failed");
+        // fetch the concentrator temperature.
+        match hal::get_temperature() {
+            Ok(v) => {
+                metadata.insert("concentrator_temp".to_string(), format!("{}", v));
+            }
+            Err(err) => {
+                metadata.remove(&"concentrator_temp".to_string());
+                error!("Get concentrator temperature error, error: {}", err);
+            }
+        }
+
+        stats::send_and_reset(gateway_id, loc, &metadata).expect("sending stats failed");
     }
 }

@@ -109,7 +109,7 @@ pub fn run(
         metadata.insert("hal_version".to_string(), hal::version_info());
 
         move || {
-            handler::stats::stats_loop(&gateway_id, &stats_interval, stop_receive, &metadata);
+            handler::stats::stats_loop(&gateway_id, &stats_interval, stop_receive, metadata);
         }
     }));
 
