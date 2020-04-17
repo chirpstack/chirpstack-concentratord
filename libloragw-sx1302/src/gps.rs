@@ -5,7 +5,7 @@ use std::os::unix::io::{AsRawFd, FromRawFd};
 use std::ptr;
 use std::time::{Duration, SystemTime};
 
-use super::{mutex, wrapper};
+use super::{mutex, timespec, wrapper};
 
 /// GPS family types.
 #[derive(Debug, PartialEq)]
@@ -68,6 +68,33 @@ pub enum MessageType {
     UBX_NAV_TIMEUTC,
 }
 
+impl MessageType {
+    fn from_hal(msg: wrapper::gps_msg) -> Result<Self, String> {
+        Ok(match msg {
+            wrapper::gps_msg_UNKNOWN => MessageType::Unknown,
+            wrapper::gps_msg_IGNORED => MessageType::Ignored,
+            wrapper::gps_msg_INVALID => MessageType::Invalid,
+            wrapper::gps_msg_INCOMPLETE => MessageType::Incomplete,
+            wrapper::gps_msg_NMEA_RMC => MessageType::NMEA_RMC,
+            wrapper::gps_msg_NMEA_GGA => MessageType::NMEA_GGA,
+            wrapper::gps_msg_NMEA_GNS => MessageType::NMEA_GNS,
+            wrapper::gps_msg_NMEA_ZDA => MessageType::NMEA_ZDA,
+            wrapper::gps_msg_NMEA_GBS => MessageType::NMEA_GBS,
+            wrapper::gps_msg_NMEA_GST => MessageType::NMEA_GST,
+            wrapper::gps_msg_NMEA_GSA => MessageType::NMEA_GSA,
+            wrapper::gps_msg_NMEA_GSV => MessageType::NMEA_GSV,
+            wrapper::gps_msg_NMEA_GLL => MessageType::NMEA_GLL,
+            wrapper::gps_msg_NMEA_TXT => MessageType::NMEA_TXT,
+            wrapper::gps_msg_NMEA_VTG => MessageType::NMEA_VTG,
+            wrapper::gps_msg_UBX_NAV_TIMEGPS => MessageType::UBX_NAV_TIMEGPS,
+            wrapper::gps_msg_UBX_NAV_TIMEUTC => MessageType::UBX_NAV_TIMEUTC,
+            _ => {
+                return Err(format!("unexpected gps message type: {}", msg));
+            }
+        })
+    }
+}
+
 // Time solution required for timestamp to absolute time conversion.
 #[derive(Debug)]
 pub struct TimeReference {
@@ -81,6 +108,22 @@ pub struct TimeReference {
     pub gps_epoch: Duration,
     /// Raw clock error (eg. <1 'slow' XTAL).
     pub xtal_err: f64,
+}
+
+impl TimeReference {
+    fn to_hal(&self) -> wrapper::tref {
+        wrapper::tref {
+            systime: self
+                .system_time
+                .duration_since(SystemTime::UNIX_EPOCH)
+                .unwrap()
+                .as_secs() as wrapper::time_t,
+            count_us: self.count_us,
+            utc: timespec::system_time_to_timespec(&self.gps_time),
+            gps: timespec::duration_to_timespec(&self.gps_epoch),
+            xtal_err: self.xtal_err,
+        }
+    }
 }
 
 impl Default for TimeReference {
@@ -143,7 +186,7 @@ pub fn parse_nmea(b: &[u8]) -> Result<MessageType, String> {
     };
 
     let ret = unsafe { wrapper::lgw_parse_nmea(s.as_ptr(), s.as_bytes().len() as i32) };
-    return map_gps_msg(ret);
+    return MessageType::from_hal(ret);
 }
 
 /// Parse Ublox proprietary messages coming from the GPS system.
@@ -158,7 +201,7 @@ pub fn parse_ubx(b: &[u8]) -> Result<(MessageType, usize), String> {
     let mut parsed_size = 0;
     let ret = unsafe { wrapper::lgw_parse_ubx(s.as_ptr(), s.as_bytes().len(), &mut parsed_size) };
 
-    let msg_type = map_gps_msg(ret)?;
+    let msg_type = MessageType::from_hal(ret)?;
     return Ok((msg_type, parsed_size));
 }
 
@@ -192,7 +235,7 @@ pub fn get(
         return Err("lgw_gps_get failed".to_string());
     }
 
-    let gps_time = timespec_to_system_time(&utc);
+    let gps_time = timespec::timespec_to_system_time(&utc);
     let gps_epoch =
         Duration::from_secs(gps.tv_sec as u64) + Duration::from_nanos(gps.tv_nsec as u64);
     let loc = Coordinates {
@@ -217,10 +260,10 @@ pub fn sync(
     gps_time: &SystemTime,
     gps_epoch: &Duration,
 ) -> Result<TimeReference, String> {
-    let mut tref = map_time_reference_to_t_ref(t_ref);
+    let mut tref = t_ref.to_hal();
 
-    let utc = system_time_to_timespec(gps_time);
-    let gps_time = duration_to_timespec(gps_epoch);
+    let utc = timespec::system_time_to_timespec(gps_time);
+    let gps_time = timespec::duration_to_timespec(gps_epoch);
 
     let ret = unsafe { wrapper::lgw_gps_sync(&mut tref, *count_us, utc, gps_time) };
     if ret != 0 {
@@ -230,8 +273,8 @@ pub fn sync(
     let tref = TimeReference {
         system_time: SystemTime::UNIX_EPOCH.add(Duration::from_secs(tref.systime as u64)),
         count_us: tref.count_us,
-        gps_time: timespec_to_system_time(&tref.utc),
-        gps_epoch: timespec_to_duration(&tref.gps),
+        gps_time: timespec::timespec_to_system_time(&tref.utc),
+        gps_epoch: timespec::timespec_to_duration(&tref.gps),
         xtal_err: tref.xtal_err,
     };
 
@@ -240,7 +283,7 @@ pub fn sync(
 
 /// Convert concentrator timestamp counter value to GPS time.
 pub fn cnt2time(t_ref: &TimeReference, count_us: u32) -> Result<SystemTime, String> {
-    let tref = map_time_reference_to_t_ref(t_ref);
+    let tref = t_ref.to_hal();
     let mut utc = wrapper::timespec {
         tv_sec: 0,
         tv_nsec: 0,
@@ -251,13 +294,13 @@ pub fn cnt2time(t_ref: &TimeReference, count_us: u32) -> Result<SystemTime, Stri
         return Err("lgw_cnt2utc failed".to_string());
     }
 
-    return Ok(timespec_to_system_time(&utc));
+    return Ok(timespec::timespec_to_system_time(&utc));
 }
 
 /// Convert GPS time to concentrator timestamp counter value.
 pub fn time2cnt(t_ref: &TimeReference, gps_time: &SystemTime) -> Result<u32, String> {
-    let tref = map_time_reference_to_t_ref(t_ref);
-    let utc = system_time_to_timespec(gps_time);
+    let tref = t_ref.to_hal();
+    let utc = timespec::system_time_to_timespec(gps_time);
 
     let mut count_us = 0;
 
@@ -271,7 +314,7 @@ pub fn time2cnt(t_ref: &TimeReference, gps_time: &SystemTime) -> Result<u32, Str
 
 /// Convert concentrator timestamp counter value to GPS epoch.
 pub fn cnt2epoch(t_ref: &TimeReference, count_us: u32) -> Result<Duration, String> {
-    let tref = map_time_reference_to_t_ref(t_ref);
+    let tref = t_ref.to_hal();
     let mut gps_time = wrapper::timespec {
         tv_sec: 0,
         tv_nsec: 0,
@@ -282,13 +325,13 @@ pub fn cnt2epoch(t_ref: &TimeReference, count_us: u32) -> Result<Duration, Strin
         return Err("lgw_cnt2gps failed".to_string());
     }
 
-    return Ok(timespec_to_duration(&gps_time));
+    return Ok(timespec::timespec_to_duration(&gps_time));
 }
 
 /// Convert GPS epoch to concentrator timestamp counter value.
 pub fn epoch2cnt(t_ref: &TimeReference, gps_epoch: &Duration) -> Result<u32, String> {
-    let tref = map_time_reference_to_t_ref(t_ref);
-    let gps_time = duration_to_timespec(gps_epoch);
+    let tref = t_ref.to_hal();
+    let gps_time = timespec::duration_to_timespec(gps_epoch);
     let mut count_us = 0;
 
     let ret = unsafe { wrapper::lgw_gps2cnt(tref, gps_time, &mut count_us) };
@@ -297,70 +340,4 @@ pub fn epoch2cnt(t_ref: &TimeReference, gps_epoch: &Duration) -> Result<u32, Str
     }
 
     return Ok(count_us);
-}
-
-fn map_gps_msg(msg: wrapper::gps_msg) -> Result<MessageType, String> {
-    let mt = match msg {
-        wrapper::gps_msg_UNKNOWN => MessageType::Unknown,
-        wrapper::gps_msg_IGNORED => MessageType::Ignored,
-        wrapper::gps_msg_INVALID => MessageType::Invalid,
-        wrapper::gps_msg_INCOMPLETE => MessageType::Incomplete,
-        wrapper::gps_msg_NMEA_RMC => MessageType::NMEA_RMC,
-        wrapper::gps_msg_NMEA_GGA => MessageType::NMEA_GGA,
-        wrapper::gps_msg_NMEA_GNS => MessageType::NMEA_GNS,
-        wrapper::gps_msg_NMEA_ZDA => MessageType::NMEA_ZDA,
-        wrapper::gps_msg_NMEA_GBS => MessageType::NMEA_GBS,
-        wrapper::gps_msg_NMEA_GST => MessageType::NMEA_GST,
-        wrapper::gps_msg_NMEA_GSA => MessageType::NMEA_GSA,
-        wrapper::gps_msg_NMEA_GSV => MessageType::NMEA_GSV,
-        wrapper::gps_msg_NMEA_GLL => MessageType::NMEA_GLL,
-        wrapper::gps_msg_NMEA_TXT => MessageType::NMEA_TXT,
-        wrapper::gps_msg_NMEA_VTG => MessageType::NMEA_VTG,
-        wrapper::gps_msg_UBX_NAV_TIMEGPS => MessageType::UBX_NAV_TIMEGPS,
-        wrapper::gps_msg_UBX_NAV_TIMEUTC => MessageType::UBX_NAV_TIMEUTC,
-        _ => {
-            return Err(format!("unexpected gps message type: {}", msg));
-        }
-    };
-
-    return Ok(mt);
-}
-
-fn map_time_reference_to_t_ref(t_ref: &TimeReference) -> wrapper::tref {
-    wrapper::tref {
-        systime: t_ref
-            .system_time
-            .duration_since(SystemTime::UNIX_EPOCH)
-            .unwrap()
-            .as_secs() as wrapper::time_t,
-        count_us: t_ref.count_us,
-        utc: system_time_to_timespec(&t_ref.gps_time),
-        gps: duration_to_timespec(&t_ref.gps_epoch),
-        xtal_err: t_ref.xtal_err,
-    }
-}
-
-fn timespec_to_system_time(ts: &wrapper::timespec) -> SystemTime {
-    SystemTime::UNIX_EPOCH
-        .add(Duration::from_secs(ts.tv_sec as u64) + Duration::from_nanos(ts.tv_nsec as u64))
-}
-
-fn system_time_to_timespec(st: &SystemTime) -> wrapper::timespec {
-    let utc_dur = st.duration_since(SystemTime::UNIX_EPOCH).unwrap();
-
-    wrapper::timespec {
-        tv_sec: utc_dur.as_secs() as wrapper::time_t,
-        tv_nsec: (utc_dur.as_nanos() % 1000000000) as wrapper::__syscall_slong_t,
-    }
-}
-
-fn duration_to_timespec(d: &Duration) -> wrapper::timespec {
-    wrapper::timespec {
-        tv_sec: d.as_secs() as wrapper::time_t,
-        tv_nsec: (d.as_nanos() % 1000000000) as wrapper::__syscall_slong_t,
-    }
-}
-
-fn timespec_to_duration(ts: &wrapper::timespec) -> Duration {
-    Duration::from_secs(ts.tv_sec as u64) + Duration::from_nanos(ts.tv_nsec as u64)
 }

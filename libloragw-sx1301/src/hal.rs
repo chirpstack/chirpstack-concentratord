@@ -1,12 +1,61 @@
 use super::{mutex, wrapper};
 use std::time::Duration;
 
+// ConvertBandwidth is a trait to convert the bandwidth from / to the HAL
+// enum constants. A trait is needed as it is the only way to add methods to
+// a type alias.
+trait ConvertBandwidth {
+    fn from_hal(_: u8) -> u32;
+    fn to_hal(&self) -> u8;
+}
+
+/// Bandwidth in Hz.
+type Bandwidth = u32;
+
+impl ConvertBandwidth for Bandwidth {
+    fn from_hal(bandwidth: u8) -> u32 {
+        match bandwidth as u32 {
+            wrapper::BW_500KHZ => 500000,
+            wrapper::BW_250KHZ => 250000,
+            wrapper::BW_125KHZ => 125000,
+            wrapper::BW_62K5HZ => 62500,
+            wrapper::BW_31K2HZ => 31200,
+            wrapper::BW_7K8HZ => 7800,
+            _ => 0,
+        }
+    }
+
+    fn to_hal(&self) -> u8 {
+        return match self {
+            500000 => wrapper::BW_500KHZ,
+            250000 => wrapper::BW_250KHZ,
+            125000 => wrapper::BW_125KHZ,
+            62500 => wrapper::BW_62K5HZ,
+            31200 => wrapper::BW_31K2HZ,
+            15600 => wrapper::BW_15K6HZ,
+            7800 => wrapper::BW_7K8HZ,
+            _ => wrapper::BW_UNDEFINED,
+        } as u8;
+    }
+}
+
 #[derive(Debug, Copy, Clone)]
 pub enum RadioType {
     SX1255,
     SX1257,
     SX1272,
     SX1276,
+}
+
+impl RadioType {
+    fn to_hal(&self) -> wrapper::lgw_radio_type_e {
+        match self {
+            RadioType::SX1255 => wrapper::lgw_radio_type_e_LGW_RADIO_TYPE_SX1255,
+            RadioType::SX1257 => wrapper::lgw_radio_type_e_LGW_RADIO_TYPE_SX1257,
+            RadioType::SX1272 => wrapper::lgw_radio_type_e_LGW_RADIO_TYPE_SX1272,
+            RadioType::SX1276 => wrapper::lgw_radio_type_e_LGW_RADIO_TYPE_SX1276,
+        }
+    }
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -17,11 +66,42 @@ pub enum CRC {
     CRCOk,
 }
 
+impl CRC {
+    fn from_hal(status: u8) -> Self {
+        match status as u32 {
+            wrapper::STAT_NO_CRC => CRC::NoCRC,
+            wrapper::STAT_CRC_BAD => CRC::BadCRC,
+            wrapper::STAT_CRC_OK => CRC::CRCOk,
+            _ => CRC::Undefined,
+        }
+    }
+}
+
 #[derive(Debug, Copy, Clone)]
 pub enum Modulation {
     Undefined,
     LoRa,
     FSK,
+}
+
+impl Modulation {
+    fn from_hal(modulation: u8) -> Self {
+        match modulation as u32 {
+            wrapper::MOD_LORA => Modulation::LoRa,
+            wrapper::MOD_FSK => Modulation::FSK,
+            _ => Modulation::Undefined,
+        }
+    }
+}
+
+impl Modulation {
+    fn to_hal(&self) -> u8 {
+        return match self {
+            Modulation::Undefined => wrapper::MOD_UNDEFINED,
+            Modulation::LoRa => wrapper::MOD_LORA,
+            Modulation::FSK => wrapper::MOD_FSK,
+        } as u8;
+    }
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -37,6 +117,35 @@ pub enum DataRate {
     FSK(u32),
 }
 
+impl DataRate {
+    fn to_hal(&self) -> u32 {
+        return match self {
+            DataRate::Undefined => wrapper::DR_UNDEFINED,
+            DataRate::SF7 => wrapper::DR_LORA_SF7,
+            DataRate::SF8 => wrapper::DR_LORA_SF8,
+            DataRate::SF9 => wrapper::DR_LORA_SF9,
+            DataRate::SF10 => wrapper::DR_LORA_SF10,
+            DataRate::SF11 => wrapper::DR_LORA_SF11,
+            DataRate::SF12 => wrapper::DR_LORA_SF12,
+            DataRate::MultiSF => wrapper::DR_LORA_MULTI,
+            DataRate::FSK(dr) => *dr,
+        } as u32;
+    }
+
+    fn from_hal(datarate: u32) -> Self {
+        match datarate {
+            wrapper::DR_UNDEFINED => DataRate::Undefined,
+            wrapper::DR_LORA_SF7 => DataRate::SF7,
+            wrapper::DR_LORA_SF8 => DataRate::SF8,
+            wrapper::DR_LORA_SF9 => DataRate::SF9,
+            wrapper::DR_LORA_SF10 => DataRate::SF10,
+            wrapper::DR_LORA_SF11 => DataRate::SF11,
+            wrapper::DR_LORA_SF12 => DataRate::SF12,
+            _ => DataRate::FSK(datarate),
+        }
+    }
+}
+
 #[derive(Debug, Copy, Clone)]
 pub enum CodeRate {
     Undefined,
@@ -46,6 +155,28 @@ pub enum CodeRate {
     LoRa4_8,
 }
 
+impl CodeRate {
+    fn to_hal(&self) -> u8 {
+        return match self {
+            CodeRate::Undefined => wrapper::CR_UNDEFINED,
+            CodeRate::LoRa4_5 => wrapper::CR_LORA_4_5,
+            CodeRate::LoRa4_6 => wrapper::CR_LORA_4_6,
+            CodeRate::LoRa4_7 => wrapper::CR_LORA_4_7,
+            CodeRate::LoRa4_8 => wrapper::CR_LORA_4_8,
+        } as u8;
+    }
+
+    fn from_hal(coderate: u8) -> Self {
+        match coderate as u32 {
+            wrapper::CR_LORA_4_5 => CodeRate::LoRa4_5,
+            wrapper::CR_LORA_4_6 => CodeRate::LoRa4_6,
+            wrapper::CR_LORA_4_7 => CodeRate::LoRa4_7,
+            wrapper::CR_LORA_4_8 => CodeRate::LoRa4_8,
+            _ => CodeRate::Undefined,
+        }
+    }
+}
+
 #[derive(Debug, Copy, Clone)]
 pub enum TxMode {
     Immediate,
@@ -53,10 +184,29 @@ pub enum TxMode {
     OnGPS,
 }
 
+impl TxMode {
+    fn to_hal(&self) -> u8 {
+        return match self {
+            TxMode::Immediate => wrapper::IMMEDIATE,
+            TxMode::Timestamped => wrapper::TIMESTAMPED,
+            TxMode::OnGPS => wrapper::ON_GPS,
+        } as u8;
+    }
+}
+
 #[derive(PartialEq, Eq)]
 pub enum StatusSelect {
     Tx,
     Rx,
+}
+
+impl StatusSelect {
+    fn to_hal(&self) -> u8 {
+        return match self {
+            StatusSelect::Tx => wrapper::TX_STATUS,
+            StatusSelect::Rx => wrapper::RX_STATUS,
+        } as u8;
+    }
 }
 
 pub enum StatusReturn {
@@ -73,12 +223,35 @@ pub enum TxStatus {
     Emitting,
 }
 
+impl TxStatus {
+    fn from_hal(code: u8) -> Self {
+        match code as u32 {
+            wrapper::TX_OFF => TxStatus::Off,
+            wrapper::TX_FREE => TxStatus::Free,
+            wrapper::TX_SCHEDULED => TxStatus::Scheduled,
+            wrapper::TX_EMITTING => TxStatus::Emitting,
+            _ => TxStatus::Unknown,
+        }
+    }
+}
+
 #[derive(Debug)]
 pub enum RxStatus {
     Unknown,
     Off,
     On,
     Suspended,
+}
+
+impl RxStatus {
+    fn from_hal(code: u8) -> Self {
+        match code as u32 {
+            wrapper::RX_OFF => RxStatus::Off,
+            wrapper::RX_ON => RxStatus::On,
+            wrapper::RX_SUSPENDED => RxStatus::Suspended,
+            _ => RxStatus::Unknown,
+        }
+    }
 }
 
 /// Configuration structure for board specificities.
@@ -105,6 +278,19 @@ pub struct RxRfConfig {
     pub tx_notch_freq: u32,
 }
 
+impl RxRfConfig {
+    fn to_hal(&self) -> wrapper::lgw_conf_rxrf_s {
+        wrapper::lgw_conf_rxrf_s {
+            enable: self.enable,
+            freq_hz: self.freq_hz,
+            rssi_offset: self.rssi_offset,
+            tx_enable: self.tx_enable,
+            tx_notch_freq: self.tx_notch_freq,
+            type_: self.radio_type.to_hal(),
+        }
+    }
+}
+
 /// Configuration structure for an IF chain.
 pub struct RxIfConfig {
     /// Enable or disable that IF chain.
@@ -114,13 +300,28 @@ pub struct RxIfConfig {
     /// Center frequ of the IF chain, relative to RF chain frequency.
     pub freq_hz: i32,
     /// RX bandwidth, 0 for default.
-    pub bandwidth: u32,
+    pub bandwidth: Bandwidth,
     /// RX datarate, 0 for default.
     pub datarate: DataRate,
     /// Size of FSK sync word (number of bytes, 0 for default).
     pub sync_word_size: u8,
     /// FSK sync word (ALIGN RIGHT, eg. 0xC194C1).
     pub sync_word: u64,
+}
+
+impl RxIfConfig {
+    fn to_hal(&self) -> wrapper::lgw_conf_rxif_s {
+        wrapper::lgw_conf_rxif_s {
+            enable: self.enable,
+            rf_chain: self.rf_chain,
+            freq_hz: self.freq_hz,
+            bandwidth: self.bandwidth.to_hal(),
+            datarate: self.datarate.to_hal(),
+            sync_word_size: self.sync_word_size,
+            sync_word: self.sync_word,
+            ..Default::default()
+        }
+    }
 }
 
 impl Default for RxIfConfig {
@@ -152,6 +353,18 @@ pub struct TxGainConfig {
     pub rf_power: i8,
 }
 
+impl TxGainConfig {
+    fn to_hal(&self) -> wrapper::lgw_tx_gain_s {
+        wrapper::lgw_tx_gain_s {
+            dig_gain: self.dig_gain,
+            pa_gain: self.pa_gain,
+            dac_gain: self.dac_gain,
+            mix_gain: self.mix_gain,
+            rf_power: self.rf_power,
+        }
+    }
+}
+
 /// Structure containing the metadata of a packet that was received and a pointer to the payload.
 pub struct RxPacket {
     /// Central frequency of the IF chain.
@@ -167,7 +380,7 @@ pub struct RxPacket {
     /// Modulation used by the packet.
     pub modulation: Modulation,
     /// Modulation bandwidth (LoRa only).
-    pub bandwidth: u32,
+    pub bandwidth: Bandwidth,
     /// RX datarate of the packet (SF for LoRa).
     pub datarate: DataRate,
     /// Error-correcting code of the packet (LoRa only).
@@ -188,6 +401,29 @@ pub struct RxPacket {
     pub payload: [u8; 256],
 }
 
+impl RxPacket {
+    fn from_hal(pkt: wrapper::lgw_pkt_rx_s) -> Self {
+        RxPacket {
+            freq_hz: pkt.freq_hz,
+            if_chain: pkt.if_chain,
+            status: CRC::from_hal(pkt.status),
+            count_us: pkt.count_us,
+            rf_chain: pkt.rf_chain,
+            modulation: Modulation::from_hal(pkt.modulation),
+            bandwidth: Bandwidth::from_hal(pkt.bandwidth),
+            datarate: DataRate::from_hal(pkt.datarate),
+            coderate: CodeRate::from_hal(pkt.coderate),
+            rssi: pkt.rssi,
+            snr: pkt.snr,
+            snr_min: pkt.snr_min,
+            snr_max: pkt.snr_max,
+            crc: pkt.crc,
+            size: pkt.size,
+            payload: pkt.payload,
+        }
+    }
+}
+
 /// Structure containing the configuration of a packet to send and a pointer to the payload.
 #[derive(Copy, Clone)]
 pub struct TxPacket {
@@ -204,7 +440,7 @@ pub struct TxPacket {
     /// Modulation to use for the packet.
     pub modulation: Modulation,
     /// Modulation bandwidth (LoRa only).
-    pub bandwidth: u32,
+    pub bandwidth: Bandwidth,
     /// TX datarate (baudrate for FSK, SF for LoRa).
     pub datarate: DataRate,
     /// Error-correcting code of the packet (LoRa only).
@@ -248,6 +484,29 @@ impl Default for TxPacket {
     }
 }
 
+impl TxPacket {
+    fn to_hal(&self) -> wrapper::lgw_pkt_tx_s {
+        wrapper::lgw_pkt_tx_s {
+            freq_hz: self.freq_hz,
+            tx_mode: self.tx_mode.to_hal(),
+            count_us: self.count_us,
+            rf_chain: self.rf_chain,
+            rf_power: self.rf_power,
+            modulation: self.modulation.to_hal(),
+            bandwidth: self.bandwidth.to_hal(),
+            datarate: self.datarate.to_hal(),
+            coderate: self.coderate.to_hal(),
+            invert_pol: self.invert_pol,
+            f_dev: self.f_dev,
+            preamble: self.preamble,
+            no_crc: self.no_crc,
+            no_header: self.no_header,
+            size: self.size,
+            payload: self.payload,
+        }
+    }
+}
+
 const MAX_PKT: usize = 8;
 
 /// Configure the gateway board.
@@ -269,21 +528,8 @@ pub fn board_setconf(conf: &BoardConfig) -> Result<(), String> {
 /// Configure an RF chain (must configure before start).
 /// rf_chain: number of the RF chain to configure (index starting at 0).
 pub fn rxrf_setconf(rf_chain: u8, conf: &RxRfConfig) -> Result<(), String> {
-    let conf = wrapper::lgw_conf_rxrf_s {
-        enable: conf.enable,
-        freq_hz: conf.freq_hz,
-        rssi_offset: conf.rssi_offset,
-        tx_enable: conf.tx_enable,
-        tx_notch_freq: conf.tx_notch_freq,
-        type_: match conf.radio_type {
-            RadioType::SX1255 => wrapper::lgw_radio_type_e_LGW_RADIO_TYPE_SX1255,
-            RadioType::SX1257 => wrapper::lgw_radio_type_e_LGW_RADIO_TYPE_SX1257,
-            RadioType::SX1272 => wrapper::lgw_radio_type_e_LGW_RADIO_TYPE_SX1272,
-            RadioType::SX1276 => wrapper::lgw_radio_type_e_LGW_RADIO_TYPE_SX1276,
-        },
-    };
-
     let _guard = mutex::CONCENTATOR.lock().unwrap();
+    let conf = conf.to_hal();
     let ret = unsafe { wrapper::lgw_rxrf_setconf(rf_chain, conf) };
     if ret != 0 {
         return Err("lgw_rxrf_setconf failed".to_string());
@@ -295,18 +541,8 @@ pub fn rxrf_setconf(rf_chain: u8, conf: &RxRfConfig) -> Result<(), String> {
 /// Configure an IF chain + modem (must configure before start).
 /// rf_chain: number of the IF chain to configure (index starting at 0).
 pub fn rxif_setconf(if_chain: u8, conf: &RxIfConfig) -> Result<(), String> {
-    let conf = wrapper::lgw_conf_rxif_s {
-        enable: conf.enable,
-        rf_chain: conf.rf_chain,
-        freq_hz: conf.freq_hz,
-        bandwidth: map_bandwidth(conf.bandwidth),
-        datarate: map_data_rate(conf.datarate),
-        sync_word_size: conf.sync_word_size,
-        sync_word: conf.sync_word,
-        ..Default::default()
-    };
-
     let _guard = mutex::CONCENTATOR.lock().unwrap();
+    let conf = conf.to_hal();
     let ret = unsafe { wrapper::lgw_rxif_setconf(if_chain, conf) };
     if ret != 0 {
         return Err("lgw_rxif_setconf failed".to_string());
@@ -319,23 +555,13 @@ pub fn rxif_setconf(if_chain: u8, conf: &RxIfConfig) -> Result<(), String> {
 pub fn txgain_setconf(txgain: &[TxGainConfig]) -> Result<(), String> {
     let mut conf = wrapper::lgw_tx_gain_lut_s {
         lut: [wrapper::lgw_tx_gain_s {
-            dig_gain: 0,
-            pa_gain: 0,
-            dac_gain: 0,
-            mix_gain: 0,
-            rf_power: 0,
+            ..Default::default()
         }; 16],
         size: txgain.len() as u8,
     };
 
     for (i, gain) in txgain.iter().enumerate() {
-        conf.lut[i] = wrapper::lgw_tx_gain_s {
-            dig_gain: gain.dig_gain,
-            pa_gain: gain.pa_gain,
-            dac_gain: gain.dac_gain,
-            mix_gain: gain.mix_gain,
-            rf_power: gain.rf_power,
-        };
+        conf.lut[i] = gain.to_hal();
     }
 
     let _guard = mutex::CONCENTATOR.lock().unwrap();
@@ -371,24 +597,7 @@ pub fn stop() -> Result<(), String> {
 /// A non-blocking function that will fetch up to MAX_PKT (8) packets from the LoRa concentrator FIFO
 /// and data buffer.
 pub fn receive() -> Result<Vec<RxPacket>, String> {
-    let mut packets: [wrapper::lgw_pkt_rx_s; MAX_PKT] = [wrapper::lgw_pkt_rx_s {
-        freq_hz: 0,
-        if_chain: 0,
-        status: 0,
-        count_us: 0,
-        rf_chain: 0,
-        modulation: 0,
-        bandwidth: 0,
-        datarate: 0,
-        coderate: 0,
-        rssi: 0.0,
-        snr: 0.0,
-        snr_min: 0.0,
-        snr_max: 0.0,
-        crc: 0,
-        size: 0,
-        payload: [0; 256],
-    }; MAX_PKT];
+    let mut packets: [wrapper::lgw_pkt_rx_s; MAX_PKT] = [Default::default(); MAX_PKT];
 
     let _guard = mutex::CONCENTATOR.lock().unwrap();
     let ret = unsafe { wrapper::lgw_receive(MAX_PKT as u8, packets.as_mut_ptr()) };
@@ -401,24 +610,7 @@ pub fn receive() -> Result<Vec<RxPacket>, String> {
     for x in 0..ret {
         let pkt = packets[x as usize];
 
-        v.push(RxPacket {
-            freq_hz: pkt.freq_hz,
-            if_chain: pkt.if_chain,
-            status: unmap_status(pkt.status),
-            count_us: pkt.count_us,
-            rf_chain: pkt.rf_chain,
-            modulation: unmap_modulation(pkt.modulation),
-            bandwidth: unmap_bandwidth(pkt.bandwidth),
-            datarate: unmap_data_rate(pkt.datarate),
-            coderate: unmap_code_rate(pkt.coderate),
-            rssi: pkt.rssi,
-            snr: pkt.snr,
-            snr_min: pkt.snr_min,
-            snr_max: pkt.snr_max,
-            crc: pkt.crc,
-            size: pkt.size,
-            payload: pkt.payload,
-        });
+        v.push(RxPacket::from_hal(pkt));
     }
 
     return Ok(v);
@@ -427,7 +619,9 @@ pub fn receive() -> Result<Vec<RxPacket>, String> {
 /// Schedule a packet to be send immediately or after a delay depending on tx_mode.
 pub fn send(pkt: &TxPacket) -> Result<(), String> {
     let _guard = mutex::CONCENTATOR.lock().unwrap();
-    let ret = unsafe { wrapper::lgw_send(map_tx_packet(pkt)) };
+    let pkt = pkt.to_hal();
+
+    let ret = unsafe { wrapper::lgw_send(pkt) };
     if ret != 0 {
         return Err("lgw_send failed".to_string());
     }
@@ -440,34 +634,15 @@ pub fn status(select: StatusSelect) -> Result<StatusReturn, String> {
     let mut code = 0;
 
     let _guard = mutex::CONCENTATOR.lock().unwrap();
-    let ret = unsafe {
-        wrapper::lgw_status(
-            match select {
-                StatusSelect::Tx => wrapper::TX_STATUS,
-                StatusSelect::Rx => wrapper::RX_STATUS,
-            } as u8,
-            &mut code,
-        )
-    };
+    let ret = unsafe { wrapper::lgw_status(select.to_hal(), &mut code) };
     if ret != 0 {
         return Err("lgw_status failed".to_string());
     }
 
     if select == StatusSelect::Tx {
-        return Ok(StatusReturn::Tx(match code as u32 {
-            wrapper::TX_OFF => TxStatus::Off,
-            wrapper::TX_FREE => TxStatus::Free,
-            wrapper::TX_SCHEDULED => TxStatus::Scheduled,
-            wrapper::TX_EMITTING => TxStatus::Emitting,
-            _ => TxStatus::Unknown,
-        }));
+        return Ok(StatusReturn::Tx(TxStatus::from_hal(code)));
     } else {
-        return Ok(StatusReturn::Rx(match code as u32 {
-            wrapper::RX_OFF => RxStatus::Off,
-            wrapper::RX_ON => RxStatus::On,
-            wrapper::RX_SUSPENDED => RxStatus::Suspended,
-            _ => RxStatus::Unknown,
-        }));
+        return Ok(StatusReturn::Rx(RxStatus::from_hal(code)));
     }
 }
 
@@ -497,132 +672,8 @@ pub fn get_trigcnt() -> Result<u32, String> {
 /// Return time on air of given packet.
 pub fn time_on_air(pkt: &TxPacket) -> Result<Duration, String> {
     let _guard = mutex::CONCENTATOR.lock().unwrap();
-    let ms = unsafe { wrapper::lgw_time_on_air(&mut map_tx_packet(pkt)) };
+    let mut pkt = pkt.to_hal();
+
+    let ms = unsafe { wrapper::lgw_time_on_air(&mut pkt) };
     return Ok(Duration::from_millis(ms as u64));
-}
-
-fn map_tx_packet(pkt: &TxPacket) -> wrapper::lgw_pkt_tx_s {
-    return wrapper::lgw_pkt_tx_s {
-        freq_hz: pkt.freq_hz,
-        tx_mode: map_tx_mode(pkt.tx_mode),
-        count_us: pkt.count_us,
-        rf_chain: pkt.rf_chain,
-        rf_power: pkt.rf_power,
-        modulation: map_modulation(pkt.modulation),
-        bandwidth: map_bandwidth(pkt.bandwidth),
-        datarate: map_data_rate(pkt.datarate),
-        coderate: map_code_rate(pkt.coderate),
-        invert_pol: pkt.invert_pol,
-        f_dev: pkt.f_dev,
-        preamble: pkt.preamble,
-        no_crc: pkt.no_crc,
-        no_header: pkt.no_header,
-        size: pkt.size,
-        payload: pkt.payload,
-    };
-}
-
-fn map_bandwidth(bandwidth: u32) -> u8 {
-    return match bandwidth {
-        500000 => wrapper::BW_500KHZ,
-        250000 => wrapper::BW_250KHZ,
-        125000 => wrapper::BW_125KHZ,
-        62500 => wrapper::BW_62K5HZ,
-        31200 => wrapper::BW_31K2HZ,
-        15600 => wrapper::BW_15K6HZ,
-        7800 => wrapper::BW_7K8HZ,
-        _ => wrapper::BW_UNDEFINED,
-    } as u8;
-}
-
-fn map_tx_mode(tx_mode: TxMode) -> u8 {
-    return match tx_mode {
-        TxMode::Immediate => wrapper::IMMEDIATE,
-        TxMode::Timestamped => wrapper::TIMESTAMPED,
-        TxMode::OnGPS => wrapper::ON_GPS,
-    } as u8;
-}
-
-fn map_modulation(modulation: Modulation) -> u8 {
-    return match modulation {
-        Modulation::Undefined => wrapper::MOD_UNDEFINED,
-        Modulation::LoRa => wrapper::MOD_LORA,
-        Modulation::FSK => wrapper::MOD_FSK,
-    } as u8;
-}
-
-fn map_data_rate(datarate: DataRate) -> u32 {
-    return match datarate {
-        DataRate::Undefined => wrapper::DR_UNDEFINED,
-        DataRate::SF7 => wrapper::DR_LORA_SF7,
-        DataRate::SF8 => wrapper::DR_LORA_SF8,
-        DataRate::SF9 => wrapper::DR_LORA_SF9,
-        DataRate::SF10 => wrapper::DR_LORA_SF10,
-        DataRate::SF11 => wrapper::DR_LORA_SF11,
-        DataRate::SF12 => wrapper::DR_LORA_SF12,
-        DataRate::MultiSF => wrapper::DR_LORA_MULTI,
-        DataRate::FSK(dr) => dr,
-    } as u32;
-}
-
-fn map_code_rate(coderate: CodeRate) -> u8 {
-    return match coderate {
-        CodeRate::Undefined => wrapper::CR_UNDEFINED,
-        CodeRate::LoRa4_5 => wrapper::CR_LORA_4_5,
-        CodeRate::LoRa4_6 => wrapper::CR_LORA_4_6,
-        CodeRate::LoRa4_7 => wrapper::CR_LORA_4_7,
-        CodeRate::LoRa4_8 => wrapper::CR_LORA_4_8,
-    } as u8;
-}
-
-fn unmap_status(status: u8) -> CRC {
-    return match status as u32 {
-        wrapper::STAT_NO_CRC => CRC::NoCRC,
-        wrapper::STAT_CRC_BAD => CRC::BadCRC,
-        wrapper::STAT_CRC_OK => CRC::CRCOk,
-        _ => CRC::Undefined,
-    };
-}
-
-fn unmap_modulation(modulation: u8) -> Modulation {
-    return match modulation as u32 {
-        wrapper::MOD_LORA => Modulation::LoRa,
-        wrapper::MOD_FSK => Modulation::FSK,
-        _ => Modulation::Undefined,
-    };
-}
-
-fn unmap_bandwidth(bandwidth: u8) -> u32 {
-    return match bandwidth as u32 {
-        wrapper::BW_500KHZ => 500000,
-        wrapper::BW_250KHZ => 250000,
-        wrapper::BW_125KHZ => 125000,
-        wrapper::BW_62K5HZ => 62500,
-        wrapper::BW_31K2HZ => 31200,
-        wrapper::BW_7K8HZ => 7800,
-        _ => 0,
-    };
-}
-
-fn unmap_data_rate(datarate: u32) -> DataRate {
-    return match datarate {
-        wrapper::DR_UNDEFINED => DataRate::Undefined,
-        wrapper::DR_LORA_SF7 => DataRate::SF7,
-        wrapper::DR_LORA_SF8 => DataRate::SF8,
-        wrapper::DR_LORA_SF9 => DataRate::SF9,
-        wrapper::DR_LORA_SF10 => DataRate::SF10,
-        wrapper::DR_LORA_SF11 => DataRate::SF11,
-        wrapper::DR_LORA_SF12 => DataRate::SF12,
-        _ => DataRate::FSK(datarate),
-    };
-}
-
-fn unmap_code_rate(coderate: u8) -> CodeRate {
-    return match coderate as u32 {
-        wrapper::CR_LORA_4_5 => CodeRate::LoRa4_5,
-        wrapper::CR_LORA_4_6 => CodeRate::LoRa4_6,
-        wrapper::CR_LORA_4_7 => CodeRate::LoRa4_7,
-        wrapper::CR_LORA_4_8 => CodeRate::LoRa4_8,
-        _ => CodeRate::Undefined,
-    };
 }

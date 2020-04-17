@@ -6,4 +6,5 @@ pub mod hal;
 mod mutex;
 pub mod reg;
 pub mod spi;
+mod timespec;
 pub mod wrapper;
