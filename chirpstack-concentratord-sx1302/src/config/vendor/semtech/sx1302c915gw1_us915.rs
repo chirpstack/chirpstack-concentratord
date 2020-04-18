@@ -225,8 +225,8 @@ pub fn new(conf: &config::Configuration) -> Configuration {
             },
         ],
         gps_tty_path: match gps {
-            true => "/dev/ttyAMA0".to_string(),
-            false => "".to_string(),
+            true => Some("/dev/ttyAMA0".to_string()),
+            false => None,
         },
         spidev_path: "/dev/spidev0.0".to_string(),
     }

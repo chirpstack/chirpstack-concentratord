@@ -281,7 +281,7 @@ pub fn new(conf: &config::Configuration) -> Configuration {
         } else {
             panic!("Invalid antenna_gain: {}", conf.gateway.antenna_gain);
         },
-        gps_tty_path: "".to_string(),
+        gps_tty_path: None,
         spidev_path: "/dev/spidev0.0".to_string(),
     }
 }

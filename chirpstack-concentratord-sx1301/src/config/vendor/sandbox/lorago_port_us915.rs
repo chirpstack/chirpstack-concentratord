@@ -82,7 +82,7 @@ pub fn new(_conf: &config::Configuration) -> Configuration {
                 dac_gain: 3,
             },
         ],
-        gps_tty_path: "".to_string(),
+        gps_tty_path: None,
         spidev_path: "/dev/spidev0.0".to_string(),
     }
 }

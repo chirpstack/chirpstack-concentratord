@@ -19,6 +19,6 @@ pub struct Configuration {
     pub radio_tx_notch_freq: Vec<u32>,
     pub lora_multi_sf_bandwidth: u32,
     pub tx_gain_table: Vec<hal::TxGainConfig>,
-    pub gps_tty_path: String,
+    pub gps_tty_path: Option<String>,
     pub spidev_path: String,
 }

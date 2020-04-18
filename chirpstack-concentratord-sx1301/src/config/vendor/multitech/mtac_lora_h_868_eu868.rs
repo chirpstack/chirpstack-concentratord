@@ -157,8 +157,8 @@ pub fn new(conf: &config::Configuration) -> Configuration {
             },
         ],
         gps_tty_path: match gps {
-            true => "/dev/ttyXRUSB2".to_string(),
-            false => "".to_string(),
+            true => Some("/dev/ttyXRUSB2".to_string()),
+            false => None,
         },
         spidev_path: match port {
             Port::AP1 => "/dev/spidev32766.2".to_string(),

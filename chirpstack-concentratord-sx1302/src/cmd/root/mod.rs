@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::path::Path;
 use std::sync::mpsc::{Receiver, Sender};
 use std::sync::{Arc, Mutex};
 use std::thread;
@@ -113,10 +112,16 @@ pub fn run(
         }
     }));
 
-    if has_gps_configured(&config.gateway.model_config.gps_tty_path) {
+    if config.gateway.model_config.gps_tty_path.is_some() {
         // gps thread
         threads.push(thread::spawn({
-            let gps_tty_path = config.gateway.model_config.gps_tty_path.clone();
+            let gps_tty_path = config
+                .gateway
+                .model_config
+                .gps_tty_path
+                .as_ref()
+                .unwrap()
+                .clone();
             let stop_receive = signal_pool.new_receiver();
 
             move || {
@@ -144,12 +149,4 @@ pub fn run(
     concentrator::stop()?;
 
     return Ok(stop_signal);
-}
-
-fn has_gps_configured(gps_tty_path: &str) -> bool {
-    if gps_tty_path.eq("") {
-        return false;
-    }
-
-    Path::new(gps_tty_path).exists()
 }
