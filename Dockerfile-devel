@@ -82,6 +82,7 @@ linker = "arm-linux-gnueabihf-gcc"\n'\
 RUN mkdir -p /tmp
 RUN cd /tmp && git clone https://github.com/seife/opkg-utils.git && cd /tmp/opkg-utils && PREFIX=/usr make install
 
+ENV LLVM_CONFIG_PATH=llvm-config-3.9
 ENV PROJECT_PATH=/chirpstack-concentratord
 RUN mkdir -p $PROJECT_PATH
 WORKDIR $PROJECT_PATH
