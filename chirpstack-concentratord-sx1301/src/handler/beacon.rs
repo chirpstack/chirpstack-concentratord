@@ -122,13 +122,7 @@ fn send_beacon(
         .enqueue(timersync::get_concentrator_count(), tx_packet)
     {
         Ok(_) => Ok(()),
-        Err(err) => match err {
-            jitqueue::EnqueueError::Collision => Err("collision".to_string()),
-            jitqueue::EnqueueError::FullQueue => Err("queue is full".to_string()),
-            jitqueue::EnqueueError::TooLate => Err("too late".to_string()),
-            jitqueue::EnqueueError::TooEarly => Err("too early".to_string()),
-            jitqueue::EnqueueError::Unknown(err) => Err(err),
-        },
+        Err(status) => Err(format!("{:?}", status)),
     }
 }
 

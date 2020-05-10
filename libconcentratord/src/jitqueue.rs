@@ -1,15 +1,6 @@
 use std::time::Duration;
 
-use log::{debug, info};
-
-#[derive(PartialEq, Eq, Debug)]
-pub enum EnqueueError {
-    Unknown(String),
-    Collision,
-    FullQueue,
-    TooLate,
-    TooEarly,
-}
+use log::{debug, error, info};
 
 #[derive(PartialEq, Eq, Copy, Clone, Debug)]
 pub enum TxMode {
@@ -89,7 +80,11 @@ impl<T: TxPacket + Copy> Queue<T> {
         return Some(item.packet);
     }
 
-    pub fn enqueue(&mut self, concentrator_count: u32, packet: T) -> Result<(), EnqueueError> {
+    pub fn enqueue(
+        &mut self,
+        concentrator_count: u32,
+        packet: T,
+    ) -> Result<(), chirpstack_api::gw::TxAckStatus> {
         match packet.get_tx_mode() {
             TxMode::Timestamped => {
                 info!(
@@ -117,12 +112,15 @@ impl<T: TxPacket + Copy> Queue<T> {
         }
 
         if self.full() {
-            return Err(EnqueueError::FullQueue);
+            return Err(chirpstack_api::gw::TxAckStatus::QueueFull);
         }
 
         let time_on_air = match packet.get_time_on_air() {
             Ok(v) => v,
-            Err(err) => return Err(EnqueueError::Unknown(err)),
+            Err(err) => {
+                error!("Get time on air for tx packet error, error: {}", err);
+                return Err(chirpstack_api::gw::TxAckStatus::InternalError);
+            }
         };
 
         let mut item = Item {
@@ -158,11 +156,11 @@ impl<T: TxPacket + Copy> Queue<T> {
             item.packet.set_count_us(asap_count_us);
         } else if item.packet.get_tx_mode() == TxMode::Timestamped {
             if self.collision_test(item.packet.get_count_us(), item.pre_delay, item.post_delay) {
-                return Err(EnqueueError::Collision);
+                return Err(chirpstack_api::gw::TxAckStatus::CollisionPacket);
             }
         } else if item.packet.get_tx_mode() == TxMode::OnGPS {
             if self.collision_test(item.packet.get_count_us(), item.pre_delay, item.post_delay) {
-                return Err(EnqueueError::Collision);
+                return Err(chirpstack_api::gw::TxAckStatus::CollisionPacket);
             }
         }
 
@@ -170,14 +168,14 @@ impl<T: TxPacket + Copy> Queue<T> {
         if item.packet.get_count_us().wrapping_sub(concentrator_count)
             < (self.tx_start_delay + self.tx_margin_delay + self.tx_jit_delay).as_micros() as u32
         {
-            return Err(EnqueueError::TooLate);
+            return Err(chirpstack_api::gw::TxAckStatus::TooLate);
         }
 
         // Is it too early to send this packet?
         if item.packet.get_count_us().wrapping_sub(concentrator_count)
             > self.tx_max_advance_delay.as_micros() as u32
         {
-            return Err(EnqueueError::TooEarly);
+            return Err(chirpstack_api::gw::TxAckStatus::TooEarly);
         }
 
         debug!(

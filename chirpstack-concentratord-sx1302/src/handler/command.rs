@@ -78,61 +78,60 @@ fn handle_downlink(
         }
     };
 
-    let tx_packet = match wrapper::downlink_from_proto(&pl) {
-        Ok(v) => v,
-        Err(err) => {
-            error!(
-                "Convert downlink protobuf to HAL struct error, downlink_id: {}, error: {}",
-                id, err,
-            );
-            return Err(());
-        }
-    };
-
     stats::inc_tx_packets_received();
 
-    let mut valid = true;
-    let mut tx_ack = chirpstack_api::gw::DownlinkTxAck::default();
-    tx_ack.token = pl.token;
-    tx_ack.downlink_id = pl.downlink_id.to_vec();
-    tx_ack.gateway_id = gateway_id.to_vec();
+    let mut tx_ack = chirpstack_api::gw::DownlinkTxAck {
+        gateway_id: gateway_id.to_vec(),
+        token: pl.token,
+        downlink_id: pl.downlink_id.to_vec(),
+        items: vec![Default::default(); pl.items.len()],
+        ..Default::default()
+    };
 
-    match vendor_config.radio_config.get(tx_packet.rf_chain as usize) {
-        Some(v) => {
-            if tx_packet.freq_hz < v.tx_freq_min || tx_packet.freq_hz > v.tx_freq_max {
-                valid = false;
-                error!("Frequency is not within min/max gateway frequency, downlink_id: {}, min_freq: {}, max_freq: {}", id, v.tx_freq_min, v.tx_freq_max);
-                tx_ack.error = "TX_FREQ".to_string();
+    for (i, item) in pl.items.iter().enumerate() {
+        // convert protobuf to hal struct
+        let tx_packet = match wrapper::downlink_from_proto(item) {
+            Ok(v) => v,
+            Err(err) => {
+                error!(
+                    "Convert downlink protobuf to HAL struct error, downlink_id: {}, error: {}",
+                    id, err,
+                );
+                return Err(());
             }
-        }
-        None => {
-            valid = false;
-            tx_ack.error = "RF_CHAIN".to_string();
-        }
-    }
+        };
 
-    if valid {
+        // validate frequency range
+        match vendor_config.radio_config.get(tx_packet.rf_chain as usize) {
+            Some(v) => {
+                if tx_packet.freq_hz < v.tx_freq_min || tx_packet.freq_hz > v.tx_freq_max {
+                    error!("Frequency is not within min/max gateway frequency, downlink_id: {}, min_freq: {}, max_freq: {}", id, v.tx_freq_min, v.tx_freq_max);
+                    tx_ack.items[i].set_status(chirpstack_api::gw::TxAckStatus::TxFreq);
+
+                    // try next
+                    continue;
+                }
+            }
+            None => {
+                tx_ack.items[i].set_status(chirpstack_api::gw::TxAckStatus::TxFreq);
+
+                // try next
+                continue;
+            }
+        };
+
+        // try enqueue
         match queue.lock().unwrap().enqueue(
             hal::get_instcnt().expect("get concentrator count error"),
             wrapper::TxPacket::new(id, tx_packet),
         ) {
-            Ok(_) => {}
-            Err(err) => {
-                error!(
-                    "Enqueue downlink error, downlink_id: {}, error: {:?}",
-                    id, err
-                );
+            Ok(_) => {
+                tx_ack.items[i].set_status(chirpstack_api::gw::TxAckStatus::Ok);
 
-                match err {
-                    jitqueue::EnqueueError::Collision => {
-                        tx_ack.error = "COLLISION_PACKET".to_string()
-                    }
-                    jitqueue::EnqueueError::FullQueue => tx_ack.error = "QUEUE_FULL".to_string(),
-                    jitqueue::EnqueueError::TooLate => tx_ack.error = "TOO_LATE".to_string(),
-                    jitqueue::EnqueueError::TooEarly => tx_ack.error = "TOO_EARLY".to_string(),
-                    jitqueue::EnqueueError::Unknown(err) => tx_ack.error = err,
-                }
+                // break out of loop
+                break;
             }
+            Err(status) => tx_ack.items[i].set_status(status),
         };
     }
 

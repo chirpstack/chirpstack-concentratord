@@ -182,7 +182,7 @@ pub fn uplink_to_proto(
 }
 
 pub fn downlink_from_proto(
-    df: &chirpstack_api::gw::DownlinkFrame,
+    df: &chirpstack_api::gw::DownlinkFrameItem,
 ) -> Result<hal::TxPacket, String> {
     let mut data: [u8; 256] = [0; 256];
     let mut data_slice = df.phy_payload.clone();
