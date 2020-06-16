@@ -11,6 +11,8 @@ pub struct Configuration {
     pub radio_config: Vec<RadioConfig>,
     pub gps_tty_path: Option<String>,
     pub spidev_path: String,
+    pub reset_pin: Option<u32>,
+    pub power_en_pin: Option<u32>,
 }
 
 #[derive(Clone)]

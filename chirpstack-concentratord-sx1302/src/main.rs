@@ -15,6 +15,7 @@ use clap::{App, Arg};
 use signal_hook::{iterator::Signals, SIGINT};
 use syslog::{BasicLogger, Facility, Formatter3164};
 
+use libconcentratord::reset;
 use libconcentratord::signals::Signal;
 
 mod cmd;
@@ -86,6 +87,15 @@ fn main() {
             process::exit(0);
         }
     });
+
+    // configure concentrator reset pin
+    if config.gateway.model_config.reset_pin.is_some() {
+        reset::setup_pins(
+            config.gateway.model_config.reset_pin.unwrap(),
+            config.gateway.model_config.power_en_pin,
+        )
+        .expect("setup reset pin error");
+    }
 
     loop {
         match cmd::root::run(&config, stop_send.clone(), stop_receive.clone()).unwrap() {

@@ -5,7 +5,7 @@ use std::thread;
 
 use libconcentratord::signals;
 use libconcentratord::signals::Signal;
-use libconcentratord::{commands, events, jitqueue};
+use libconcentratord::{commands, events, jitqueue, reset};
 use libloragw_sx1302::hal;
 
 use super::super::{concentrator, config, handler, wrapper};
@@ -20,6 +20,9 @@ pub fn run(
         config::VERSION,
         "https://www.chirpstack.io/concentratord/"
     );
+
+    // reset concentrator
+    reset::reset().expect("concentrator reset failed");
 
     // setup concentrator
     concentrator::board_setconf(&config)?;

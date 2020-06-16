@@ -229,5 +229,7 @@ pub fn new(conf: &config::Configuration) -> Configuration {
             false => None,
         },
         spidev_path: "/dev/spidev0.0".to_string(),
+        reset_pin: Some(23),
+        power_en_pin: Some(18),
     }
 }
