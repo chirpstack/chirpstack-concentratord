@@ -164,5 +164,6 @@ pub fn new(conf: &config::Configuration) -> Configuration {
             Port::AP1 => "/dev/spidev32766.2".to_string(),
             Port::AP2 => "/dev/spidev32765.2".to_string(),
         },
+        reset_pin: None,
     }
 }

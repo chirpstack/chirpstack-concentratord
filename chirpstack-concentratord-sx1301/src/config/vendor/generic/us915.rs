@@ -150,5 +150,6 @@ pub fn new(conf: &config::Configuration) -> Configuration {
             false => None,
         },
         spidev_path: "/dev/spidev0.0".to_string(),
+        reset_pin: Some(conf.gateway.reset_pin),
     }
 }

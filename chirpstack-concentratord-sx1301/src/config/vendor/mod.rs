@@ -21,4 +21,5 @@ pub struct Configuration {
     pub tx_gain_table: Vec<hal::TxGainConfig>,
     pub gps_tty_path: Option<String>,
     pub spidev_path: String,
+    pub reset_pin: Option<u32>,
 }

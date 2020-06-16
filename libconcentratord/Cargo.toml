@@ -13,6 +13,7 @@ chirpstack_api = { version = "3.5.2", default-features = false }
 uuid = { version = "0.8.1", features = ["v4"] }
 prost = "0.6"
 prost-types = "0.6"
+gpio-cdev = "0.3.0"
 
 [features]
 default = ['zmq/vendored']
