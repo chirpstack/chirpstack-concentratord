@@ -4,6 +4,7 @@ pub mod generic;
 pub mod imst;
 pub mod kerlink;
 pub mod multitech;
+pub mod pi_supply;
 pub mod rak;
 pub mod sandbox;
 pub mod wifx;
