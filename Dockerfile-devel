@@ -15,6 +15,18 @@ RUN apt-get update && \
 		git && \
 	apt-get clean
 
+RUN rustup target add armv5te-unknown-linux-gnueabi
+RUN rustup target add arm-unknown-linux-gnueabihf
+
+RUN echo '[target.armv5te-unknown-linux-gnueabi]\n\
+linker = "arm-linux-gnueabi-gcc"\n\
+[target.arm-unknown-linux-gnueabihf]\n\
+linker = "arm-linux-gnueabihf-gcc"\n'\
+>> /usr/local/cargo/config
+
+RUN mkdir -p /tmp
+RUN cd /tmp && git clone https://github.com/seife/opkg-utils.git && cd /tmp/opkg-utils && PREFIX=/usr make install
+
 RUN mkdir -p /hal/native && \
 	cd /hal/native && \
 	git clone https://github.com/brocaar/lora_gateway.git -b v5.0.1r2 && \
@@ -70,17 +82,6 @@ RUN cd /hal/armv7hf/sx1302_hal && \
 	cp /hal/armv7hf/sx1302_hal/libtools/inc/* /usr/arm-linux-gnueabihf/include && \
 	cp /hal/armv7hf/sx1302_hal/libtools/*.a /usr/arm-linux-gnueabihf/lib
 
-RUN rustup target add armv5te-unknown-linux-gnueabi
-RUN rustup target add arm-unknown-linux-gnueabihf
-
-RUN echo '[target.armv5te-unknown-linux-gnueabi]\n\
-linker = "arm-linux-gnueabi-gcc"\n\
-[target.arm-unknown-linux-gnueabihf]\n\
-linker = "arm-linux-gnueabihf-gcc"\n'\
->> /usr/local/cargo/config
-
-RUN mkdir -p /tmp
-RUN cd /tmp && git clone https://github.com/seife/opkg-utils.git && cd /tmp/opkg-utils && PREFIX=/usr make install
 
 ENV LLVM_CONFIG_PATH=llvm-config-3.9
 ENV PROJECT_PATH=/chirpstack-concentratord
