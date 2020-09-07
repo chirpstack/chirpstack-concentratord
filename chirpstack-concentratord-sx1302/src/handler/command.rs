@@ -28,7 +28,7 @@ pub fn handle_loop(
         match stop_receive.recv_timeout(Duration::from_millis(0)) {
             Ok(v) => {
                 debug!("Received stop signal, signal: {}", v);
-                return;
+                break;
             }
             _ => {}
         };
@@ -62,6 +62,8 @@ pub fn handle_loop(
 
         rep_sock.send(resp, 0).unwrap();
     }
+
+    debug!("Command loop ended");
 }
 
 fn handle_downlink(

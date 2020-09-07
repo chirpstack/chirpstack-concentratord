@@ -27,11 +27,13 @@ pub fn timesync_loop(stop_receive: Receiver<Signal>) {
         match stop_receive.recv_timeout(Duration::from_secs(60)) {
             Ok(v) => {
                 debug!("Received stop signal, signal: {}", v);
-                return;
+                break;
             }
             _ => {}
         };
     }
+
+    debug!("Timesync loop ended");
 }
 
 pub fn get_concentrator_count() -> u32 {

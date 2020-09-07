@@ -22,7 +22,7 @@ pub fn jit_loop(
         match stop_receive.recv_timeout(Duration::from_millis(10)) {
             Ok(v) => {
                 debug!("Received stop signal, signal: {}", v);
-                return;
+                break;
             }
             _ => {}
         };
@@ -55,6 +55,8 @@ pub fn jit_loop(
             }
         }
     }
+
+    debug!("JIT loop ended");
 }
 
 fn get_tx_packet(

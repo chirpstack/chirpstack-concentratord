@@ -27,6 +27,7 @@ pub fn beacon_loop(
         match stop_receive.recv_timeout(MARGIN) {
             Ok(v) => {
                 debug!("Received stop signal, signal: {}", v);
+                break;
             }
             _ => {}
         };
@@ -52,6 +53,7 @@ pub fn beacon_loop(
         match stop_receive.recv_timeout(sleep_time) {
             Ok(v) => {
                 debug!("Received stop signal, signal: {}", v);
+                break;
             }
             _ => {}
         };
@@ -64,6 +66,8 @@ pub fn beacon_loop(
             Err(err) => warn!("Enqueue beacon failed, error: {}", err),
         }
     }
+
+    debug!("Beacon loop ended");
 }
 
 fn send_beacon(

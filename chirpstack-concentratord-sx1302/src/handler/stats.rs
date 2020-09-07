@@ -22,7 +22,7 @@ pub fn stats_loop(
         match stop_receive.recv_timeout(*stats_interval) {
             Ok(v) => {
                 debug!("Received stop signal, signal: {}", v);
-                return;
+                break;
             }
             _ => {}
         };
@@ -59,4 +59,6 @@ pub fn stats_loop(
 
         stats::send_and_reset(gateway_id, loc, &metadata).expect("sending stats failed");
     }
+
+    debug!("Stats loop ended");
 }

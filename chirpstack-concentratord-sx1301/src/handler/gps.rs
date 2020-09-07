@@ -45,7 +45,7 @@ pub fn gps_loop(gps_tty_path: &str, stop_receive: Receiver<Signal>) {
         match stop_receive.recv_timeout(Duration::from_millis(0)) {
             Ok(v) => {
                 debug!("Received stop signal, signal: {}", v);
-                return;
+                break;
             }
             _ => {}
         };
@@ -112,6 +112,8 @@ pub fn gps_loop(gps_tty_path: &str, stop_receive: Receiver<Signal>) {
             }
         }
     }
+
+    debug!("GPS loop ended");
 }
 
 pub fn gps_validate_loop(stop_receive: Receiver<Signal>) {
@@ -126,7 +128,7 @@ pub fn gps_validate_loop(stop_receive: Receiver<Signal>) {
         match stop_receive.recv_timeout(Duration::from_secs(1)) {
             Ok(v) => {
                 debug!("Received stop signal, signal: {}", v);
-                return;
+                break;
             }
             _ => {}
         };
@@ -196,6 +198,8 @@ pub fn gps_validate_loop(stop_receive: Receiver<Signal>) {
             }
         }
     }
+
+    debug!("GPS validation loop ended");
 }
 
 pub fn cnt2time(count_us: u32) -> Result<SystemTime, String> {

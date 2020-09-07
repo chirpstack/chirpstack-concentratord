@@ -16,7 +16,7 @@ pub fn handle_loop(gateway_id: &[u8], stop_receive: Receiver<Signal>) {
         match stop_receive.recv_timeout(Duration::from_millis(0)) {
             Ok(v) => {
                 debug!("Received stop signal, signal: {}", v);
-                return;
+                break;
             }
             _ => {}
         };
@@ -58,4 +58,6 @@ pub fn handle_loop(gateway_id: &[u8], stop_receive: Receiver<Signal>) {
 
         thread::sleep(Duration::from_millis(10));
     }
+
+    debug!("Uplink loop ended");
 }
