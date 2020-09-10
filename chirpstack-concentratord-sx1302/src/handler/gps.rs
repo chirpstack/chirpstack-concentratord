@@ -11,11 +11,7 @@ use libloragw_sx1302::{gps, hal};
 
 lazy_static! {
     static ref GPS_TIME_REF: Mutex<gps::TimeReference> = Mutex::new(Default::default());
-    static ref GPS_COORDS: Mutex<gps::Coordinates> = Mutex::new(gps::Coordinates {
-        latitude: 0.0,
-        longitude: 0.0,
-        altitude: 0
-    });
+    static ref GPS_COORDS: Mutex<Option<gps::Coordinates>> = Mutex::new(None);
     static ref GPS_COORDS_ERROR: Mutex<gps::Coordinates> = Mutex::new(gps::Coordinates {
         latitude: 0.0,
         longitude: 0.0,
@@ -232,7 +228,7 @@ pub fn epoch2cnt(gps_epoch: &Duration) -> Result<u32, String> {
     gps::epoch2cnt(&gps_time_ref, gps_epoch)
 }
 
-pub fn get_coords() -> Result<gps::Coordinates, String> {
+pub fn get_coords() -> Result<Option<gps::Coordinates>, String> {
     let gps_ref_valid = GPS_TIME_REF_VALID.lock().unwrap();
     if *gps_ref_valid == false {
         return Err("gps_ref_valid = false".to_string());
@@ -291,11 +287,12 @@ fn gps_process_coords() {
         Ok(v) => v,
         Err(err) => {
             debug!("get gps coordinates failed, error: {}", err);
+            *coords = None;
             return;
         }
     };
 
-    *coords = c;
+    *coords = Some(c);
     *coords_error = ce;
 
     trace!(

@@ -153,17 +153,20 @@ pub fn uplink_to_proto(
         }
     }
     match gps::get_coords() {
-        Ok(v) => {
-            let mut proto_loc = chirpstack_api::common::Location {
-                latitude: v.latitude,
-                longitude: v.longitude,
-                altitude: v.altitude as f64,
-                ..Default::default()
-            };
-            proto_loc.set_source(chirpstack_api::common::LocationSource::Gps);
+        Ok(v) => match v {
+            Some(v) => {
+                let mut proto_loc = chirpstack_api::common::Location {
+                    latitude: v.latitude,
+                    longitude: v.longitude,
+                    altitude: v.altitude as f64,
+                    ..Default::default()
+                };
+                proto_loc.set_source(chirpstack_api::common::LocationSource::Gps);
 
-            rx_info.location = Some(proto_loc);
-        }
+                rx_info.location = Some(proto_loc);
+            }
+            None => {}
+        },
         Err(err) => {
             debug!(
                 "Could not get GPS coordinates, uplink_id: {}, error: {}",
