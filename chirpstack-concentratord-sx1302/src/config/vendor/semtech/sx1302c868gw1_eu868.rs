@@ -229,7 +229,13 @@ pub fn new(conf: &config::Configuration) -> Configuration {
             false => None,
         },
         spidev_path: "/dev/spidev0.0".to_string(),
-        reset_pin: Some(23),
-        power_en_pin: Some(18),
+        reset_pin: match conf.gateway.reset_pin {
+            0 => Some(23),
+            _ => Some(conf.gateway.reset_pin),
+        },
+        power_en_pin: match conf.gateway.power_en_pin {
+            0 => Some(18),
+            _ => Some(conf.gateway.power_en_pin),
+        },
     }
 }

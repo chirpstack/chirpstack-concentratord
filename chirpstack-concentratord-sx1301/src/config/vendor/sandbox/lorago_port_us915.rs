@@ -6,7 +6,7 @@ use super::super::Configuration;
 // source:
 // http://sandboxelectronics.com/?p=2669
 // (RF Performance Data)
-pub fn new(_conf: &config::Configuration) -> Configuration {
+pub fn new(conf: &config::Configuration) -> Configuration {
     Configuration {
         radio_count: 2,
         clock_source: 1,
@@ -84,6 +84,9 @@ pub fn new(_conf: &config::Configuration) -> Configuration {
         ],
         gps_tty_path: None,
         spidev_path: "/dev/spidev0.0".to_string(),
-        reset_pin: Some(25),
+        reset_pin: match conf.gateway.reset_pin {
+            0 => Some(25),
+            _ => Some(conf.gateway.reset_pin),
+        },
     }
 }

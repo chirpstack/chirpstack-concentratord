@@ -1,10 +1,11 @@
 use libloragw_sx1301::hal;
 
+use super::super::super::super::config;
 use super::super::Configuration;
 
 // source:
 // https://shop.imst.de/media/pdf/f5/68/7f/WiMOD_LiteGateway_QuickStartGuide_V1_5.pdf
-pub fn new() -> Configuration {
+pub fn new(conf: &config::Configuration) -> Configuration {
     Configuration {
         radio_count: 2,
         clock_source: 1,
@@ -146,6 +147,9 @@ pub fn new() -> Configuration {
         ],
         gps_tty_path: None,
         spidev_path: "/dev/spidev0.0".to_string(),
-        reset_pin: Some(5),
+        reset_pin: match conf.gateway.reset_pin {
+            0 => Some(5),
+            _ => Some(conf.gateway.reset_pin),
+        },
     }
 }

@@ -34,6 +34,10 @@ pub struct Gateway {
     pub model: String,
     #[serde(default)]
     pub model_flags: Vec<String>,
+    #[serde(default)]
+    pub reset_pin: u32,
+    #[serde(default)]
+    pub power_en_pin: u32,
     pub concentrator: Concentrator,
 
     #[serde(default)]
