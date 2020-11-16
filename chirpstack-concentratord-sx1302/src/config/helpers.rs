@@ -57,7 +57,7 @@ pub fn get_radio_frequencies(config: &Configuration) -> Result<Vec<u32>, String>
     channels.sort_by(|a, b| a.min_radio_freq().cmp(&b.min_radio_freq()));
 
     for c in channels {
-        let channel_max = c.freq_hz - (c.bandwidth / 2);
+        let channel_max = c.freq_hz + (c.bandwidth / 2);
         let radio_bw = get_radio_bandwidth(c.bandwidth);
         let min_radio_center_freq = c.freq_hz - (c.bandwidth / 2) + (radio_bw / 2);
 
@@ -140,7 +140,7 @@ mod tests {
                 250000,
                 868000000,
                 125000,
-                [867500000, 868500000],
+                [867500000, 868400000],
             ),
             (
                 "US915 0-7 + 64".to_string(),
