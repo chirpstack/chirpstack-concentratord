@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use log::info;
+use log::{debug, info};
 use prost::Message;
 
 use super::socket::ZMQ_CONTEXT;
@@ -11,6 +11,19 @@ pub fn get_socket(bind: &str) -> Result<zmq::Socket, zmq::Error> {
     let zmq_ctx = ZMQ_CONTEXT.lock().unwrap();
     let sock = zmq_ctx.socket(zmq::REP)?;
     sock.bind(&bind)?;
+    return Ok(sock);
+}
+
+pub fn get_client(endpoint: &str) -> Result<zmq::Socket, zmq::Error> {
+    debug!(
+        "Creating new socket for sending commands, endpoint: {}",
+        endpoint
+    );
+
+    let zmq_ctx = ZMQ_CONTEXT.lock().unwrap();
+    let sock = zmq_ctx.socket(zmq::REQ)?;
+    sock.connect(endpoint)?;
+
     return Ok(sock);
 }
 

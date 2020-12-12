@@ -1,0 +1,42 @@
+# UDP Bridge configuration.
+[udp_bridge]
+
+  # Log level.
+  #
+  # Valid options are:
+  #   * TRACE
+  #   * DEBUG
+  #   * INFO
+  #   * WARN
+  #   * ERROR
+  #   * OFF
+  log_level="INFO"
+
+  # Log to syslog.
+  #
+  # When set to true, log messages are being written to syslog instead of stdout.
+  log_to_syslog=false
+
+  # Prometheus metrics bind.
+  #
+  # E.g. '0.0.0.0:9800', leave blank to disable the metrics endpoint.
+  metrics_bind="0.0.0.0:9800"
+
+  # Servers to forward the data to using UDP.
+  # This section can be repeated.
+  [[udp_bridge.servers]]
+    # Server (hostname:port).
+	server="localhost:1700"
+	keepalive_interval_secs=5
+	keepalive_reconnect_afte
+	keepalive_max_failures=3
+
+
+# Concentratord configuration.
+[concentratord]
+
+  # Event API URL.
+  event_url="ipc:///tmp/concentratord_event"
+
+  # Command API URL.
+  command_url="ipc:///tmp/concentratord_command"
