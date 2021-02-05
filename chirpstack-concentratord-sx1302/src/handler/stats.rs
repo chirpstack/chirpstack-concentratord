@@ -29,24 +29,18 @@ pub fn stats_loop(
 
         // fetch the current gps coordinates
         let loc = match gps::get_coords() {
-            Ok(v) => match v {
-                Some(v) => Some({
-                    let mut loc = chirpstack_api::common::Location {
-                        latitude: v.latitude,
-                        longitude: v.longitude,
-                        altitude: v.altitude as f64,
-                        ..Default::default()
-                    };
+            Some(v) => Some({
+                let mut loc = chirpstack_api::common::Location {
+                    latitude: v.latitude,
+                    longitude: v.longitude,
+                    altitude: v.altitude as f64,
+                    ..Default::default()
+                };
 
-                    loc.set_source(chirpstack_api::common::LocationSource::Gps);
-                    loc
-                }),
-                None => None,
-            },
-            Err(err) => {
-                debug!("Get gps coordinates error, error: {}", err);
-                None
-            }
+                loc.set_source(chirpstack_api::common::LocationSource::Gps);
+                loc
+            }),
+            None => None,
         };
 
         // fetch the concentrator temperature.

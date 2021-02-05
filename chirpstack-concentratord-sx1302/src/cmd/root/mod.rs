@@ -32,6 +32,13 @@ pub fn run(
     concentrator::rxif_setconf(&config)?;
     concentrator::start()?;
 
+    // setup static location
+    handler::gps::set_static_gps_coords(
+        config.gateway.location.latitude,
+        config.gateway.location.longitude,
+        config.gateway.location.altitude,
+    );
+
     // get concentrator eui
     let gateway_id = concentrator::get_eui().unwrap();
 

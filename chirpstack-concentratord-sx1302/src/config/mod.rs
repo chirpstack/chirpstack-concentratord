@@ -25,6 +25,13 @@ pub struct API {
 }
 
 #[derive(Default, Deserialize)]
+pub struct Location {
+    pub latitude: f64,
+    pub longitude: f64,
+    pub altitude: i16,
+}
+
+#[derive(Default, Deserialize)]
 pub struct Gateway {
     #[serde(default)]
     pub antenna_gain: i8,
@@ -39,6 +46,8 @@ pub struct Gateway {
     #[serde(default)]
     pub power_en_pin: u32,
     pub concentrator: Concentrator,
+    #[serde(default)]
+    pub location: Location,
 
     #[serde(default)]
     pub precision_timestamp: PrecisionTimestamp,

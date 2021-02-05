@@ -32,6 +32,13 @@ pub fn run(
     concentrator::rxif_setconf(&config)?;
     concentrator::start(&config)?;
 
+    // setup static location
+    handler::gps::set_static_gps_coords(
+        config.gateway.location.latitude,
+        config.gateway.location.longitude,
+        config.gateway.location.altitude,
+    );
+
     // setup sockets
     events::bind_socket(&config.concentratord.api.event_bind).expect("bind event socket error");
     let rep_sock = commands::get_socket(&config.concentratord.api.command_bind)

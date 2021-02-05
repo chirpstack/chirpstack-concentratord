@@ -40,6 +40,13 @@ pub struct Beacon {
     pub tx_power: u32,
 }
 
+#[derive(Default, Deserialize, Clone)]
+pub struct Location {
+    pub latitude: f64,
+    pub longitude: f64,
+    pub altitude: i16,
+}
+
 #[derive(Default, Deserialize)]
 pub struct Gateway {
     #[serde(default)]
@@ -55,6 +62,8 @@ pub struct Gateway {
     pub concentrator: Concentrator,
     #[serde(default)]
     pub beacon: Beacon,
+    #[serde(default)]
+    pub location: Location,
 
     #[serde(skip)]
     pub gateway_id_bytes: Vec<u8>,

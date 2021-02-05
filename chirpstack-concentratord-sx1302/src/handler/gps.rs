@@ -11,6 +11,7 @@ use libloragw_sx1302::{gps, hal};
 
 lazy_static! {
     static ref GPS_TIME_REF: Mutex<gps::TimeReference> = Mutex::new(Default::default());
+    static ref STATIC_GPS_COORDS: Mutex<Option<gps::Coordinates>> = Mutex::new(None);
     static ref GPS_COORDS: Mutex<Option<gps::Coordinates>> = Mutex::new(None);
     static ref GPS_COORDS_ERROR: Mutex<gps::Coordinates> = Mutex::new(gps::Coordinates {
         latitude: 0.0,
@@ -24,6 +25,20 @@ lazy_static! {
 
 const XERR_INIT_AVG: isize = 128;
 const XERR_FILT_COEF: f64 = 256.0;
+
+pub fn set_static_gps_coords(lat: f64, lon: f64, alt: i16) {
+    let mut static_gps_coords = STATIC_GPS_COORDS.lock().unwrap();
+
+    if lat != 0.0 || lon != 0.0 || alt != 0 {
+        *static_gps_coords = Some(gps::Coordinates {
+            latitude: lat,
+            longitude: lon,
+            altitude: alt,
+        })
+    } else {
+        *static_gps_coords = None;
+    }
+}
 
 pub fn gps_loop(gps_tty_path: &str, stop_receive: Receiver<Signal>) {
     debug!("Starting GPS loop");
@@ -228,14 +243,18 @@ pub fn epoch2cnt(gps_epoch: &Duration) -> Result<u32, String> {
     gps::epoch2cnt(&gps_time_ref, gps_epoch)
 }
 
-pub fn get_coords() -> Result<Option<gps::Coordinates>, String> {
-    let gps_ref_valid = GPS_TIME_REF_VALID.lock().unwrap();
-    if *gps_ref_valid == false {
-        return Err("gps_ref_valid = false".to_string());
+pub fn get_coords() -> Option<gps::Coordinates> {
+    let gps_time_ref_valid = GPS_TIME_REF_VALID.lock().unwrap();
+    let gps_coords = GPS_COORDS.lock().unwrap();
+    let static_gps_coords = STATIC_GPS_COORDS.lock().unwrap();
+
+    // In case the gps time reference is invalid or no gps coordinates
+    // are available, use static coords (which can be None).
+    if *gps_time_ref_valid == false || gps_coords.is_none() {
+        return *static_gps_coords;
     }
 
-    let coords = GPS_COORDS.lock().unwrap();
-    return Ok(*coords);
+    return *gps_coords;
 }
 
 fn gps_process_sync() {
