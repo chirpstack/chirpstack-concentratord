@@ -1,5 +1,6 @@
 use libloragw_sx1302::hal;
 
+pub mod rak;
 pub mod semtech;
 
 #[derive(Default, Clone)]
