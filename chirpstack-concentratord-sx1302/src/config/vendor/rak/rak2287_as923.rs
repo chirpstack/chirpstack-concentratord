@@ -28,8 +28,8 @@ pub fn new(conf: &config::Configuration) -> Configuration {
                     coeff_e: 0.0,
                 },
                 tx_enable: true,
-                tx_freq_min: 9232000000,
-                tx_freq_max: 9250000000,
+                tx_freq_min: 923200000,
+                tx_freq_max: 925000000,
                 tx_gain_table: vec![
                     // 0
                     hal::TxGainConfig {
@@ -232,5 +232,13 @@ pub fn new(conf: &config::Configuration) -> Configuration {
             false => None,
         },
         spidev_path: "/dev/spidev0.0".to_string(),
+        reset_pin: match conf.gateway.reset_pin {
+            0 => Some(17),
+            _ => Some(conf.gateway.reset_pin),
+        },
+        power_en_pin: match conf.gateway.power_en_pin {
+            0 => None,
+            _ => Some(conf.gateway.power_en_pin),
+        },
     }
 }
