@@ -1,4 +1,4 @@
-FROM rust:1.40-stretch
+FROM rust:1.45-stretch
 
 # required by bingen
 RUN apt-get update && \
