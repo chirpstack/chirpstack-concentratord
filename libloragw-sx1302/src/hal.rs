@@ -261,6 +261,42 @@ impl RxStatus {
     }
 }
 
+#[derive(Debug)]
+pub enum FineTimestampMode {
+    /// Fine timestamps for SF5 -> SF10.
+    HighCapacity,
+    /// Fine timestamps for SF5 -> SF12.
+    AllSF,
+}
+
+impl FineTimestampMode {
+    fn to_hal(&self) -> wrapper::lgw_ftime_mode_t {
+        return match self {
+            FineTimestampMode::HighCapacity => {
+                wrapper::lgw_ftime_mode_t_LGW_FTIME_MODE_HIGH_CAPACITY
+            }
+            FineTimestampMode::AllSF => wrapper::lgw_ftime_mode_t_LGW_FTIME_MODE_ALL_SF,
+        };
+    }
+}
+
+#[derive(Debug)]
+pub enum LBTScanTime {
+    /// 128 us
+    Scan128US,
+    /// 5000 us
+    Scan5000US,
+}
+
+impl LBTScanTime {
+    fn to_hal(&self) -> wrapper::lgw_lbt_scan_time_t {
+        return match self {
+            LBTScanTime::Scan128US => wrapper::lgw_lbt_scan_time_t_LGW_LBT_SCAN_TIME_128_US,
+            LBTScanTime::Scan5000US => wrapper::lgw_lbt_scan_time_t_LGW_LBT_SCAN_TIME_5000_US,
+        };
+    }
+}
+
 /// Configuration structure for board specificities.
 pub struct BoardConfig {
     /// Enable ONLY for *public* networks using the LoRa MAC protocol.
@@ -269,27 +305,30 @@ pub struct BoardConfig {
     pub clock_source: u8,
     /// Indicates if the gateway operates in full duplex mode or not.
     pub full_duplex: bool,
-    /// Path to access the SPI device to connect to the SX1302.
-    pub spidev_path: String,
+    /// The Communication interface (SPI/USB) to connect to the SX1302.
+    pub com_type: super::com::ComType,
+    /// Path to access the COM device to connect to the SX1302.
+    pub com_path: String,
 }
 
 impl BoardConfig {
     fn to_hal(&self) -> Result<wrapper::lgw_conf_board_s, String> {
-        let spidev_path = CString::new(self.spidev_path.clone()).unwrap();
-        let spidev_path = spidev_path.as_bytes_with_nul();
-        if spidev_path.len() > 64 {
-            return Err("spidev_path max length is 64".to_string());
+        let com_path = CString::new(self.com_path.clone()).unwrap();
+        let com_path = com_path.as_bytes_with_nul();
+        if com_path.len() > 64 {
+            return Err("com_path max length is 64".to_string());
         }
-        let mut spidev_path_chars = [0; 64];
-        for (i, b) in spidev_path.iter().enumerate() {
-            spidev_path_chars[i] = *b as c_char;
+        let mut com_path_chars = [0; 64];
+        for (i, b) in com_path.iter().enumerate() {
+            com_path_chars[i] = *b as c_char;
         }
 
         return Ok(wrapper::lgw_conf_board_s {
             lorawan_public: self.lorawan_public,
             clksrc: self.clock_source,
             full_duplex: self.full_duplex,
-            spidev_path: spidev_path_chars,
+            com_type: self.com_type.to_hal(),
+            com_path: com_path_chars,
         });
     }
 }
@@ -483,6 +522,10 @@ pub struct RxPacket {
     pub size: u16,
     /// Buffer containing the payload.
     pub payload: [u8; 256],
+    /// A fine timestamp has been received.
+    pub ftime_received: bool,
+    /// Packet fine timestamp (nanoseconds since last PPS).
+    pub ftime: u32,
 }
 
 impl RxPacket {
@@ -507,6 +550,8 @@ impl RxPacket {
             crc: pkt.crc,
             size: pkt.size,
             payload: pkt.payload,
+            ftime_received: pkt.ftime_received,
+            ftime: pkt.ftime,
         }
     }
 }
@@ -600,19 +645,120 @@ impl TxPacket {
 
 /// Configuration structure for the timestamp.
 pub struct TimestampConfig {
-    pub enable_precision_ts: bool,
-    pub max_ts_metrics: u8,
-    pub nb_symbols: u8,
+    /// Enable / Disable fine timestamping.
+    pub enable: bool,
+    /// Fine timestamping mode.
+    pub mode: FineTimestampMode,
 }
 
 impl TimestampConfig {
-    fn to_hal(&self) -> wrapper::lgw_conf_timestamp_s {
-        wrapper::lgw_conf_timestamp_s {
-            enable_precision_ts: self.enable_precision_ts,
-            max_ts_metrics: self.max_ts_metrics,
-            nb_symbols: self.nb_symbols,
+    fn to_hal(&self) -> wrapper::lgw_conf_ftime_s {
+        wrapper::lgw_conf_ftime_s {
+            enable: self.enable,
+            mode: self.mode.to_hal(),
         }
     }
+}
+
+/// Structure containing a Listen-Before-Talk channel configuration.
+pub struct LBTChannelConfig {
+    /// LBT channel frequency.
+    pub freq_hz: u32,
+    /// BT channel bandwidth.
+    pub bandwidth: Bandwidth,
+    /// LBT channel carrier sense time.
+    pub scan_time: LBTScanTime,
+    /// LBT channel transmission duration when allowed.
+    pub transmit_time_ms: u16,
+}
+
+impl LBTChannelConfig {
+    fn to_hal(&self) -> wrapper::lgw_conf_chan_lbt_s {
+        wrapper::lgw_conf_chan_lbt_s {
+            freq_hz: self.freq_hz,
+            bandwidth: self.bandwidth.to_hal(),
+            scan_time_us: self.scan_time.to_hal(),
+            transmit_time_ms: self.transmit_time_ms,
+        }
+    }
+}
+
+/// Configuration structure for listen-before-talk.
+pub struct LBTConfig {
+    /// Enable or disable LBT.
+    pub enable: bool,
+    /// RSSI threshold to detect if channel is busy or not (dBm).
+    pub rssi_target: i8,
+    /// LBT channels configuration.
+    pub channels: Vec<LBTChannelConfig>,
+}
+
+impl LBTConfig {
+    fn to_hal(&self) -> Result<wrapper::lgw_conf_lbt_s, String> {
+        if self.channels.len() > wrapper::LGW_LBT_CHANNEL_NB_MAX as usize {
+            return Err("channels exceeds LGW_LBT_CHANNEL_NB_MAX".to_string());
+        }
+
+        Ok(wrapper::lgw_conf_lbt_s {
+            enable: self.enable,
+            rssi_target: self.rssi_target,
+            nb_channel: self.channels.len() as u8,
+            channels: {
+                let mut channels: [wrapper::lgw_conf_chan_lbt_s;
+                    wrapper::LGW_LBT_CHANNEL_NB_MAX as usize] =
+                    [Default::default(); wrapper::LGW_LBT_CHANNEL_NB_MAX as usize];
+
+                for (i, c) in self.channels.iter().enumerate() {
+                    channels[i] = c.to_hal();
+                }
+
+                channels
+            },
+        })
+    }
+}
+
+/// Configuration structure for additional SX1261 radio used for LBT and Spectral Scan.
+pub struct SX1261Config {
+    /// Enable or disable SX1261 radio.
+    pub enable: bool,
+    /// Path to access the SPI device to connect to the SX1261 (not used for USB com type).
+    pub spi_path: String,
+    /// Value to be applied to the sx1261 RSSI value (dBm).
+    pub rssi_offset: i8,
+    /// Listen-before-talk configuration.
+    pub lbt_config: LBTConfig,
+}
+
+impl SX1261Config {
+    fn to_hal(&self) -> Result<wrapper::lgw_conf_sx1261_s, String> {
+        Ok(wrapper::lgw_conf_sx1261_s {
+            enable: self.enable,
+            spi_path: {
+                let spi_path = CString::new(self.spi_path.clone()).unwrap();
+                let spi_path = spi_path.as_bytes_with_nul();
+                if spi_path.len() > 64 {
+                    return Err("spi_path max length is 64".to_string());
+                }
+                let mut spi_path_chars = [0; 64];
+                for (i, b) in spi_path.iter().enumerate() {
+                    spi_path_chars[i] = *b as c_char;
+                }
+                spi_path_chars
+            },
+            rssi_offset: self.rssi_offset,
+            lbt_conf: self.lbt_config.to_hal()?,
+        })
+    }
+}
+
+/// Spectral scan result.
+pub struct SpectralScanResult {
+    /// dBm level.
+    pub dbm_level: i16,
+    /// Result.
+    /// TODO: what is the actual value of this?
+    pub result: u16,
 }
 
 const MAX_PKT: usize = 8;
@@ -677,13 +823,24 @@ pub fn txgain_setconf(rf_chain: u8, txgain: &[TxGainConfig]) -> Result<(), Strin
     return Ok(());
 }
 
-/// Configure the precision timestamp.
-pub fn timestamp_setconf(conf: &TimestampConfig) -> Result<(), String> {
+/// Configure the fine timestamping.
+pub fn ftime_setconf(conf: &TimestampConfig) -> Result<(), String> {
     let _guard = mutex::CONCENTATOR.lock().unwrap();
     let mut conf = conf.to_hal();
-    let ret = unsafe { wrapper::lgw_timestamp_setconf(&mut conf) };
+    let ret = unsafe { wrapper::lgw_ftime_setconf(&mut conf) };
     if ret != 0 {
-        return Err("lgw_timestamp_setconf failed".to_string());
+        return Err("lgw_ftime_setconf failed".to_string());
+    }
+    return Ok(());
+}
+
+/// Configure the SX1261 radio for LBT/Spectral Scan.
+pub fn sx1261_setconf(conf: &SX1261Config) -> Result<(), String> {
+    let _guard = mutex::CONCENTATOR.lock().unwrap();
+    let mut conf = conf.to_hal()?;
+    let ret = unsafe { wrapper::lgw_sx1261_setconf(&mut conf) };
+    if ret != 0 {
+        return Err("lgw_sx1261_setconf failed".to_string());
     }
     return Ok(());
 }
@@ -855,4 +1012,45 @@ pub fn version_info() -> String {
             .to_string_lossy()
             .into_owned()
     }
+}
+
+/// Start scaning the channel centered on the given frequency.
+/// freq_hz channel center frequency.
+/// nb_scan number of measures to be done for the scan.
+pub fn spectral_scan_start(freq_hz: u32, nb_scan: u16) -> Result<(), String> {
+    let _guard = mutex::CONCENTATOR.lock().unwrap();
+    let ret = unsafe { wrapper::lgw_spectral_scan_start(freq_hz, nb_scan) };
+    if ret != 0 {
+        return Err("lgw_spectral_scan_start failed".to_string());
+    }
+    return Ok(());
+}
+
+/// Get the channel scan results.
+pub fn spectral_scan_get_results() -> Result<Vec<SpectralScanResult>, String> {
+    let _guard = mutex::CONCENTATOR.lock().unwrap();
+
+    let mut levels_dbm: [i16; wrapper::LGW_SPECTRAL_SCAN_RESULT_SIZE as usize] =
+        [0; wrapper::LGW_SPECTRAL_SCAN_RESULT_SIZE as usize];
+
+    let mut results: [u16; wrapper::LGW_SPECTRAL_SCAN_RESULT_SIZE as usize] =
+        [0; wrapper::LGW_SPECTRAL_SCAN_RESULT_SIZE as usize];
+
+    let ret = unsafe {
+        wrapper::lgw_spectral_scan_get_results(levels_dbm.as_mut_ptr(), results.as_mut_ptr())
+    };
+    if ret != 0 {
+        return Err("lgw_spectral_scan_get_results failed".to_string());
+    }
+
+    let mut v: Vec<SpectralScanResult> = Vec::new();
+
+    for i in 0..(wrapper::LGW_SPECTRAL_SCAN_RESULT_SIZE as usize) {
+        v.push(SpectralScanResult {
+            dbm_level: levels_dbm[i],
+            result: results[i],
+        });
+    }
+
+    return Ok(v);
 }

@@ -1,7 +1,7 @@
 use libloragw_sx1302::hal;
 
 use super::super::super::super::config;
-use super::super::{Configuration, RadioConfig};
+use super::super::{ComType, Configuration, RadioConfig};
 
 pub fn new(conf: &config::Configuration) -> Configuration {
     let gps = conf.gateway.model_flags.contains(&"GNSS".to_string());
@@ -228,7 +228,8 @@ pub fn new(conf: &config::Configuration) -> Configuration {
             true => Some("/dev/ttyAMA0".to_string()),
             false => None,
         },
-        spidev_path: "/dev/spidev0.0".to_string(),
+        com_type: ComType::SPI,
+        com_path: "/dev/spidev0.0".to_string(),
         reset_pin: match conf.gateway.reset_pin {
             0 => Some(23),
             _ => Some(conf.gateway.reset_pin),

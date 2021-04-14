@@ -1,5 +1,6 @@
-use libloragw_sx1302::hal;
+use libloragw_sx1302::{com, hal};
 
+use super::config::vendor::ComType;
 use super::config::{helpers, Configuration};
 
 pub fn board_setconf(config: &Configuration) -> Result<(), String> {
@@ -7,7 +8,11 @@ pub fn board_setconf(config: &Configuration) -> Result<(), String> {
         lorawan_public: config.gateway.lorawan_public,
         clock_source: config.gateway.model_config.clock_source,
         full_duplex: config.gateway.model_config.full_duplex,
-        spidev_path: config.gateway.model_config.spidev_path.clone(),
+        com_type: match config.gateway.model_config.com_type {
+            ComType::SPI => com::ComType::SPI,
+            ComType::USB => com::ComType::USB,
+        },
+        com_path: config.gateway.model_config.com_path.clone(),
     };
 
     info!(
@@ -21,15 +26,20 @@ pub fn board_setconf(config: &Configuration) -> Result<(), String> {
 
 pub fn timestamp_setconf(config: &Configuration) -> Result<(), String> {
     info!(
-        "Setting up precision timestamp, enable: {}",
-        config.gateway.precision_timestamp.enable
+        "Setting up fine timestamp, enable: {}",
+        config.gateway.fine_timestamp.enable
     );
     let ts_config = hal::TimestampConfig {
-        enable_precision_ts: config.gateway.precision_timestamp.enable,
-        max_ts_metrics: config.gateway.precision_timestamp.max_ts_metrics,
-        nb_symbols: config.gateway.precision_timestamp.nb_symbols,
+        enable: config.gateway.fine_timestamp.enable,
+        mode: match config.gateway.fine_timestamp.mode.as_ref() {
+            "HIGH_CAPACITY" => hal::FineTimestampMode::HighCapacity,
+            "ALL_SF" => hal::FineTimestampMode::AllSF,
+            _ => {
+                return Err("fine_timestamp mode must be HIGH_CAPACITY or ALL_SF".to_string());
+            }
+        },
     };
-    hal::timestamp_setconf(&ts_config)?;
+    hal::ftime_setconf(&ts_config)?;
     return Ok(());
 }
 

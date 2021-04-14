@@ -48,3 +48,6 @@ package-kerlink-ifemtocell:
 
 test:
 	docker-compose run --rm chirpstack-concentratord cargo test
+
+devshell:
+	docker-compose run --rm chirpstack-concentratord bash

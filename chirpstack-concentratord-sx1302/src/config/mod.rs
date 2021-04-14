@@ -50,7 +50,7 @@ pub struct Gateway {
     pub location: Location,
 
     #[serde(default)]
-    pub precision_timestamp: PrecisionTimestamp,
+    pub fine_timestamp: FineTimestamp,
 
     #[serde(skip)]
     pub model_config: vendor::Configuration,
@@ -90,11 +90,19 @@ pub struct FSKChannel {
     pub datarate: u32,
 }
 
-#[derive(Default, Deserialize)]
-pub struct PrecisionTimestamp {
+#[derive(Deserialize)]
+pub struct FineTimestamp {
     pub enable: bool,
-    pub max_ts_metrics: u8,
-    pub nb_symbols: u8,
+    pub mode: String, // HIGH_CAPACITY or ALL_SF
+}
+
+impl Default for FineTimestamp {
+    fn default() -> Self {
+        FineTimestamp {
+            enable: false,
+            mode: "ALL_SF".to_string(),
+        }
+    }
 }
 
 #[derive(Default, Deserialize)]
