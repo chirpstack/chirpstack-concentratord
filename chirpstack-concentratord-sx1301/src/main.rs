@@ -12,7 +12,9 @@ use std::sync::Arc;
 use std::thread;
 
 use clap::{App, Arg};
-use signal_hook::{iterator::Signals, SIGINT};
+use signal_hook::consts::signal::SIGINT;
+use signal_hook::iterator::Signals;
+use simple_logger::SimpleLogger;
 use syslog::{BasicLogger, Facility, Formatter3164};
 
 use libconcentratord::reset;
@@ -64,13 +66,17 @@ fn main() {
             })
             .unwrap();
     } else {
-        simple_logger::init_with_level(
-            log::Level::from_str(&config.concentratord.log_level).unwrap(),
-        )
-        .unwrap();
+        SimpleLogger::new()
+            .with_level(
+                log::Level::from_str(&config.concentratord.log_level)
+                    .unwrap()
+                    .to_level_filter(),
+            )
+            .init()
+            .unwrap();
     }
 
-    let signals = Signals::new(&[SIGINT]).expect("error registering channels");
+    let mut signals = Signals::new(&[SIGINT]).expect("error registering channels");
     let (stop_send, stop_receive) = channel();
     let stop_receive = Arc::new(stop_receive);
 

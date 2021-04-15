@@ -199,10 +199,11 @@ pub fn parse_ubx(b: &[u8]) -> Result<(MessageType, usize), String> {
     let s = unsafe { CString::from_vec_unchecked(b.to_vec()) };
 
     let mut parsed_size = 0;
-    let ret = unsafe { wrapper::lgw_parse_ubx(s.as_ptr(), s.as_bytes().len(), &mut parsed_size) };
+    let ret =
+        unsafe { wrapper::lgw_parse_ubx(s.as_ptr(), s.as_bytes().len() as u32, &mut parsed_size) };
 
     let msg_type = MessageType::from_hal(ret)?;
-    return Ok((msg_type, parsed_size));
+    return Ok((msg_type, parsed_size as usize));
 }
 
 /// Get the GPS solution (space & time) for the concentrator.
