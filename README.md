@@ -1,6 +1,6 @@
 # ChirpStack Concentratord
 
-[![CircleCI](https://circleci.com/gh/brocaar/chirpstack-concentratord.svg?style=svg)](https://circleci.com/gh/brocaar/chirpstack-concentratord)
+![Tests](https://github.com/brocaar/chirpstack-concentratord/actions/workflows/main.yml/badge.svg?branch=master)
 
 ChirpStack Concentratord is an open-source LoRa(WAN) concentrator daemon, part
 of the [ChirpStack](https://www.chirpstack.io/) project. It exposes a [ZeroMQ](https://zeromq.org/)
