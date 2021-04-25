@@ -8,6 +8,7 @@ use super::super::{ComType, Configuration, RadioConfig};
 
 pub fn new(conf: &config::Configuration) -> Configuration {
     let gps = conf.gateway.model_flags.contains(&"GNSS".to_string());
+    let usb = conf.gateway.model_flags.contains(&"USB".to_string());
 
     Configuration {
         radio_count: 2,
@@ -231,8 +232,14 @@ pub fn new(conf: &config::Configuration) -> Configuration {
             true => Some("/dev/ttyAMA0".to_string()),
             false => None,
         },
-        com_type: ComType::SPI,
-        com_path: "/dev/spidev0.0".to_string(),
+        com_type: match usb {
+            true => ComType::USB,
+            false => ComType::SPI,
+        },
+        com_path: match usb {
+            true => "/dev/ttyACM0".to_string(),
+            false => "/dev/spidev0.0".to_string(),
+        },
         reset_pin: match conf.gateway.reset_pin {
             0 => Some(17),
             _ => Some(conf.gateway.reset_pin),
