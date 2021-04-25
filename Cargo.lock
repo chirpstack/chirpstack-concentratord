@@ -158,7 +158,7 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
 name = "chirpstack-concentratord-sx1301"
-version = "3.0.4"
+version = "3.1.0"
 dependencies = [
  "chirpstack_api",
  "chrono",
@@ -182,7 +182,7 @@ dependencies = [
 
 [[package]]
 name = "chirpstack-concentratord-sx1302"
-version = "3.0.4"
+version = "3.1.0"
 dependencies = [
  "chirpstack_api",
  "chrono",
@@ -353,7 +353,7 @@ dependencies = [
 
 [[package]]
 name = "gateway-id"
-version = "3.0.4"
+version = "3.1.0"
 dependencies = [
  "clap",
  "hex",
