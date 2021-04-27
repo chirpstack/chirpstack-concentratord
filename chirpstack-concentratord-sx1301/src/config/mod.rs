@@ -96,7 +96,7 @@ pub struct Configuration {
     pub gateway: Gateway,
 }
 
-pub fn example_configuration() -> Configuration {
+fn example_configuration() -> Configuration {
     Configuration {
         concentratord: Concentratord {
             log_level: "INFO".to_string(),

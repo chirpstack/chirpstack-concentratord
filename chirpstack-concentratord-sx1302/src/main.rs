@@ -41,12 +41,16 @@ fn main() {
                 .help("Path to configuration file")
                 .takes_value(true),
         )
+        .subcommand(App::new("configfile").about("Print the configuration template"))
         .get_matches();
 
-    let config_files = matches
-        .values_of_lossy("config")
-        .unwrap_or(vec!["chirpstack-concentratord-sx1302.toml".to_string()]);
+    let config_files = matches.values_of_lossy("config").unwrap_or(vec![]);
     let mut config = config::get(config_files);
+
+    if let Some(_) = matches.subcommand_matches("configfile") {
+        cmd::configfile::run(&config);
+        process::exit(0);
+    }
 
     if config.concentratord.log_to_syslog {
         let formatter = Formatter3164 {

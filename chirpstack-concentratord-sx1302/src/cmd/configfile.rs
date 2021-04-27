@@ -56,14 +56,8 @@ pub fn run(config: &config::Configuration) {
   #
   #   Global flags:
   #     GNSS - Enable GNSS / GPS support
-  #
-  #   Multitech:
-  #     AP1  - Module is in AP1 slot (default)
-  #     AP2  - Module is in AP2 slot
-  model_flags=[{{#each gateway.model_flags}}"{{ this }}",{{/each}}]
-
-  # Gateway ID.
-  gateway_id="{{ gateway.gateway_id }}"
+  #     USB  - Use USB for concentrator communication (default is SPI)
+  model_flags=[{{#each gateway.model_flags}}"{{ this }},{{/each}}]
 
 
   # LoRa concentrator configuration.
@@ -85,32 +79,6 @@ pub fn run(config: &config::Configuration) {
       frequency={{ gateway.concentrator.fsk.frequency }}
       bandwidth={{ gateway.concentrator.fsk.bandwidth }}
       datarate={{ gateway.concentrator.fsk.datarate }}
-
-
-  # Beacon configuration.
-  #
-  # This requires a gateway with GPS / GNSS.
-  #
-  # Please note that the beacon settings are region dependent. The correct
-  # settings can be found in the LoRaWAN Regional Parameters specification.
-  [gateway.beacon]
-
-    # Compulsory RFU size.
-    compulsory_rfu_size={{ gateway.beacon.compulsory_rfu_size }}
-
-    # Beacon frequency / frequencies (Hz).
-    frequencies=[{{#each gateway.beacon.frequencies}}
-      {{ this }},{{/each}}
-    ]
-
-    # Bandwidth (Hz).
-    bandwidth={{ gateway.beacon.bandwidth }}
-
-    # Spreading factor.
-    spreading_factor={{ gateway.beacon.spreading_factor }}
-
-    # TX power.
-    tx_power={{ gateway.beacon.tx_power }}
 
 
   # Static gateway location.
