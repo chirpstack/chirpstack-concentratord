@@ -1,9 +1,11 @@
 [workspace]
 members = [
+	"chirpstack-concentratord-2g4",
 	"chirpstack-concentratord-sx1301",
 	"chirpstack-concentratord-sx1302",
 	"gateway-id",
 	"libloragw-sx1301",
 	"libloragw-sx1302",
+	"libloragw-2g4",
 	"libconcentratord",
 ]

@@ -184,6 +184,31 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
+name = "chirpstack-concentratord-2g4"
+version = "3.0.4"
+dependencies = [
+ "chirpstack_api",
+ "chrono",
+ "clap",
+ "handlebars",
+ "hex",
+ "humantime-serde",
+ "lazy_static",
+ "libconcentratord",
+ "libloragw-2g4",
+ "log",
+ "prost",
+ "prost-types",
+ "serde",
+ "signal-hook",
+ "simple_logger",
+ "syslog",
+ "toml 0.5.8",
+ "uuid",
+ "zmq",
+]
+
+[[package]]
 name = "chirpstack-concentratord-sx1301"
 version = "3.1.0"
 dependencies = [
@@ -587,6 +612,14 @@ checksum = "6f84d96438c15fcd6c3f244c8fce01d1e2b9c6b5623e9c711dc9286d8fc92d6a"
 dependencies = [
  "cfg-if 1.0.0",
  "winapi",
+]
+
+[[package]]
+name = "libloragw-2g4"
+version = "1.0.0"
+dependencies = [
+ "bindgen",
+ "lazy_static",
 ]
 
 [[package]]
