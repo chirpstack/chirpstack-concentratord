@@ -16,23 +16,25 @@ trait ConvertBandwidth {
 /// Bandwidth in Hz.
 type Bandwidth = u32;
 
+// Please see:
+// https://github.com/Lora-net/gateway_2g4_hal/issues/6
 impl ConvertBandwidth for Bandwidth {
     fn from_hal(bandwidth: u32) -> u32 {
         match bandwidth {
-            wrapper::e_bandwidth_BW_200KHZ => 200000,
-            wrapper::e_bandwidth_BW_400KHZ => 400000,
-            wrapper::e_bandwidth_BW_800KHZ => 800000,
-            wrapper::e_bandwidth_BW_1600KHZ => 1600000,
+            wrapper::e_bandwidth_BW_200KHZ => 203000,
+            wrapper::e_bandwidth_BW_400KHZ => 406000,
+            wrapper::e_bandwidth_BW_800KHZ => 812000,
+            wrapper::e_bandwidth_BW_1600KHZ => 1625000,
             _ => 0,
         }
     }
 
     fn to_hal(&self) -> u32 {
         match self {
-            200000 => wrapper::e_bandwidth_BW_200KHZ,
-            400000 => wrapper::e_bandwidth_BW_400KHZ,
-            800000 => wrapper::e_bandwidth_BW_800KHZ,
-            1600000 => wrapper::e_bandwidth_BW_1600KHZ,
+            203000 => wrapper::e_bandwidth_BW_200KHZ,
+            406000 => wrapper::e_bandwidth_BW_400KHZ,
+            812000 => wrapper::e_bandwidth_BW_800KHZ,
+            1625000 => wrapper::e_bandwidth_BW_1600KHZ,
             _ => 0,
         }
     }
