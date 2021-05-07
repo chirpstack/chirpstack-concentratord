@@ -1,8 +1,14 @@
-VERSION := $(shell git describe --always |sed -e "s/^v//")
+VERSION ?= $(shell git describe --always |sed -e "s/^v//")
 
-build: build-armv5-release build-armv7hf-release
+build: version build-armv5-release build-armv7hf-release
 
 package: build package-kerlink package-multitech
+
+version:
+	sed -i 's/^version.*/version = "$(VERSION)"/g' ./chirpstack-concentratord-2g4/Cargo.toml
+	sed -i 's/^version.*/version = "$(VERSION)"/g' ./chirpstack-concentratord-sx1301/Cargo.toml
+	sed -i 's/^version.*/version = "$(VERSION)"/g' ./chirpstack-concentratord-sx1302/Cargo.toml
+	sed -i 's/^version.*/version = "$(VERSION)"/g' ./gateway-id/Cargo.toml
 
 clean:
 	rm -rf dist
