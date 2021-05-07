@@ -203,6 +203,17 @@ pub fn downlink_from_proto(
                 "4/8LI" => hal::CodeRate::LoRaLi4_8,
                 _ => return Err("unexpected coderate".to_string()),
             };
+            packet.preamble = match v.spreading_factor {
+                5 => 12,
+                6 => 12,
+                7 => 8,
+                8 => 8,
+                9 => 8,
+                10 => 8,
+                11 => 8,
+                12 => 8,
+                _ => return Err("unexpected spreading-factor".to_string()),
+            };
             packet.invert_pol = v.polarization_inversion;
         }
         _ => {
