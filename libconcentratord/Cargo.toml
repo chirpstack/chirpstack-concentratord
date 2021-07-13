@@ -7,13 +7,13 @@ publish = false
 
 [dependencies]
 log = "0.4"
-zmq = "0.9.1"
+zmq = "0.9"
 lazy_static = "1.4"
-chirpstack_api = { version = "3.5.2", default-features = false }
-uuid = { version = "0.8.1", features = ["v4"] }
+chirpstack_api = { version = "3.9", default-features = false }
+uuid = { version = "0.8", features = ["v4"] }
 prost = "0.6"
 prost-types = "0.6"
-gpio-cdev = "0.3.0"
+gpio-cdev = "0.3"
 
 [features]
 default = ['zmq/vendored']

@@ -1,3 +1,4 @@
+use std::convert::TryInto;
 use std::ffi::CString;
 use std::fs::File;
 use std::ops::Add;
@@ -185,7 +186,8 @@ pub fn parse_nmea(b: &[u8]) -> Result<MessageType, String> {
         Err(_) => return Err("parse slice to CString error".to_string()),
     };
 
-    let ret = unsafe { wrapper::lgw_parse_nmea(s.as_ptr(), s.as_bytes().len() as i32) };
+    let ret =
+        unsafe { wrapper::lgw_parse_nmea(s.as_ptr(), s.as_bytes().len().try_into().unwrap()) };
     return MessageType::from_hal(ret);
 }
 
@@ -199,10 +201,16 @@ pub fn parse_ubx(b: &[u8]) -> Result<(MessageType, usize), String> {
     let s = unsafe { CString::from_vec_unchecked(b.to_vec()) };
 
     let mut parsed_size = 0;
-    let ret = unsafe { wrapper::lgw_parse_ubx(s.as_ptr(), s.as_bytes().len(), &mut parsed_size) };
+    let ret = unsafe {
+        wrapper::lgw_parse_ubx(
+            s.as_ptr(),
+            s.as_bytes().len().try_into().unwrap(),
+            &mut parsed_size,
+        )
+    };
 
     let msg_type = MessageType::from_hal(ret)?;
-    return Ok((msg_type, parsed_size));
+    return Ok((msg_type, parsed_size as usize));
 }
 
 /// Get the GPS solution (space & time) for the concentrator.

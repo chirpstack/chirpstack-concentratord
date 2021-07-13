@@ -1,6 +1,6 @@
 use std::fs;
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
 pub mod helpers;
@@ -8,7 +8,7 @@ pub mod vendor;
 
 pub const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 
-#[derive(Default, Deserialize, Debug, PartialEq)]
+#[derive(Default, Serialize, Deserialize, Debug, PartialEq)]
 pub struct Concentrator {
     pub multi_sf_channels: [u32; 8],
     #[serde(default)]
@@ -17,21 +17,21 @@ pub struct Concentrator {
     pub fsk: FSKChannel,
 }
 
-#[derive(Default, Deserialize, Debug, PartialEq)]
+#[derive(Default, Serialize, Deserialize, Debug, PartialEq)]
 pub struct LoRaStdChannel {
     pub frequency: u32,
     pub bandwidth: u32,
     pub spreading_factor: u8,
 }
 
-#[derive(Default, Deserialize, Debug, PartialEq)]
+#[derive(Default, Serialize, Deserialize, Debug, PartialEq)]
 pub struct FSKChannel {
     pub frequency: u32,
     pub datarate: u32,
     pub bandwidth: u32,
 }
 
-#[derive(Default, Deserialize, Clone)]
+#[derive(Default, Serialize, Deserialize, Clone)]
 pub struct Beacon {
     pub compulsory_rfu_size: usize,
     pub frequencies: Vec<u32>,
@@ -40,14 +40,14 @@ pub struct Beacon {
     pub tx_power: u32,
 }
 
-#[derive(Default, Deserialize, Clone)]
+#[derive(Default, Serialize, Deserialize, Clone)]
 pub struct Location {
     pub latitude: f64,
     pub longitude: f64,
     pub altitude: i16,
 }
 
-#[derive(Default, Deserialize)]
+#[derive(Default, Serialize, Deserialize)]
 pub struct Gateway {
     #[serde(default)]
     pub antenna_gain: i8,
@@ -73,7 +73,7 @@ pub struct Gateway {
     pub config_version: String,
 }
 
-#[derive(Default, Deserialize)]
+#[derive(Default, Serialize, Deserialize)]
 pub struct Concentratord {
     pub log_level: String,
     #[serde(default)]
@@ -83,16 +83,60 @@ pub struct Concentratord {
     pub api: API,
 }
 
-#[derive(Default, Deserialize)]
+#[derive(Default, Serialize, Deserialize)]
 pub struct API {
     pub event_bind: String,
     pub command_bind: String,
 }
 
-#[derive(Default, Deserialize)]
+#[derive(Default, Serialize, Deserialize)]
+#[serde(default = "example_configuration")]
 pub struct Configuration {
     pub concentratord: Concentratord,
     pub gateway: Gateway,
+}
+
+fn example_configuration() -> Configuration {
+    Configuration {
+        concentratord: Concentratord {
+            log_level: "INFO".to_string(),
+            stats_interval: Duration::from_secs(30),
+            api: API {
+                event_bind: "ipc:///tmp/concentratord_event".to_string(),
+                command_bind: "ipc:///tmp/concentratord_command".to_string(),
+            },
+            ..Default::default()
+        },
+        gateway: Gateway {
+            lorawan_public: true,
+            model: "rak_2245_eu868".to_string(),
+            gateway_id: "0000000000000000".to_string(),
+            concentrator: Concentrator {
+                multi_sf_channels: [
+                    868100000, 868300000, 868500000, 867100000, 867300000, 867500000, 867700000,
+                    867900000,
+                ],
+                lora_std: LoRaStdChannel {
+                    frequency: 868300000,
+                    bandwidth: 250000,
+                    spreading_factor: 7,
+                },
+                fsk: FSKChannel {
+                    frequency: 868800000,
+                    bandwidth: 125000,
+                    datarate: 50000,
+                },
+            },
+            beacon: Beacon {
+                compulsory_rfu_size: 2,
+                frequencies: vec![869525000],
+                spreading_factor: 9,
+                bandwidth: 125000,
+                tx_power: 14,
+            },
+            ..Default::default()
+        },
+    }
 }
 
 pub fn get(filenames: Vec<String>) -> Configuration {

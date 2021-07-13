@@ -12,7 +12,9 @@ use std::sync::Arc;
 use std::thread;
 
 use clap::{App, Arg};
-use signal_hook::{iterator::Signals, SIGINT};
+use signal_hook::consts::signal::SIGINT;
+use signal_hook::iterator::Signals;
+use simple_logger::SimpleLogger;
 use syslog::{BasicLogger, Facility, Formatter3164};
 
 use libconcentratord::reset;
@@ -39,12 +41,16 @@ fn main() {
                 .help("Path to configuration file")
                 .takes_value(true),
         )
+        .subcommand(App::new("configfile").about("Print the configuration template"))
         .get_matches();
 
-    let config_files = matches
-        .values_of_lossy("config")
-        .unwrap_or(vec!["chirpstack-concentratord-sx1301.toml".to_string()]);
+    let config_files = matches.values_of_lossy("config").unwrap_or(vec![]);
     let mut config = config::get(config_files);
+
+    if let Some(_) = matches.subcommand_matches("configfile") {
+        cmd::configfile::run(&config);
+        process::exit(0);
+    }
 
     if config.concentratord.log_to_syslog {
         let formatter = Formatter3164 {
@@ -64,13 +70,17 @@ fn main() {
             })
             .unwrap();
     } else {
-        simple_logger::init_with_level(
-            log::Level::from_str(&config.concentratord.log_level).unwrap(),
-        )
-        .unwrap();
+        SimpleLogger::new()
+            .with_level(
+                log::Level::from_str(&config.concentratord.log_level)
+                    .unwrap()
+                    .to_level_filter(),
+            )
+            .init()
+            .unwrap();
     }
 
-    let signals = Signals::new(&[SIGINT]).expect("error registering channels");
+    let mut signals = Signals::new(&[SIGINT]).expect("error registering channels");
     let (stop_send, stop_receive) = channel();
     let stop_receive = Arc::new(stop_receive);
 

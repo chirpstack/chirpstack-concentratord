@@ -9,4 +9,4 @@ publish = false
 lazy_static = "1.4"
 
 [build-dependencies]
-bindgen = "0.52"
+bindgen = "0.58"

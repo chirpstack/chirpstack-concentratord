@@ -1,3 +1,4 @@
+use std::convert::TryInto;
 use std::ffi::CStr;
 use std::time::Duration;
 
@@ -559,7 +560,7 @@ pub fn txgain_setconf(txgain: &[TxGainConfig]) -> Result<(), String> {
         lut: [wrapper::lgw_tx_gain_s {
             ..Default::default()
         }; 16],
-        size: txgain.len() as u8,
+        size: txgain.len().try_into().unwrap(),
     };
 
     for (i, gain) in txgain.iter().enumerate() {
@@ -602,7 +603,7 @@ pub fn receive() -> Result<Vec<RxPacket>, String> {
     let mut packets: [wrapper::lgw_pkt_rx_s; MAX_PKT] = [Default::default(); MAX_PKT];
 
     let _guard = mutex::CONCENTATOR.lock().unwrap();
-    let ret = unsafe { wrapper::lgw_receive(MAX_PKT as u8, packets.as_mut_ptr()) };
+    let ret = unsafe { wrapper::lgw_receive(MAX_PKT.try_into().unwrap(), packets.as_mut_ptr()) };
     if ret == -1 {
         return Err("lgw_receive failed".to_string());
     }
