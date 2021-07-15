@@ -70,7 +70,8 @@ RUN mkdir -p /hal/armv7hf && \
 RUN mkdir -p /hal/aarch64 && \
 	cd /hal/aarch64 && \
 	git clone https://github.com/brocaar/lora_gateway.git -b v5.0.1r2 && \
-	git clone https://github.com/Lora-net/sx1302_hal.git -b V1.0.4
+	git clone https://github.com/brocaar/sx1302_hal.git -b V2.1.0r1 && \
+	git clone https://github.com/Lora-net/gateway_2g4_hal.git -b V1.1.0
 
 # Needed for RAK shields, works with other shields too
 # RUN sed -i 's/define SPI_SPEED.*/define SPI_SPEED 2000000/g' /hal/armv5/lora_gateway/libloragw/src/loragw_spi.native.c
@@ -105,6 +106,11 @@ RUN cd /hal/armv7hf/sx1302_hal && \
 	cp /hal/armv7hf/sx1302_hal/libtools/inc/* /usr/arm-linux-gnueabihf/include && \
 	cp /hal/armv7hf/sx1302_hal/libtools/*.a /usr/arm-linux-gnueabihf/lib
 
+RUN cd /hal/armv7hf/gateway_2g4_hal && \
+	ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- make && \
+	ln -s /hal/armv7hf/gateway_2g4_hal/libloragw/inc /usr/arm-linux-gnueabihf/include/libloragw-2g4 && \
+	ln -s /hal/armv7hf/gateway_2g4_hal/libloragw/libloragw.a /usr/arm-linux-gnueabihf/lib/libloragw-2g4.a
+
 RUN cd /hal/aarch64/lora_gateway && \
 	ARCH=arm CROSS_COMPILE=aarch64-linux-gnu- make && \
 	ln -s /hal/aarch64/lora_gateway/libloragw/inc /usr/aarch64-linux-gnu/include/libloragw-sx1301 && \
@@ -117,10 +123,10 @@ RUN cd /hal/aarch64/sx1302_hal && \
 	cp /hal/aarch64/sx1302_hal/libtools/inc/* /usr/aarch64-linux-gnu/include && \
 	cp /hal/aarch64/sx1302_hal/libtools/*.a /usr/aarch64-linux-gnu/lib
 
-RUN cd /hal/armv7hf/gateway_2g4_hal && \
-	ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- make && \
-	ln -s /hal/armv7hf/gateway_2g4_hal/libloragw/inc /usr/arm-linux-gnueabihf/include/libloragw-2g4 && \
-	ln -s /hal/armv7hf/gateway_2g4_hal/libloragw/libloragw.a /usr/arm-linux-gnueabihf/lib/libloragw-2g4.a
+RUN cd /hal/aarch64/gateway_2g4_hal && \
+	ARCH=arm CROSS_COMPILE=aarch64-linux-gnu- make && \
+	ln -s /hal/aarch64/gateway_2g4_hal/libloragw/inc /usr/aarch64-linux-gnu/include/libloragw-2g4 && \
+	ln -s /hal/aarch64/gateway_2g4_hal/libloragw/libloragw.a /usr/aarch64-linux-gnu/lib/libloragw-2g4.a
 
 ENV LLVM_CONFIG_PATH=llvm-config-3.9
 ENV PROJECT_PATH=/chirpstack-concentratord
