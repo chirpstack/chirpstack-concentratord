@@ -199,6 +199,9 @@ pub fn downlink_from_proto(
         modulation: match tx_info.modulation() {
             chirpstack_api::common::Modulation::Lora => hal::Modulation::LoRa,
             chirpstack_api::common::Modulation::Fsk => hal::Modulation::FSK,
+            chirpstack_api::common::Modulation::LrFhss => {
+                return Err("lr-fhss modulation is not supported".to_string());
+            }
         },
         rf_chain: 0,
         rf_power: tx_info.power as i8,

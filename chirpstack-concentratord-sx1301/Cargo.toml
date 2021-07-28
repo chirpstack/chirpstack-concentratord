@@ -8,7 +8,7 @@ publish = false
 [dependencies]
 libloragw-sx1301 = {path = "../libloragw-sx1301"}
 libconcentratord = {path = "../libconcentratord"}
-chirpstack_api = { version = "3.9", default-features = false }
+chirpstack_api = { version = "3.10", default-features = false }
 serde = { version = "1.0", features = ["derive"] }
 toml = "0.5"
 clap = "2.33"
@@ -21,10 +21,10 @@ uuid = { version = "0.8", features = ["v4"] }
 chrono = "0.4"
 humantime-serde = "1.0"
 syslog = "5.0"
-prost = "0.6.1"
-prost-types = "0.6.1"
+prost = "0.8"
+prost-types = "0.8"
 signal-hook = "0.3"
-handlebars = "3.5"
+handlebars = "4.1"
 
 [features]
 default = ['zmq/vendored']

@@ -11,9 +11,9 @@ zmq = "0.9"
 lazy_static = "1.4"
 chirpstack_api = { version = "3.9", default-features = false }
 uuid = { version = "0.8", features = ["v4"] }
-prost = "0.6"
-prost-types = "0.6"
-gpio-cdev = "0.3"
+prost = "0.8"
+prost-types = "0.8"
+gpio-cdev = "0.4"
 
 [features]
 default = ['zmq/vendored']
