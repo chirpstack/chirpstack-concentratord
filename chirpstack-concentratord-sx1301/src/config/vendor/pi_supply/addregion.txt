@@ -1,0 +1,52 @@
+A quick guide to adding additional region support
+1. Copy one of the exsting files to use as a template
+2. Reference the folowing location for the various regional plans https://github.com/RAKWireless/rak_common_for_gateway/blob/761136e126/lora/rak2247_usb/global_conf/ 
+3. Modify the file that you have as a template
+4. Add a new line to the mod.rs file
+
+
+	pub mod lora_gateway_hat_eu868;
+	pub mod lora_gateway_hat_us915;
+	pub mod lora_gateway_hat_au915;
+	pub mod lora_gateway_hat_xxxx;
+
+5. Update the file ../../mod.rs
+
+search for this section
+       "pi_supply_lora_gateway_hat_eu868" => {
+            vendor::pi_supply::lora_gateway_hat_eu868::new(&config)
+        }
+        "pi_supply_lora_gateway_hat_us915" => {
+            vendor::pi_supply::lora_gateway_hat_us915::new(&config)
+        }
+        "pi_supply_lora_gateway_hat_au915" => {
+            vendor::pi_supply::lora_gateway_hat_au915::new(&config)
+        }
+
+add a new section to match the new region
+        "pi_supply_lora_gateway_hat_xxxx" => {
+            vendor::pi_supply::lora_gateway_hat_xxxx::new(&config)
+        }
+
+6. head to the root of the chirpstack-concentratord git 
+7. run
+	make build
+8. Built file can be found in targets/release/
+9. Test chripstack-concentratord-sx1301 
+	./chirpstack-concentratord-sx1301 -c /etc/chirpstack-concentratord-sx1301/chirpstack-concentratord-sx1301.toml
+
+the above assumes you have used chripstack-concnetratod-sx1301 configfile > /etc/chirpstack-concentratord-sx1301/chirpstack-concentratord-sx1301.toml and modified to you needs
+
+your new model will be
+
+	lora_gateway_hat_xxxx
+
+Cheers
+
+Regards
+ejb@trick-1.net
+
+
+
+
+

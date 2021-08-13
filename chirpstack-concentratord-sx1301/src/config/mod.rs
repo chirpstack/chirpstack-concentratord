@@ -177,6 +177,9 @@ pub fn get(filenames: Vec<String>) -> Configuration {
         "pi_supply_lora_gateway_hat_us915" => {
             vendor::pi_supply::lora_gateway_hat_us915::new(&config)
         }
+        "pi_supply_lora_gateway_hat_au915" => {
+            vendor::pi_supply::lora_gateway_hat_au915::new(&config)
+        }
         "rak_2245_as923" => vendor::rak::rak2245_as923::new(&config),
         "rak_2245_au915" => vendor::rak::rak2245_au915::new(&config),
         "rak_2245_cn470" => vendor::rak::rak2245_cn470::new(&config),
