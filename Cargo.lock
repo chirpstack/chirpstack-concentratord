@@ -251,9 +251,9 @@ dependencies = [
 
 [[package]]
 name = "chirpstack_api"
-version = "3.10.2"
+version = "3.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a512de50d789d961f60070c77f12fb599c5f4f3656a857d4416d4f20a30cd94f"
+checksum = "08809efa6523e3498d6e16222230aaf152a0fe75a3a3f42a5fbd3ed14f4d6f1e"
 dependencies = [
  "prost",
  "prost-types",

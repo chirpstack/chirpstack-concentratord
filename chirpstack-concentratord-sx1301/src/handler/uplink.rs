@@ -24,6 +24,12 @@ pub fn handle_loop(gateway_id: &[u8], stop_receive: Receiver<Signal>) {
         match hal::receive() {
             Ok(frames) => {
                 for frame in frames {
+                    stats::inc_rx_packets_received();
+                    if frame.status != hal::CRC::CRCOk {
+                        debug!("Frame received with invalid CRC");
+                        continue;
+                    }
+
                     let proto = match wrapper::uplink_to_proto(gateway_id.clone(), &frame) {
                         Ok(v) => v,
                         Err(err) => {
@@ -45,11 +51,7 @@ pub fn handle_loop(gateway_id: &[u8], stop_receive: Receiver<Signal>) {
                         frame.datarate,
                     );
 
-                    stats::inc_rx_packets_received();
-                    if rx_info.crc_status() == chirpstack_api::gw::CrcStatus::CrcOk {
-                        stats::inc_rx_packets_received_ok();
-                    }
-
+                    stats::inc_rx_counts(&proto);
                     events::send_uplink(&proto).unwrap();
                 }
             }

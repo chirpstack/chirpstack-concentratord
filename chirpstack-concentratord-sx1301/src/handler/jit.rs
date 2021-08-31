@@ -49,7 +49,9 @@ pub fn jit_loop(
                     tx_packet.datarate
                 );
 
-                stats::inc_tx_packets_emitted();
+                if let Ok(tx_info) = wrapper::downlink_to_tx_info_proto(&tx_packet) {
+                    stats::inc_tx_counts(&tx_info);
+                }
             }
             Err(err) => {
                 error!("Schedule packet for tx error, error: {}", err);

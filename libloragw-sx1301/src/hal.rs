@@ -61,7 +61,7 @@ impl RadioType {
     }
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub enum CRC {
     Undefined,
     NoCRC,

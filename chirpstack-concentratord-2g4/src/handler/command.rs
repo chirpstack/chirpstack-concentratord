@@ -91,6 +91,7 @@ fn handle_downlink(
         items: vec![Default::default(); pl.items.len()],
         ..Default::default()
     };
+    let mut stats_tx_status = chirpstack_api::gw::TxAckStatus::Ignored;
 
     for (i, item) in pl.items.iter().enumerate() {
         // convert protobuf to hal struct
@@ -122,13 +123,19 @@ fn handle_downlink(
         ) {
             Ok(_) => {
                 tx_ack.items[i].set_status(chirpstack_api::gw::TxAckStatus::Ok);
+                stats_tx_status = chirpstack_api::gw::TxAckStatus::Ok;
 
                 // break out of for loop
                 break;
             }
-            Err(status) => tx_ack.items[i].set_status(status),
+            Err(status) => {
+                tx_ack.items[i].set_status(status);
+                stats_tx_status = status;
+            }
         };
     }
+
+    stats::inc_tx_status_count(stats_tx_status);
 
     let mut buf = Vec::new();
     tx_ack.encode(&mut buf).unwrap();

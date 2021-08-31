@@ -223,3 +223,38 @@ pub fn downlink_from_proto(
 
     return Ok(packet);
 }
+
+pub fn downlink_to_tx_info_proto(
+    packet: &hal::TxPacket,
+) -> Result<chirpstack_api::gw::DownlinkTxInfo, String> {
+    let mut tx_info: chirpstack_api::gw::DownlinkTxInfo = Default::default();
+    tx_info.frequency = packet.freq_hz;
+
+    let mut mod_info: chirpstack_api::gw::LoRaModulationInfo = Default::default();
+    mod_info.bandwidth = packet.bandwidth;
+    mod_info.spreading_factor = match packet.datarate {
+        hal::DataRate::SF5 => 5,
+        hal::DataRate::SF6 => 6,
+        hal::DataRate::SF7 => 7,
+        hal::DataRate::SF8 => 8,
+        hal::DataRate::SF9 => 9,
+        hal::DataRate::SF10 => 10,
+        hal::DataRate::SF11 => 11,
+        hal::DataRate::SF12 => 12,
+    };
+    mod_info.code_rate = match packet.coderate {
+        hal::CodeRate::LoRa4_5 => "4/5".to_string(),
+        hal::CodeRate::LoRa4_6 => "4/6".to_string(),
+        hal::CodeRate::LoRa4_7 => "4/7".to_string(),
+        hal::CodeRate::LoRa4_8 => "4/8".to_string(),
+        hal::CodeRate::LoRaLi4_5 => "4/5LI".to_string(),
+        hal::CodeRate::LoRaLi4_6 => "4/6LI".to_string(),
+        hal::CodeRate::LoRaLi4_8 => "4/8LI".to_string(),
+    };
+
+    tx_info.set_modulation(chirpstack_api::common::Modulation::Lora);
+    tx_info.modulation_info =
+        Some(chirpstack_api::gw::downlink_tx_info::ModulationInfo::LoraModulationInfo(mod_info));
+
+    Ok(tx_info)
+}
