@@ -265,14 +265,6 @@ pub fn get_gps_epoch() -> Result<Duration, String> {
     return Ok(GPS_TIME_REF.lock().unwrap().gps_epoch);
 }
 
-pub fn get_xtal_correct() -> Result<f64, String> {
-    if *XTAL_CORRECT_OK.lock().unwrap() == false {
-        return Err("no valid xtal correction value available yet".to_string());
-    }
-
-    return Ok(*XTAL_CORRECT.lock().unwrap());
-}
-
 fn gps_process_sync() {
     let (gps_time, gps_epoch, _, _) = match gps::get(true, false) {
         Ok(v) => v,
