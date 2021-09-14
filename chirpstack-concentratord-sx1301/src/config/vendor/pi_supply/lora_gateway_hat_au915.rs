@@ -3,7 +3,7 @@ use libloragw_sx1301::hal;
 use super::super::super::super::config;
 use super::super::Configuration;
 
-https://github.com/RAKWireless/rak_common_for_gateway/blob/761136e126/lora/rak2247_spi/global_conf/global_conf.au_915_928.json
+// https://github.com/RAKWireless/rak_common_for_gateway/blob/761136e126/lora/rak2247_spi/global_conf/global_conf.au_915_928.json
 pub fn new(conf: &config::Configuration) -> Configuration {
     let gps = conf.gateway.model_flags.contains(&"GNSS".to_string());
 
