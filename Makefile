@@ -31,6 +31,12 @@ build-armv7hf-debug:
 build-armv7hf-release:
 	docker-compose run -e BINDGEN_EXTRA_CLANG_ARGS="--sysroot=/usr/arm-linux-gnueabihf" --rm chirpstack-concentratord cargo build --target arm-unknown-linux-gnueabihf --release
 
+build-aarch64-debug:
+	docker-compose run -e BINDGEN_EXTRA_CLANG_ARGS="--sysroot=/usr/aarch64-linux-gnu" --rm chirpstack-concentratord cargo build --target aarch64-unknown-linux-gnu
+
+build-aarch64-release:
+	docker-compose run -e BINDGEN_EXTRA_CLANG_ARGS="--sysroot=/usr/aarch64-linux-gnu" --rm chirpstack-concentratord cargo build --target aarch64-unknown-linux-gnu --release
+
 package-multitech: package-multitech-conduit package-multitech-conduit-ap
 
 package-kerlink: package-kerlink-ifemtocell

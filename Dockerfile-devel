@@ -12,16 +12,21 @@ RUN apt-get update && \
 		g++-arm-linux-gnueabi \
 		gcc-arm-linux-gnueabihf \
 		g++-arm-linux-gnueabihf \
+		gcc-aarch64-linux-gnu \
+		g++-aarch64-linux-gnu \
 		git && \
 	apt-get clean
 
 RUN rustup target add armv5te-unknown-linux-gnueabi
 RUN rustup target add arm-unknown-linux-gnueabihf
+RUN rustup target add aarch64-unknown-linux-gnu
 
 RUN echo '[target.armv5te-unknown-linux-gnueabi]\n\
 linker = "arm-linux-gnueabi-gcc"\n\
 [target.arm-unknown-linux-gnueabihf]\n\
-linker = "arm-linux-gnueabihf-gcc"\n'\
+linker = "arm-linux-gnueabihf-gcc"\n\
+[target.aarch64-unknown-linux-gnu]\n\
+linker = "aarch64-linux-gnu-gcc"\n'\
 >> /usr/local/cargo/config
 
 RUN mkdir -p /tmp
@@ -58,6 +63,12 @@ RUN mkdir -p /hal/armv5 && \
 
 RUN mkdir -p /hal/armv7hf && \
 	cd /hal/armv7hf && \
+	git clone https://github.com/brocaar/lora_gateway.git -b v5.0.1r2 && \
+	git clone https://github.com/brocaar/sx1302_hal.git -b V2.1.0r1 && \
+	git clone https://github.com/Lora-net/gateway_2g4_hal.git -b V1.1.0
+
+RUN mkdir -p /hal/aarch64 && \
+	cd /hal/aarch64 && \
 	git clone https://github.com/brocaar/lora_gateway.git -b v5.0.1r2 && \
 	git clone https://github.com/brocaar/sx1302_hal.git -b V2.1.0r1 && \
 	git clone https://github.com/Lora-net/gateway_2g4_hal.git -b V1.1.0
@@ -100,6 +111,22 @@ RUN cd /hal/armv7hf/gateway_2g4_hal && \
 	ln -s /hal/armv7hf/gateway_2g4_hal/libloragw/inc /usr/arm-linux-gnueabihf/include/libloragw-2g4 && \
 	ln -s /hal/armv7hf/gateway_2g4_hal/libloragw/libloragw.a /usr/arm-linux-gnueabihf/lib/libloragw-2g4.a
 
+RUN cd /hal/aarch64/lora_gateway && \
+	ARCH=arm CROSS_COMPILE=aarch64-linux-gnu- make && \
+	ln -s /hal/aarch64/lora_gateway/libloragw/inc /usr/aarch64-linux-gnu/include/libloragw-sx1301 && \
+	ln -s /hal/aarch64/lora_gateway/libloragw/libloragw.a /usr/aarch64-linux-gnu/lib/libloragw-sx1301.a
+
+RUN cd /hal/aarch64/sx1302_hal && \
+	ARCH=arm CROSS_COMPILE=aarch64-linux-gnu- make && \
+	ln -s /hal/aarch64/sx1302_hal/libloragw/inc /usr/aarch64-linux-gnu/include/libloragw-sx1302 && \
+	ln -s /hal/aarch64/sx1302_hal/libloragw/libloragw.a /usr/aarch64-linux-gnu/lib/libloragw-sx1302.a && \
+	cp /hal/aarch64/sx1302_hal/libtools/inc/* /usr/aarch64-linux-gnu/include && \
+	cp /hal/aarch64/sx1302_hal/libtools/*.a /usr/aarch64-linux-gnu/lib
+
+RUN cd /hal/aarch64/gateway_2g4_hal && \
+	ARCH=arm CROSS_COMPILE=aarch64-linux-gnu- make && \
+	ln -s /hal/aarch64/gateway_2g4_hal/libloragw/inc /usr/aarch64-linux-gnu/include/libloragw-2g4 && \
+	ln -s /hal/aarch64/gateway_2g4_hal/libloragw/libloragw.a /usr/aarch64-linux-gnu/lib/libloragw-2g4.a
 
 ENV LLVM_CONFIG_PATH=llvm-config-3.9
 ENV PROJECT_PATH=/chirpstack-concentratord
