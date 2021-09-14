@@ -6,6 +6,7 @@ pub mod kerlink;
 pub mod multitech;
 pub mod pi_supply;
 pub mod rak;
+pub mod risinghf;
 pub mod sandbox;
 pub mod wifx;
 
