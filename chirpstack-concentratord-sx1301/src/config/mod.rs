@@ -166,6 +166,7 @@ pub fn get(filenames: Vec<String>) -> Configuration {
         "generic_ru864" => vendor::generic::ru864::new(&config),
         "generic_us915" => vendor::generic::us915::new(&config),
         "imst_ic880a_eu868" => vendor::imst::ic880a_eu868::new(&config),
+        "imst_ic880a_in865" => vendor::imst::ic880a_in865::new(&config),
         "kerlink_ifemtocell_eu868" => vendor::kerlink::ifemtocell_eu868::new(),
         "multitech_mtac_lora_h_868_eu868" => vendor::multitech::mtac_lora_h_868_eu868::new(&config),
         "multitech_mtac_lora_h_915_us915" => vendor::multitech::mtac_lora_h_915_us915::new(&config),
