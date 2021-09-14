@@ -171,6 +171,9 @@ pub fn get(filenames: Vec<String>) -> Configuration {
         "multitech_mtac_lora_h_915_us915" => vendor::multitech::mtac_lora_h_915_us915::new(&config),
         "multitech_mtcap_lora_868_eu868" => vendor::multitech::mtcap_lora_868_eu868::new(),
         "multitech_mtcap_lora_915_us915" => vendor::multitech::mtcap_lora_915_us915::new(),
+        "pi_supply_lora_gateway_hat_au915" => {
+            vendor::pi_supply::lora_gateway_hat_au915::new(&config)
+        }
         "pi_supply_lora_gateway_hat_eu868" => {
             vendor::pi_supply::lora_gateway_hat_eu868::new(&config)
         }

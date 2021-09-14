@@ -3,7 +3,7 @@ use libloragw_sx1301::hal;
 use super::super::super::super::config;
 use super::super::Configuration;
 
-// source: https://github.com/RAKWireless/rak_common_for_gateway/blob/761136e126/lora/rak2247_spi/global_conf/global_conf.us_902_928.json
+// https://github.com/RAKWireless/rak_common_for_gateway/blob/761136e126/lora/rak2247_spi/global_conf/global_conf.au_915_928.json
 pub fn new(conf: &config::Configuration) -> Configuration {
     let gps = conf.gateway.model_flags.contains(&"GNSS".to_string());
 
@@ -13,7 +13,7 @@ pub fn new(conf: &config::Configuration) -> Configuration {
         radio_rssi_offset: vec![-159.0, -159.0],
         radio_tx_enabled: vec![true, false],
         radio_type: vec![hal::RadioType::SX1257, hal::RadioType::SX1257],
-        radio_min_max_tx_freq: vec![(902000000, 928000000), (902000000, 928000000)],
+        radio_min_max_tx_freq: vec![(915000000, 928000000), (915000000, 928000000)],
         radio_tx_notch_freq: vec![0, 0],
         lora_multi_sf_bandwidth: 125000,
         tx_gain_table: vec![
