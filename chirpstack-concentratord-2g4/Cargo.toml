@@ -1,6 +1,6 @@
 [package]
 name = "chirpstack-concentratord-2g4"
-version = "3.2.0"
+version = "3.3.0-4-g177500f"
 authors = ["Orne Brocaar <info@brocaar.com>"]
 edition = "2018"
 publish = false

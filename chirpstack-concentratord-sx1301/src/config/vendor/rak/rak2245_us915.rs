@@ -152,8 +152,8 @@ pub fn new(conf: &config::Configuration) -> Configuration {
         },
         spidev_path: "/dev/spidev0.0".to_string(),
         reset_pin: match conf.gateway.reset_pin {
-            0 => Some(17),
-            _ => Some(conf.gateway.reset_pin),
+            0 => Some((0, 17)),
+            _ => Some((0, conf.gateway.reset_pin)),
         },
     }
 }

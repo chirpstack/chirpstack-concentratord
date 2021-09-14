@@ -11,18 +11,24 @@ lazy_static! {
     static ref POWER_EN: Mutex<Option<LineHandle>> = Mutex::new(None);
 }
 
-pub fn setup_pins(reset: u32, power_en: Option<u32>) -> Result<(), Error> {
-    let mut chip = Chip::new("/dev/gpiochip0")?;
+pub fn setup_pins(reset: (u32, u32), power_en: Option<(u32, u32)>) -> Result<(), Error> {
+    info!("Configuring reset pin, chip: {}, pin: {}", reset.0, reset.1);
 
-    info!("Configuring reset pin, pin: {}", reset);
-    let line = chip.get_line(reset)?;
+    let mut chip = Chip::new(format!("/dev/gpiochip{}", reset.0))?;
+    let line = chip.get_line(reset.1)?;
     let mut reset = RESET.lock().unwrap();
     *reset = Some(line.request(LineRequestFlags::OUTPUT, 0, "reset")?);
 
     if power_en.is_some() {
         let power_en = power_en.unwrap();
-        info!("Configuring power enable pin, pin: {}", power_en);
-        let line = chip.get_line(power_en)?;
+
+        info!(
+            "Configuring power enable pin, chip: {}, pin: {}",
+            power_en.0, power_en.1
+        );
+
+        let mut chip = Chip::new(format!("/dev/gpiochip{}", power_en.0))?;
+        let line = chip.get_line(power_en.1)?;
         let mut power_en = POWER_EN.lock().unwrap();
         *power_en = Some(line.request(LineRequestFlags::OUTPUT, 0, "power_en")?);
     }

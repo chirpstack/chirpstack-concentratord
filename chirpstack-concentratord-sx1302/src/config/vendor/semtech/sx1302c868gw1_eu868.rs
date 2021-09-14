@@ -231,12 +231,12 @@ pub fn new(conf: &config::Configuration) -> Configuration {
         com_type: ComType::SPI,
         com_path: "/dev/spidev0.0".to_string(),
         reset_pin: match conf.gateway.reset_pin {
-            0 => Some(23),
-            _ => Some(conf.gateway.reset_pin),
+            0 => Some((0, 23)),
+            _ => Some((0, conf.gateway.reset_pin)),
         },
         power_en_pin: match conf.gateway.power_en_pin {
-            0 => Some(18),
-            _ => Some(conf.gateway.power_en_pin),
+            0 => Some((0, 18)),
+            _ => Some((0, conf.gateway.power_en_pin)),
         },
     }
 }
