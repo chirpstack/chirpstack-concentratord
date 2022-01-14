@@ -19,6 +19,7 @@ pub trait TxPacket {
 }
 
 pub struct Item<T> {
+    time: Duration,
     pre_delay: Duration,
     post_delay: Duration,
     packet: T,
@@ -31,6 +32,9 @@ pub struct Queue<T> {
     tx_margin_delay: Duration,
     tx_jit_delay: Duration,
     tx_max_advance_delay: Duration,
+
+    count_us_last: u32,
+    time_last: Duration,
 }
 
 impl<T: TxPacket + Copy> Queue<T> {
@@ -44,6 +48,9 @@ impl<T: TxPacket + Copy> Queue<T> {
             tx_margin_delay: Duration::from_micros(1000),
             tx_jit_delay: Duration::from_micros(30000),
             tx_max_advance_delay: Duration::from_secs((3 + 1) * 128),
+
+            count_us_last: 0,
+            time_last: Duration::from_secs(0),
         }
     }
 
@@ -60,15 +67,25 @@ impl<T: TxPacket + Copy> Queue<T> {
     }
 
     pub fn pop(&mut self, concentrator_count: u32) -> Option<T> {
+        self.update_time(concentrator_count);
+
         match self.items.first() {
             None => {
                 // nothing in the queue
                 return None;
             }
             Some(v) => {
-                if v.packet.get_count_us().wrapping_sub(concentrator_count)
-                    > v.pre_delay.as_micros() as u32
-                {
+                if v.time < self.time_last {
+                    // it can happen if cpu load is too high but should normally
+                    // not happen.
+                    error!("Scheduled packet is too old, dropped: count_us: {}, current_counter_us: {}", 
+                        v.packet.get_count_us(), 
+                        concentrator_count);
+                    self.items.remove(0);
+                    return None;
+                }
+
+                if v.time - self.time_last > v.pre_delay {
                     // packet is too far in advance
                     return None;
                 }
@@ -85,6 +102,8 @@ impl<T: TxPacket + Copy> Queue<T> {
         concentrator_count: u32,
         packet: T,
     ) -> Result<(), chirpstack_api::gw::TxAckStatus> {
+        self.update_time(concentrator_count);
+
         match packet.get_tx_mode() {
             TxMode::Timestamped => {
                 info!(
@@ -124,6 +143,8 @@ impl<T: TxPacket + Copy> Queue<T> {
         };
 
         let mut item = Item {
+            // time depends on packet count_us, will be set later
+            time: Duration::from_micros(0),
             pre_delay: self.tx_start_delay + self.tx_jit_delay,
             post_delay: time_on_air,
             packet: packet,
@@ -135,46 +156,44 @@ impl<T: TxPacket + Copy> Queue<T> {
             item.packet.set_tx_mode(TxMode::Timestamped);
 
             // use now + 1 sec
-            let mut asap_count_us =
-                concentrator_count.wrapping_add(Duration::from_secs(1).as_micros() as u32);
+            let mut asap_time = self.time_last + Duration::from_secs(1);
 
             // check if there is a collision
-            if self.collision_test(asap_count_us, item.pre_delay, item.post_delay) {
+            if self.collision_test(asap_time, item.pre_delay, item.post_delay) {
                 for p in self.items.iter() {
-                    asap_count_us = p.packet.get_count_us().wrapping_add(
-                        (p.post_delay.as_micros()
-                            + item.pre_delay.as_micros()
-                            + self.tx_margin_delay.as_micros()) as u32,
-                    );
+                    asap_time = p.time + p.post_delay + item.pre_delay + self.tx_margin_delay;
 
-                    if !self.collision_test(asap_count_us, item.pre_delay, item.post_delay) {
+                    if !self.collision_test(asap_time, item.pre_delay, item.post_delay) {
                         break;
                     }
                 }
             }
 
-            item.packet.set_count_us(asap_count_us);
-        } else if item.packet.get_tx_mode() == TxMode::Timestamped {
-            if self.collision_test(item.packet.get_count_us(), item.pre_delay, item.post_delay) {
-                return Err(chirpstack_api::gw::TxAckStatus::CollisionPacket);
-            }
-        } else if item.packet.get_tx_mode() == TxMode::OnGPS {
-            if self.collision_test(item.packet.get_count_us(), item.pre_delay, item.post_delay) {
-                return Err(chirpstack_api::gw::TxAckStatus::CollisionPacket);
+            item.time = asap_time;
+            item.packet.set_count_us(self.time_to_count(asap_time));
+        } else {
+            item.time = self.count_to_time(item.packet.get_count_us());
+            if item.packet.get_tx_mode() == TxMode::Timestamped {
+                if self.collision_test(item.time, item.pre_delay, item.post_delay) {
+                    return Err(chirpstack_api::gw::TxAckStatus::CollisionPacket);
+                }
+            } else if item.packet.get_tx_mode() == TxMode::OnGPS {
+                if self.collision_test(item.time, item.pre_delay, item.post_delay) {
+                    return Err(chirpstack_api::gw::TxAckStatus::CollisionPacket);
+                }
             }
         }
 
         // Is it too late to send this packet?
-        if item.packet.get_count_us().wrapping_sub(concentrator_count)
-            < (self.tx_start_delay + self.tx_margin_delay + self.tx_jit_delay).as_micros() as u32
+        if item.time < self.time_last
+            || item.time - self.time_last
+                < self.tx_start_delay + self.tx_margin_delay + self.tx_jit_delay
         {
             return Err(chirpstack_api::gw::TxAckStatus::TooLate);
         }
 
         // Is it too early to send this packet?
-        if item.packet.get_count_us().wrapping_sub(concentrator_count)
-            > self.tx_max_advance_delay.as_micros() as u32
-        {
+        if item.time - self.time_last > self.tx_max_advance_delay {
             return Err(chirpstack_api::gw::TxAckStatus::TooEarly);
         }
 
@@ -185,37 +204,46 @@ impl<T: TxPacket + Copy> Queue<T> {
         );
 
         self.items.push(item);
-        self.sort(concentrator_count);
+        self.sort();
 
         return Ok(());
     }
 
-    fn sort(&mut self, count_us: u32) {
-        self.items.sort_by(|a, b| {
-            let a_diff = a.packet.get_count_us().wrapping_sub(count_us);
-            let b_diff = b.packet.get_count_us().wrapping_sub(count_us);
+    fn update_time(&mut self, concentrator_count: u32) {
+        let diff_us = concentrator_count.wrapping_sub(self.count_us_last);
+        self.time_last = self.time_last + Duration::from_micros(diff_us as u64);
+        self.count_us_last = concentrator_count;
+    }
 
-            return a_diff.cmp(&b_diff);
+    fn count_to_time(&self, count_us: u32) -> Duration {
+        let diff_us = count_us.wrapping_sub(self.count_us_last);
+        self.time_last + Duration::from_micros(diff_us as u64)
+    }
+
+    fn time_to_count(&self, time: Duration) -> u32 {
+        let diff_time = time - self.time_last;
+        self.count_us_last
+            .wrapping_add(diff_time.as_micros() as u32)
+    }
+
+    fn sort(&mut self) {
+        self.items.sort_by(|a, b| {
+            return a.time.cmp(&b.time);
         })
     }
 
-    fn collision_test(&self, count_us: u32, pre_delay: Duration, post_delay: Duration) -> bool {
-        let pre_delay = pre_delay.as_micros() as u32;
-        let post_delay = post_delay.as_micros() as u32;
-
+    fn collision_test(&self, time: Duration, pre_delay: Duration, post_delay: Duration) -> bool {
         for p2 in self.items.iter() {
-            let p2_pre_delay = p2.pre_delay.as_micros() as u32;
-            let p2_post_delay = p2.post_delay.as_micros() as u32;
-
-            if ((count_us.wrapping_sub(p2.packet.get_count_us()))
-                <= (pre_delay + p2_post_delay + self.tx_margin_delay.as_micros() as u32))
-                || ((p2.packet.get_count_us().wrapping_sub(count_us))
-                    <= (p2_pre_delay + post_delay + self.tx_margin_delay.as_micros() as u32))
-            {
-                return true;
+            if time > p2.time {
+                if time - p2.time <= pre_delay + p2.post_delay + self.tx_margin_delay {
+                    return true;
+                }
+            } else {
+                if p2.time - time <= p2.pre_delay + post_delay + self.tx_margin_delay {
+                    return true;
+                }
             }
         }
-
         return false;
     }
 }
