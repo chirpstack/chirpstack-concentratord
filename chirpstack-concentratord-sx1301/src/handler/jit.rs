@@ -65,8 +65,7 @@ pub fn jit_loop(
 fn get_tx_packet(
     queue: &Arc<Mutex<jitqueue::Queue<wrapper::TxPacket>>>,
 ) -> Option<wrapper::TxPacket> {
-    let concentrator_count = timersync::get_concentrator_count();
     let mut queue = queue.lock().unwrap();
-
+    let concentrator_count = timersync::get_concentrator_count();
     return queue.pop(concentrator_count);
 }

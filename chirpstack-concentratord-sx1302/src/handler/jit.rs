@@ -64,8 +64,7 @@ pub fn jit_loop(
 fn get_tx_packet(
     queue: &Arc<Mutex<jitqueue::Queue<wrapper::TxPacket>>>,
 ) -> Option<wrapper::TxPacket> {
-    let concentrator_count = hal::get_instcnt().expect("get concentrator count error");
     let mut queue = queue.lock().unwrap();
-
+    let concentrator_count = hal::get_instcnt().expect("get concentrator count error");
     return queue.pop(concentrator_count);
 }
