@@ -16,6 +16,8 @@ pub trait TxPacket {
     fn set_tx_mode(&mut self, tx_mode: TxMode);
     fn get_count_us(&self) -> u32;
     fn set_count_us(&mut self, count_us: u32);
+    fn get_frequency(&self) -> u32;
+    fn get_tx_power(&self) -> i8;
 }
 
 pub struct Item<T> {
@@ -257,6 +259,8 @@ mod tests {
         time_on_air: Duration,
         tx_mode: TxMode,
         count_us: u32,
+        frequency: u32,
+        tx_power: i8,
     }
 
     impl TxPacket for TxPacketMock {
@@ -283,17 +287,25 @@ mod tests {
         fn set_count_us(&mut self, count_us: u32) {
             self.count_us = count_us;
         }
+
+        fn get_frequency(&self) -> u32 {
+            return self.frequency;
+        }
+
+        fn get_tx_power(&self) -> i8 {
+            return self.tx_power;
+        }
     }
 
     #[test]
     fn test_size() {
-        let q: Queue<TxPacketMock> = Queue::new(10);
+        let q: Queue<TxPacketMock> = Queue::new(10, regulation::Standard::None);
         assert_eq!(10, q.size());
     }
 
     #[test]
     fn test_enqueue_full() {
-        let mut q: Queue<TxPacketMock> = Queue::new(2);
+        let mut q: Queue<TxPacketMock> = Queue::new(2, regulation::Standard::None);
 
         q.enqueue(
             100,
@@ -301,6 +313,8 @@ mod tests {
                 time_on_air: Duration::from_millis(100),
                 tx_mode: TxMode::Immediate,
                 count_us: 0,
+                frequency: 865000000,
+                tx_power: 14,
             },
         )
         .unwrap();
@@ -311,6 +325,8 @@ mod tests {
                 time_on_air: Duration::from_millis(100),
                 tx_mode: TxMode::Immediate,
                 count_us: 0,
+                frequency: 865000000,
+                tx_power: 14,
             },
         )
         .unwrap();
@@ -322,6 +338,8 @@ mod tests {
                     time_on_air: Duration::from_millis(100),
                     tx_mode: TxMode::Immediate,
                     count_us: 0,
+                    frequency: 865000000,
+                    tx_power: 14,
                 },
             )
             .is_err(),
@@ -331,7 +349,7 @@ mod tests {
 
     #[test]
     fn test_enqueue_immediate() {
-        let mut q: Queue<TxPacketMock> = Queue::new(2);
+        let mut q: Queue<TxPacketMock> = Queue::new(2, regulation::Standard::None);
         let concentrator_count = 100;
 
         q.enqueue(
@@ -340,6 +358,8 @@ mod tests {
                 time_on_air: Duration::from_millis(100),
                 tx_mode: TxMode::Immediate,
                 count_us: 0,
+                frequency: 865000000,
+                tx_power: 14,
             },
         )
         .unwrap();
@@ -350,6 +370,8 @@ mod tests {
                 time_on_air: Duration::from_millis(100),
                 tx_mode: TxMode::Immediate,
                 count_us: 0,
+                frequency: 865000000,
+                tx_power: 14,
             },
         )
         .unwrap();
@@ -379,7 +401,7 @@ mod tests {
 
     #[test]
     fn test_enqueue_immediate_u32_wrapping() {
-        let mut q: Queue<TxPacketMock> = Queue::new(2);
+        let mut q: Queue<TxPacketMock> = Queue::new(2, regulation::Standard::None);
         let concentrator_count = 0_u32.wrapping_sub(
             (Duration::from_secs(1)
                 + Duration::from_micros(1500 + 30000)
@@ -393,6 +415,8 @@ mod tests {
                 time_on_air: Duration::from_millis(100),
                 tx_mode: TxMode::Immediate,
                 count_us: 0,
+                frequency: 865000000,
+                tx_power: 14,
             },
         )
         .unwrap();
@@ -403,6 +427,8 @@ mod tests {
                 time_on_air: Duration::from_millis(100),
                 tx_mode: TxMode::Immediate,
                 count_us: 0,
+                frequency: 865000000,
+                tx_power: 14,
             },
         )
         .unwrap();
@@ -416,7 +442,7 @@ mod tests {
 
     #[test]
     fn test_pop_empty() {
-        let mut q: Queue<TxPacketMock> = Queue::new(2);
+        let mut q: Queue<TxPacketMock> = Queue::new(2, regulation::Standard::None);
 
         let item = q.pop(Duration::from_secs(1).as_micros() as u32);
         assert_eq!(true, item.is_none());
@@ -424,7 +450,7 @@ mod tests {
 
     #[test]
     fn test_pop() {
-        let mut q: Queue<TxPacketMock> = Queue::new(2);
+        let mut q: Queue<TxPacketMock> = Queue::new(2, regulation::Standard::None);
         let concentrator_count = Duration::from_secs(1).as_micros() as u32;
 
         q.enqueue(
@@ -433,6 +459,8 @@ mod tests {
                 time_on_air: Duration::from_millis(100),
                 tx_mode: TxMode::Timestamped,
                 count_us: Duration::from_secs(2).as_micros() as u32,
+                frequency: 865000000,
+                tx_power: 14,
             },
         )
         .unwrap();
@@ -443,7 +471,7 @@ mod tests {
 
     #[test]
     fn test_pop_too_far_in_future() {
-        let mut q: Queue<TxPacketMock> = Queue::new(2);
+        let mut q: Queue<TxPacketMock> = Queue::new(2, regulation::Standard::None);
         let concentrator_count = Duration::from_secs(1).as_micros() as u32;
 
         q.enqueue(
@@ -452,6 +480,8 @@ mod tests {
                 time_on_air: Duration::from_millis(100),
                 tx_mode: TxMode::Timestamped,
                 count_us: Duration::from_secs(2).as_micros() as u32,
+                frequency: 865000000,
+                tx_power: 14,
             },
         )
         .unwrap();
@@ -462,7 +492,7 @@ mod tests {
 
     #[test]
     fn test_pop_u32_wrapping() {
-        let mut q: Queue<TxPacketMock> = Queue::new(2);
+        let mut q: Queue<TxPacketMock> = Queue::new(2, regulation::Standard::None);
         let concentrator_count = 0_u32.wrapping_sub(Duration::from_secs(1).as_micros() as u32);
 
         q.enqueue(
@@ -471,6 +501,8 @@ mod tests {
                 time_on_air: Duration::from_millis(100),
                 tx_mode: TxMode::Timestamped,
                 count_us: 1,
+                frequency: 865000000,
+                tx_power: 14,
             },
         )
         .unwrap();
