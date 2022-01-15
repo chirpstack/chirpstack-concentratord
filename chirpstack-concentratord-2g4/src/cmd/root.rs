@@ -5,7 +5,7 @@ use std::thread;
 
 use libconcentratord::signals;
 use libconcentratord::signals::Signal;
-use libconcentratord::{commands, events, jitqueue, reset};
+use libconcentratord::{commands, events, jitqueue, regulation, reset};
 use libloragw_2g4::hal;
 
 use super::super::{concentrator, config, handler, wrapper};
@@ -46,7 +46,8 @@ pub fn run(
     );
 
     // setup jit queue
-    let queue: jitqueue::Queue<wrapper::TxPacket> = jitqueue::Queue::new(32);
+    let queue: jitqueue::Queue<wrapper::TxPacket> =
+        jitqueue::Queue::new(32, regulation::Standard::None);
     let queue = Arc::new(Mutex::new(queue));
 
     // setup zeromq

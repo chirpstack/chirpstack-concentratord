@@ -5,7 +5,7 @@ use std::thread;
 
 use libconcentratord::signals;
 use libconcentratord::signals::Signal;
-use libconcentratord::{commands, events, jitqueue, reset};
+use libconcentratord::{commands, events, jitqueue, regulation, reset};
 use libloragw_sx1301::hal;
 
 use super::super::{concentrator, config, handler, wrapper};
@@ -20,6 +20,9 @@ pub fn run(
         config::VERSION,
         "https://www.chirpstack.io/concentratord/"
     );
+
+    // retrieve regulation
+    let standard = regulation::Standard::from_str(&config.concentratord.regulation)?;
 
     // reset concentrator
     reset::reset().expect("concentrator reset failed");
@@ -45,7 +48,7 @@ pub fn run(
         .expect("bind command socket error");
 
     // setup jit queue
-    let queue: jitqueue::Queue<wrapper::TxPacket> = jitqueue::Queue::new(32);
+    let queue: jitqueue::Queue<wrapper::TxPacket> = jitqueue::Queue::new(32, standard);
     let queue = Arc::new(Mutex::new(queue));
 
     // setup threads

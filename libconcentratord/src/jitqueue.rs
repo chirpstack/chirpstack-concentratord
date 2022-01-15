@@ -2,6 +2,8 @@ use std::time::Duration;
 
 use log::{debug, error, info};
 
+use super::regulation;
+
 #[derive(PartialEq, Eq, Copy, Clone, Debug)]
 pub enum TxMode {
     Immediate,
@@ -21,14 +23,15 @@ pub trait TxPacket {
 }
 
 pub struct Item<T> {
-    time: Duration,
+    pub(crate) time: Duration,
     pre_delay: Duration,
-    post_delay: Duration,
-    packet: T,
+    pub(crate) post_delay: Duration,
+    pub(crate) packet: T,
 }
 
 pub struct Queue<T> {
     items: Vec<Item<T>>,
+    regul: regulation::Engine<T>,
 
     tx_start_delay: Duration,
     tx_margin_delay: Duration,
@@ -40,11 +43,15 @@ pub struct Queue<T> {
 }
 
 impl<T: TxPacket + Copy> Queue<T> {
-    pub fn new(capacity: usize) -> Queue<T> {
+    pub fn new(capacity: usize, standard: regulation::Standard) -> Queue<T> {
         info!("Initializing JIT queue, capacity: {}", capacity);
 
         Queue {
             items: Vec::with_capacity(capacity),
+            regul: regulation::Engine::new(
+                capacity,
+                standard,
+            ),
 
             tx_start_delay: Duration::from_micros(1500),
             tx_margin_delay: Duration::from_micros(1000),
@@ -70,6 +77,7 @@ impl<T: TxPacket + Copy> Queue<T> {
 
     pub fn pop(&mut self, concentrator_count: u32) -> Option<T> {
         self.update_time(concentrator_count);
+        self.regul.cleanup(self.time_last);
 
         match self.items.first() {
             None => {
@@ -204,6 +212,9 @@ impl<T: TxPacket + Copy> Queue<T> {
             item.packet.get_id(),
             item.packet.get_count_us()
         );
+
+        // push item to regulation engine
+        self.regul.enqueue(self.time_last, &item)?;
 
         self.items.push(item);
         self.sort();
