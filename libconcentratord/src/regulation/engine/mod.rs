@@ -2,6 +2,7 @@ mod item;
 mod tracker;
 
 use std::fmt;
+use std::marker::PhantomData;
 use std::time::Duration;
 
 use log::{debug, info, warn};
@@ -41,9 +42,10 @@ impl fmt::Display for Error {
 pub struct Engine<T> {
     standard: standard::Standard,
     config: standard::Configuration,
-    items: Vec<Item<T>>,
-    trackers: Vec<Tracker<T>>,
+    items: Vec<Item>,
+    trackers: Vec<Tracker>,
     display_time: Duration,
+    phantom: PhantomData<T>,
 }
 
 impl<T: jitqueue::TxPacket + Copy> Engine<T> {
@@ -55,6 +57,7 @@ impl<T: jitqueue::TxPacket + Copy> Engine<T> {
             items: Vec::with_capacity(capacity),
             trackers: vec![],
             display_time: Default::default(),
+            phantom: PhantomData,
         };
         // probably not the best way to do it but at least, it keeps
         // this responsability on regul. engine (and not jitqueue)
@@ -87,7 +90,7 @@ impl<T: jitqueue::TxPacket + Copy> Engine<T> {
         self.update_time(time_last);
 
         // derive item from jititem
-        let item = Item::new(jititem);
+        let item: Item = Item::from(jititem);
         let mut tracker_matches = 0;
         for tracker in self.trackers.iter_mut() {
             if tracker.matching_frequency(&item) {
@@ -161,16 +164,23 @@ impl<T: jitqueue::TxPacket + Copy> Engine<T> {
         }
 
         self.update_time(time_last);
-        for tracker in self.trackers.iter_mut() {
-            tracker.cleanup(&mut self.items);
-        }
     }
 
     fn update_time(&mut self, time: Duration) {
+        for tracker in self.trackers.iter_mut() {
+            tracker.update_time(time);
+        }
+
         // Currently fixed to 30 seconds but should probably follow
         // a config parameters like stats_interval.
         if time - self.display_time > Duration::from_secs(30) {
             debug!("{}", {
+                // we need to run cleanup for each tracker before stats display
+                // as it will calculated effective remaining load.
+                for tracker in self.trackers.iter_mut() {
+                    tracker.cleanup(&mut self.items);
+                }
+
                 let mut line = String::new();
                 line.push_str("Duty cycle stats (effective loads):\n");
                 for (i, tracker) in self.trackers.iter().enumerate() {
@@ -188,10 +198,6 @@ impl<T: jitqueue::TxPacket + Copy> Engine<T> {
                 line
             });
             self.display_time = time;
-        }
-
-        for tracker in self.trackers.iter_mut() {
-            tracker.update_time(time);
         }
     }
 }

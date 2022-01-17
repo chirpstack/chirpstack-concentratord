@@ -1,14 +1,11 @@
-use std::marker::PhantomData;
 use std::time::Duration;
 
 use log::{error, trace};
 
-use crate::jitqueue;
-
 use super::standard;
 use super::{DurationDisplay, Error, Item};
 
-pub struct Tracker<T> {
+pub struct Tracker {
     pub load_max: f32,
     band: standard::Band,
     coef_load_tx: f32,
@@ -19,11 +16,9 @@ pub struct Tracker<T> {
     residual_load_time: Duration,
     pub simulated_load: f32,
     time_last: Duration,
-    cleanup_time: Duration,
-    phantom: PhantomData<T>,
 }
 
-impl<T: jitqueue::TxPacket + Copy> Tracker<T> {
+impl Tracker {
     pub fn new(band: &standard::Band, time_window: Duration) -> Self {
         let load_max = band.duty_cycle_percent_max / 100.0;
         Tracker {
@@ -37,8 +32,6 @@ impl<T: jitqueue::TxPacket + Copy> Tracker<T> {
             residual_load_time: Duration::from_millis(0),
             simulated_load: 0.0,
             time_last: Duration::from_micros(0),
-            cleanup_time: Duration::from_micros(0),
-            phantom: PhantomData,
         }
     }
 
@@ -50,55 +43,60 @@ impl<T: jitqueue::TxPacket + Copy> Tracker<T> {
         self.time_last = time;
     }
 
-    pub fn matching(&self, item: &Item<T>) -> bool {
+    pub fn matching(&self, item: &Item) -> bool {
         self.matching_frequency(item) && self.matching_tx_power(&item)
     }
 
-    pub fn matching_frequency(&self, item: &Item<T>) -> bool {
+    pub fn matching_frequency(&self, item: &Item) -> bool {
         let frequency = item.frequency;
         frequency >= self.band.frequency_min && frequency < self.band.frequency_max
     }
 
-    pub fn matching_tx_power(&self, item: &Item<T>) -> bool {
+    pub fn matching_tx_power(&self, item: &Item) -> bool {
         item.tx_power <= self.band.tx_power_max
     }
 
     pub fn simulate_load(
         &mut self,
-        mut base_items: &mut Vec<Item<T>>,
-        item: &Item<T>,
+        mut engine_items: &mut Vec<Item>,
+        item: &Item,
     ) -> Result<f32, Error> {
         if !self.matching(item) {
             // this packet doesn't concern this tracker
             error!(
-                "pkt doesn't match tracker, frequency: {}, power: {}",
+                "Packet doesn't match tracker, frequency: {}, power: {}",
                 item.frequency, item.tx_power,
             );
             return Err(Error::TrackerMismatch);
         }
 
-        if let Err(e) = self.aggregate_past(&mut base_items) {
-            error!("Update in returned error:\n{}", e);
+        if let Err(e) = self.aggregate_past(&mut engine_items) {
+            error!("Load simulation returned error:\n{}", e);
         }
 
-        self.simulated_load = self.remaining_test(&base_items, item)?;
+        self.simulated_load = self.remaining_test(&engine_items, Some(item))?;
         Ok(self.simulated_load)
     }
 
-    pub fn cleanup(&mut self, mut engine_items: &mut Vec<Item<T>>) {
-        if self.time_last - self.cleanup_time > Duration::from_secs(1) {
-            if let Err(e) = self.aggregate_past(&mut engine_items) {
-                error!("Update out returned error:\n{}", e);
-            }
+    pub fn cleanup(&mut self, mut engine_items: &mut Vec<Item>) {
+        if let Err(e) = self.aggregate_past(&mut engine_items) {
+            error!("Tracker cleanup returned error:\n{}", e);
         }
+        self.simulated_load = self.remaining_test(&engine_items, None).unwrap();
     }
 
-    fn remaining_test(&self, base_items: &Vec<Item<T>>, item: &Item<T>) -> Result<f32, Error> {
+    fn remaining_test(
+        &self,
+        engine_items: &Vec<Item>,
+        new_item: Option<&Item>,
+    ) -> Result<f32, Error> {
         // create a vector of item concerned by this tracker
-        let mut items = self.filter(base_items);
+        let mut items = self.filter(engine_items);
         // push the new item, no collision assumed as already treated by the jitqueue
-        items.push(item.clone());
-        items.sort();
+        if let Some(item) = new_item {
+            items.push(item.clone());
+            items.sort();
+        }
 
         // find farthest item time in future
         let mut end_time = self.time_last;
@@ -116,7 +114,7 @@ impl<T: jitqueue::TxPacket + Copy> Tracker<T> {
         )
     }
 
-    fn load_calc_tx(&self, mut load_in: f32, item: &Item<T>) -> Result<f32, Error> {
+    fn load_calc_tx(&self, mut load_in: f32, item: &Item) -> Result<f32, Error> {
         if item.airtime > Duration::from_micros(0) {
             let time_ratio = item.airtime.as_micros() as f32 / self.time_window_us as f32;
             load_in = load_in + time_ratio * (self.coef_load_tx + self.coef_load_idle);
@@ -144,7 +142,7 @@ impl<T: jitqueue::TxPacket + Copy> Tracker<T> {
                 load_in = 0.0;
             }
         } else {
-            error!("Load calculation, end_time is before start time. current time: {}, start_time: {}, end_time: {}",
+            error!("Load calculation, end_time is before start_time. current time: {}, start_time: {}, end_time: {}",
                 DurationDisplay(self.time_last),
                 DurationDisplay(start_time),
                 DurationDisplay(end_time)
@@ -161,7 +159,7 @@ impl<T: jitqueue::TxPacket + Copy> Tracker<T> {
         mut load_in: f32,
         start_time: Duration,
         end_time: Duration,
-        items: &Vec<Item<T>>,
+        items: &Vec<Item>,
     ) -> Result<f32, Error> {
         let mut time_cursor = start_time;
 
@@ -213,8 +211,8 @@ impl<T: jitqueue::TxPacket + Copy> Tracker<T> {
         Ok(load_in)
     }
 
-    fn aggregate_past(&mut self, engine_items: &mut Vec<Item<T>>) -> Result<(), Error> {
-        let mut past_items: Vec<Item<T>> = vec![];
+    fn aggregate_past(&mut self, engine_items: &mut Vec<Item>) -> Result<(), Error> {
+        let mut past_items: Vec<Item> = vec![];
         let mut end_time = self.time_last;
 
         // find past items which match this tracker
@@ -237,9 +235,9 @@ impl<T: jitqueue::TxPacket + Copy> Tracker<T> {
         // remove past item from engine queue
         engine_items.retain(|item| !item.aggregated);
 
-        // update last load based on past item
+        // update residual load based on past item
         trace!(
-            "cleanup past, residual_load: {}, residual_load_time: {}, end_time: {}, diff time: {}, past items: {}, remain items: {}, current time: {}",
+            "Past items aggregation, residual_load: {}, residual_load_time: {}, end_time: {}, diff time: {}, past items: {}, remain items: {}, current time: {}",
             self.residual_load,
             DurationDisplay(self.residual_load_time),
             DurationDisplay(end_time),
@@ -256,11 +254,10 @@ impl<T: jitqueue::TxPacket + Copy> Tracker<T> {
             &past_items,
         )?;
         self.residual_load_time = end_time;
-        self.cleanup_time = self.time_last;
         Ok(())
     }
 
-    fn filter(&self, items: &Vec<Item<T>>) -> Vec<Item<T>> {
+    fn filter(&self, items: &Vec<Item>) -> Vec<Item> {
         return items
             .iter()
             .filter(|&item| return self.matching(item))
