@@ -32,6 +32,7 @@ pub struct Queue<T> {
     tx_margin_delay: Duration,
     tx_jit_delay: Duration,
     tx_max_advance_delay: Duration,
+    tx_time_last: Duration,
 
     count_us_last: u32,
     time_last: Duration,
@@ -48,6 +49,7 @@ impl<T: TxPacket + Copy> Queue<T> {
             tx_margin_delay: Duration::from_micros(1000),
             tx_jit_delay: Duration::from_micros(30000),
             tx_max_advance_delay: Duration::from_secs((3 + 1) * 128),
+            tx_time_last: Duration::from_secs(0),
 
             count_us_last: 0,
             time_last: Duration::from_secs(0),
@@ -93,6 +95,11 @@ impl<T: TxPacket + Copy> Queue<T> {
         };
 
         let item = self.items.remove(0);
+        // we remove an item here but its airtime is possibly not done yet.
+        // while it is removed, waiting only 1 second for the next one 
+        // would lead to a collision is current tx packet airtime is more than
+        // 1 second.
+        self.tx_time_last = item.time + item.post_delay;
 
         return Some(item.packet);
     }
@@ -157,6 +164,13 @@ impl<T: TxPacket + Copy> Queue<T> {
 
             // use now + 1 sec
             let mut asap_time = self.time_last + Duration::from_secs(1);
+
+            // eventual collision with currently running packet
+            // not anymore in queue but still there
+            let not_before_time = self.tx_time_last + self.tx_margin_delay + item.pre_delay;
+            if asap_time < not_before_time {
+                asap_time = not_before_time;
+            }
 
             // check if there is a collision
             if self.collision_test(asap_time, item.pre_delay, item.post_delay) {
@@ -233,6 +247,11 @@ impl<T: TxPacket + Copy> Queue<T> {
     }
 
     fn collision_test(&self, time: Duration, pre_delay: Duration, post_delay: Duration) -> bool {
+        if time < self.tx_time_last + pre_delay + self.tx_margin_delay {
+            // a packet is currently running, then we need to take it into account
+            return true;
+        }
+
         for p2 in self.items.iter() {
             if time > p2.time {
                 if time - p2.time <= pre_delay + p2.post_delay + self.tx_margin_delay {
