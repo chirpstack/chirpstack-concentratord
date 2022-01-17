@@ -172,8 +172,8 @@ impl Tracker {
             .count();
 
         trace!(
-            "load calc, load in: {}, start time: {}, end_time: {}, diff time: {}, item count: {}, current time: {}",
-            load_in,
+            "load calc, load in: {:.3}%, start time: {}, end_time: {}, diff time: {}, item count: {}, current time: {}",
+            load_in * 100.0,
             DurationDisplay(start_time),
             DurationDisplay(end_time),
             DurationDisplay(end_time - start_time),
@@ -192,9 +192,8 @@ impl Tracker {
             }
             // then calculate TX load and idle for other packets
             for (pos, item) in items.iter().enumerate() {
-                let end_time = item.time + item.airtime;
                 load_in = self.load_calc_tx(load_in, &item)?;
-                time_cursor = end_time;
+                time_cursor = item.time + item.airtime;
 
                 // is not the last one ?
                 if pos != count - 1 {
@@ -237,8 +236,8 @@ impl Tracker {
 
         // update residual load based on past item
         trace!(
-            "Past items aggregation, residual_load: {}, residual_load_time: {}, end_time: {}, diff time: {}, past items: {}, remain items: {}, current time: {}",
-            self.residual_load,
+            "Past items aggregation, residual_load: {:.3}%, residual_load_time: {}, end_time: {}, diff time: {}, past items: {}, remain items: {}, current time: {}",
+            self.residual_load * 100.0,
             DurationDisplay(self.residual_load_time),
             DurationDisplay(end_time),
             DurationDisplay(end_time - self.residual_load_time),
