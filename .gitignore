@@ -1,7 +1,6 @@
 # hidden files
 .*
 
-
 # rust builds / cache
 target
 
@@ -14,3 +13,6 @@ target
 
 # vendored files
 /vendor
+
+# Generated Bitbake recipes
+*.bb

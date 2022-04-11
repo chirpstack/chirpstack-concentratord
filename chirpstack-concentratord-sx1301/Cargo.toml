@@ -1,5 +1,7 @@
 [package]
 name = "chirpstack-concentratord-sx1301"
+repository="https://github.com/brocaar/chirpstack-concentratord/"
+license="MIT"
 version = "3.3.1"
 authors = ["Orne Brocaar <info@brocaar.com>"]
 edition = "2018"
