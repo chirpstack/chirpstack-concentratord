@@ -20,3 +20,4 @@ pub mod rak2247_as923;
 pub mod rak2247_au915;
 pub mod rak2247_cn470;
 pub mod rak2247_eu433;
+pub mod rak2247_eu868;
