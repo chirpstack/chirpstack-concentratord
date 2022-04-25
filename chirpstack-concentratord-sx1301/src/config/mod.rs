@@ -203,6 +203,7 @@ pub fn get(filenames: Vec<String>) -> Configuration {
         "rak_2247_as923" => vendor::rak::rak2247_as923::new(&config),
         "rak_2247_au915" => vendor::rak::rak2247_au915::new(&config),
         "rak_2247_cn470" => vendor::rak::rak2247_cn470::new(&config),
+        "rak_2247_eu433" => vendor::rak::rak2247_eu433::new(&config),
         "risinghf_rhf0m301_eu868" => vendor::risinghf::rhf0m301_eu868::new(&config),
         "risinghf_rhf0m301_us915" => vendor::risinghf::rhf0m301_us915::new(&config),
         "sandbox_lorago_port_eu868" => vendor::sandbox::lorago_port_eu868::new(&config),
