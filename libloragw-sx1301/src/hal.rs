@@ -356,6 +356,18 @@ pub struct TxGainConfig {
     pub rf_power: i8,
 }
 
+impl Default for TxGainConfig {
+    fn default() -> Self {
+        TxGainConfig {
+            dig_gain: 0,
+            pa_gain: 0,
+            dac_gain: 3,
+            mix_gain: 0,
+            rf_power: 0,
+        }
+    }
+}
+
 impl TxGainConfig {
     fn to_hal(&self) -> wrapper::lgw_tx_gain_s {
         wrapper::lgw_tx_gain_s {
