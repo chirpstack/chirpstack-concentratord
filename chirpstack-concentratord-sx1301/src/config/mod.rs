@@ -200,6 +200,7 @@ pub fn get(filenames: Vec<String>) -> Configuration {
         "rak_2246_kr920" => vendor::rak::rak2246_kr920::new(&config),
         "rak_2246_ru864" => vendor::rak::rak2246_ru864::new(&config),
         "rak_2246_us915" => vendor::rak::rak2246_us915::new(&config),
+        "rak_2247_as923" => vendor::rak::rak2247_as923::new(&config),
         "risinghf_rhf0m301_eu868" => vendor::risinghf::rhf0m301_eu868::new(&config),
         "risinghf_rhf0m301_us915" => vendor::risinghf::rhf0m301_us915::new(&config),
         "sandbox_lorago_port_eu868" => vendor::sandbox::lorago_port_eu868::new(&config),
