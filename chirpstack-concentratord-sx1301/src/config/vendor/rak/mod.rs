@@ -24,3 +24,4 @@ pub mod rak2247_eu868;
 pub mod rak2247_in865;
 pub mod rak2247_kr920;
 pub mod rak2247_ru864;
+pub mod rak2247_us915;
