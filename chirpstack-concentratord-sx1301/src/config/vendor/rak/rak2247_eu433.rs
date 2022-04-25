@@ -4,7 +4,7 @@ use super::super::super::super::config;
 use super::super::Configuration;
 
 // source:
-// https://github.com/RAKWireless/rak_common_for_gateway/blob/761136e126/lora/rak2247_spi/global_conf/global_conf.eu_433.json
+// https://github.com/RAKWireless/rak_common_for_gateway/blob/45c93c07f7/lora/rak2247_spi/global_conf/global_conf.eu_433.json
 pub fn new(conf: &config::Configuration) -> Configuration {
     let gps = conf.gateway.model_flags.contains(&"GNSS".to_string());
 
@@ -37,7 +37,7 @@ pub fn new(conf: &config::Configuration) -> Configuration {
             // 2
             hal::TxGainConfig {
                 pa_gain: 0,
-                mix_gain: 25,
+                mix_gain: 15,
                 rf_power: 0,
                 dig_gain: 0,
                 ..Default::default()
@@ -47,7 +47,7 @@ pub fn new(conf: &config::Configuration) -> Configuration {
                 pa_gain: 1,
                 mix_gain: 9,
                 rf_power: 3,
-                dig_gain: 9,
+                dig_gain: 3,
                 ..Default::default()
             },
             // 4
