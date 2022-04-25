@@ -12,7 +12,7 @@ pub fn new(conf: &config::Configuration) -> Configuration {
         radio_rssi_offset: vec![-166.0, -166.0],
         radio_tx_enabled: vec![true, false],
         radio_type: vec![hal::RadioType::SX1257, hal::RadioType::SX1257],
-        radio_min_max_tx_freq: vec![(920000000, 923400000), (920000000, 923400000)],
+        radio_min_max_tx_freq: vec![(915000000, 928000000), (915000000, 928000000)],
         radio_tx_notch_freq: vec![0, 0],
         lora_multi_sf_bandwidth: 125000,
         tx_gain_table: vec![

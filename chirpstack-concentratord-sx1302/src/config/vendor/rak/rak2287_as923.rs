@@ -29,8 +29,8 @@ pub fn new(conf: &config::Configuration) -> Configuration {
                     coeff_e: 0.0,
                 },
                 tx_enable: true,
-                tx_freq_min: 923200000,
-                tx_freq_max: 925000000,
+                tx_freq_min: 915000000, // min AS923
+                tx_freq_max: 928000000, // max AS923
                 tx_gain_table: vec![
                     // 0
                     hal::TxGainConfig {
