@@ -18,7 +18,7 @@ pub fn new(conf: &config::Configuration) -> Configuration {
             RadioConfig {
                 enable: true,
                 radio_type: hal::RadioType::SX1250,
-                single_input_mode: true,
+                single_input_mode: false,
                 rssi_offset: -215.4,
                 rssi_temp_compensation: hal::RssiTempCompensationConfig {
                     coeff_a: 0.0,
