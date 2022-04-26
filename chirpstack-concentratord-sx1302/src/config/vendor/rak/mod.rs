@@ -13,3 +13,4 @@ pub mod rak5146_cn470;
 pub mod rak5146_eu433;
 pub mod rak5146_eu868;
 pub mod rak5146_in865;
+pub mod rak5146_kr920;
