@@ -182,6 +182,7 @@ pub fn get(filenames: Vec<String>) -> Configuration {
         "rak_5146_in865" => vendor::rak::rak5146_in865::new(&config),
         "rak_5146_kr920" => vendor::rak::rak5146_kr920::new(&config),
         "rak_5146_ru864" => vendor::rak::rak5146_ru864::new(&config),
+        "rak_5146_us915" => vendor::rak::rak5146_us915::new(&config),
         _ => panic!("unexpected gateway model: {}", config.gateway.model),
     };
 
