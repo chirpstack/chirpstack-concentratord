@@ -4,7 +4,7 @@ use super::super::super::super::config;
 use super::super::{ComType, Configuration, RadioConfig};
 
 // source:
-// https://github.com/RAKWireless/rak_common_for_gateway/blob/55fd13c12b/lora/rak2287/global_conf_uart/global_conf.as_920_923.json
+// https://github.com/RAKWireless/rak_common_for_gateway/blob/45c93c07f7/lora/rak5146/global_conf_i2c/global_conf.au_915_928.json
 pub fn new(conf: &config::Configuration) -> Configuration {
     let gps = conf.gateway.model_flags.contains(&"GNSS".to_string());
     let usb = conf.gateway.model_flags.contains(&"USB".to_string());
@@ -28,184 +28,120 @@ pub fn new(conf: &config::Configuration) -> Configuration {
                     coeff_e: 0.0,
                 },
                 tx_enable: true,
-                tx_freq_min: 915000000, // min AS923
-                tx_freq_max: 928000000, // max AS923
+                tx_freq_min: 915000000,
+                tx_freq_max: 928000000,
                 tx_gain_table: vec![
                     // 0
                     hal::TxGainConfig {
                         rf_power: 12,
                         pa_gain: 1,
-                        pwr_idx: 1,
-                        dig_gain: 0,
-                        dac_gain: 0,
-                        mix_gain: 5,
-                        offset_i: 0,
-                        offset_q: 0,
+                        pwr_idx: 6,
+                        ..Default::default()
                     },
                     // 1
                     hal::TxGainConfig {
                         rf_power: 13,
                         pa_gain: 1,
-                        pwr_idx: 2,
-                        dig_gain: 0,
-                        dac_gain: 0,
-                        mix_gain: 5,
-                        offset_i: 0,
-                        offset_q: 0,
+                        pwr_idx: 7,
+                        ..Default::default()
                     },
                     // 2
                     hal::TxGainConfig {
                         rf_power: 14,
                         pa_gain: 1,
-                        pwr_idx: 3,
-                        dig_gain: 0,
-                        dac_gain: 0,
-                        mix_gain: 5,
-                        offset_i: 0,
-                        offset_q: 0,
+                        pwr_idx: 8,
+                        ..Default::default()
                     },
                     // 3
                     hal::TxGainConfig {
                         rf_power: 15,
                         pa_gain: 1,
-                        pwr_idx: 4,
-                        dig_gain: 0,
-                        dac_gain: 0,
-                        mix_gain: 5,
-                        offset_i: 0,
-                        offset_q: 0,
+                        pwr_idx: 9,
+                        ..Default::default()
                     },
                     // 4
                     hal::TxGainConfig {
                         rf_power: 16,
                         pa_gain: 1,
-                        pwr_idx: 5,
-                        dig_gain: 0,
-                        dac_gain: 0,
-                        mix_gain: 5,
-                        offset_i: 0,
-                        offset_q: 0,
+                        pwr_idx: 10,
+                        ..Default::default()
                     },
                     // 5
                     hal::TxGainConfig {
                         rf_power: 17,
                         pa_gain: 1,
-                        pwr_idx: 6,
-                        dig_gain: 0,
-                        dac_gain: 0,
-                        mix_gain: 5,
-                        offset_i: 0,
-                        offset_q: 0,
+                        pwr_idx: 11,
+                        ..Default::default()
                     },
                     // 6
                     hal::TxGainConfig {
                         rf_power: 18,
                         pa_gain: 1,
-                        pwr_idx: 8,
-                        dig_gain: 0,
-                        dac_gain: 0,
-                        mix_gain: 5,
-                        offset_i: 0,
-                        offset_q: 0,
+                        pwr_idx: 12,
+                        ..Default::default()
                     },
                     // 7
                     hal::TxGainConfig {
                         rf_power: 19,
                         pa_gain: 1,
                         pwr_idx: 13,
-                        dig_gain: 0,
-                        dac_gain: 0,
-                        mix_gain: 5,
-                        offset_i: 0,
-                        offset_q: 0,
+                        ..Default::default()
                     },
                     // 8
                     hal::TxGainConfig {
                         rf_power: 20,
                         pa_gain: 1,
-                        pwr_idx: 10,
-                        dig_gain: 0,
-                        dac_gain: 0,
-                        mix_gain: 5,
-                        offset_i: 0,
-                        offset_q: 0,
+                        pwr_idx: 14,
+                        ..Default::default()
                     },
                     // 9
                     hal::TxGainConfig {
                         rf_power: 21,
                         pa_gain: 1,
                         pwr_idx: 15,
-                        dig_gain: 0,
-                        dac_gain: 0,
-                        mix_gain: 5,
-                        offset_i: 0,
-                        offset_q: 0,
+                        ..Default::default()
                     },
                     // 10
                     hal::TxGainConfig {
                         rf_power: 22,
                         pa_gain: 1,
-                        pwr_idx: 12,
-                        dig_gain: 0,
-                        dac_gain: 0,
-                        mix_gain: 5,
-                        offset_i: 0,
-                        offset_q: 0,
+                        pwr_idx: 16,
+                        ..Default::default()
                     },
                     // 11
                     hal::TxGainConfig {
                         rf_power: 23,
                         pa_gain: 1,
-                        pwr_idx: 13,
-                        dig_gain: 0,
-                        dac_gain: 0,
-                        mix_gain: 5,
-                        offset_i: 0,
-                        offset_q: 0,
+                        pwr_idx: 17,
+                        ..Default::default()
                     },
                     // 12
                     hal::TxGainConfig {
                         rf_power: 24,
                         pa_gain: 1,
-                        pwr_idx: 14,
-                        dig_gain: 0,
-                        dac_gain: 0,
-                        mix_gain: 5,
-                        offset_i: 0,
-                        offset_q: 0,
+                        pwr_idx: 18,
+                        ..Default::default()
                     },
                     // 13
                     hal::TxGainConfig {
                         rf_power: 25,
                         pa_gain: 1,
-                        pwr_idx: 16,
-                        dig_gain: 0,
-                        dac_gain: 0,
-                        mix_gain: 5,
-                        offset_i: 0,
-                        offset_q: 0,
+                        pwr_idx: 19,
+                        ..Default::default()
                     },
                     // 14
                     hal::TxGainConfig {
                         rf_power: 26,
                         pa_gain: 1,
-                        pwr_idx: 17,
-                        dig_gain: 0,
-                        dac_gain: 0,
-                        mix_gain: 5,
-                        offset_i: 0,
-                        offset_q: 0,
+                        pwr_idx: 21,
+                        ..Default::default()
                     },
                     // 15
                     hal::TxGainConfig {
                         rf_power: 27,
                         pa_gain: 1,
-                        pwr_idx: 19,
-                        dig_gain: 0,
-                        dac_gain: 0,
-                        mix_gain: 5,
-                        offset_i: 0,
-                        offset_q: 0,
+                        pwr_idx: 22,
+                        ..Default::default()
                     },
                 ],
             },

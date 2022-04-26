@@ -8,3 +8,4 @@ pub mod rak2287_kr920;
 pub mod rak2287_ru864;
 pub mod rak2287_us915;
 pub mod rak5146_as923;
+pub mod rak5146_au915;
