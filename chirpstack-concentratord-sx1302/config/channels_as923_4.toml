@@ -1,0 +1,21 @@
+# LoRa concentrator configuration.
+
+[gateway.concentrator]
+
+# Multi spreading-factor channels (LoRa).
+multi_sf_channels=[
+  917300000,
+  917500000,
+  917700000,
+  917900000,
+  918100000,
+  918300000,
+  918500000,
+  918700000,
+]
+
+# LoRa std channel (single spreading-factor).
+[gateway.concentrator.lora_std]
+frequency=918600000
+bandwidth=250000
+spreading_factor=7
