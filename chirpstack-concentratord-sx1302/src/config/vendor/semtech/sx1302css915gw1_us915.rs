@@ -3,7 +3,7 @@ use libloragw_sx1302::hal;
 use super::super::super::super::config;
 use super::super::{ComType, Configuration, RadioConfig};
 
-// source: https://github.com/Lora-net/sx1302_hal/blob/master/packet_forwarder/global_conf.json.sx1250.EU868
+// source: https://github.com/Lora-net/sx1302_hal/blob/master/packet_forwarder/global_conf.json.sx1250.US915.USB
 pub fn new(conf: &config::Configuration) -> Configuration {
     let gps = conf.gateway.model_flags.contains(&"GNSS".to_string());
 
@@ -26,8 +26,8 @@ pub fn new(conf: &config::Configuration) -> Configuration {
                     coeff_e: 0.0,
                 },
                 tx_enable: true,
-                tx_freq_min: 863000000,
-                tx_freq_max: 870000000,
+                tx_freq_min: 923000000,
+                tx_freq_max: 928000000,
                 tx_gain_table: vec![
                     // 0
                     hal::TxGainConfig {
@@ -165,15 +165,9 @@ pub fn new(conf: &config::Configuration) -> Configuration {
             true => Some("/dev/ttyAMA0".to_string()),
             false => None,
         },
-        com_type: ComType::SPI,
-        com_path: "/dev/spidev0.0".to_string(),
-        reset_pin: match conf.gateway.reset_pin {
-            0 => Some((0, 23)),
-            _ => Some((0, conf.gateway.reset_pin)),
-        },
-        power_en_pin: match conf.gateway.power_en_pin {
-            0 => Some((0, 18)),
-            _ => Some((0, conf.gateway.power_en_pin)),
-        },
+        com_type: ComType::USB,
+        com_path: "/dev/ttyACM0".to_string(),
+        reset_pin: None,
+        power_en_pin: None,
     }
 }

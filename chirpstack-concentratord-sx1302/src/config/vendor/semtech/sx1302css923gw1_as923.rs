@@ -3,7 +3,7 @@ use libloragw_sx1302::hal;
 use super::super::super::super::config;
 use super::super::{ComType, Configuration, RadioConfig};
 
-// source: https://github.com/Lora-net/sx1302_hal/blob/master/packet_forwarder/global_conf.json.sx1250.EU868
+// source: https://github.com/Lora-net/sx1302_hal/blob/master/packet_forwarder/global_conf.json.sx1250.AS923.USB
 pub fn new(conf: &config::Configuration) -> Configuration {
     let gps = conf.gateway.model_flags.contains(&"GNSS".to_string());
 
@@ -26,119 +26,119 @@ pub fn new(conf: &config::Configuration) -> Configuration {
                     coeff_e: 0.0,
                 },
                 tx_enable: true,
-                tx_freq_min: 863000000,
-                tx_freq_max: 870000000,
+                tx_freq_min: 923000000,
+                tx_freq_max: 928000000,
                 tx_gain_table: vec![
                     // 0
+                    hal::TxGainConfig {
+                        rf_power: 0,
+                        pa_gain: 0,
+                        pwr_idx: 0,
+                        ..Default::default()
+                    },
+                    // 1
                     hal::TxGainConfig {
                         rf_power: 12,
                         pa_gain: 0,
                         pwr_idx: 15,
                         ..Default::default()
                     },
-                    // 1
+                    // 2
                     hal::TxGainConfig {
                         rf_power: 13,
                         pa_gain: 0,
                         pwr_idx: 16,
                         ..Default::default()
                     },
-                    // 2
+                    // 3
                     hal::TxGainConfig {
                         rf_power: 14,
                         pa_gain: 0,
                         pwr_idx: 17,
                         ..Default::default()
                     },
-                    // 3
+                    // 4
                     hal::TxGainConfig {
                         rf_power: 15,
                         pa_gain: 0,
                         pwr_idx: 19,
                         ..Default::default()
                     },
-                    // 4
+                    // 5
                     hal::TxGainConfig {
                         rf_power: 16,
                         pa_gain: 0,
                         pwr_idx: 20,
                         ..Default::default()
                     },
-                    // 5
+                    // 6
                     hal::TxGainConfig {
                         rf_power: 17,
                         pa_gain: 0,
                         pwr_idx: 22,
                         ..Default::default()
                     },
-                    // 6
+                    // 7
                     hal::TxGainConfig {
                         rf_power: 18,
                         pa_gain: 1,
                         pwr_idx: 1,
                         ..Default::default()
                     },
-                    // 7
+                    // 8
                     hal::TxGainConfig {
                         rf_power: 19,
                         pa_gain: 1,
                         pwr_idx: 2,
                         ..Default::default()
                     },
-                    // 8
+                    // 9
                     hal::TxGainConfig {
                         rf_power: 20,
                         pa_gain: 1,
                         pwr_idx: 3,
                         ..Default::default()
                     },
-                    // 9
+                    // 10
                     hal::TxGainConfig {
                         rf_power: 21,
                         pa_gain: 1,
                         pwr_idx: 4,
                         ..Default::default()
                     },
-                    // 10
+                    // 11
                     hal::TxGainConfig {
                         rf_power: 22,
                         pa_gain: 1,
                         pwr_idx: 5,
                         ..Default::default()
                     },
-                    // 11
+                    // 12
                     hal::TxGainConfig {
                         rf_power: 23,
                         pa_gain: 1,
                         pwr_idx: 6,
                         ..Default::default()
                     },
-                    // 12
+                    // 13
                     hal::TxGainConfig {
                         rf_power: 24,
                         pa_gain: 1,
                         pwr_idx: 7,
                         ..Default::default()
                     },
-                    // 13
-                    hal::TxGainConfig {
-                        rf_power: 25,
-                        pa_gain: 1,
-                        pwr_idx: 9,
-                        ..Default::default()
-                    },
                     // 14
                     hal::TxGainConfig {
                         rf_power: 26,
                         pa_gain: 1,
-                        pwr_idx: 11,
+                        pwr_idx: 8,
                         ..Default::default()
                     },
                     // 15
                     hal::TxGainConfig {
                         rf_power: 27,
                         pa_gain: 1,
-                        pwr_idx: 14,
+                        pwr_idx: 9,
                         ..Default::default()
                     },
                 ],
@@ -165,15 +165,9 @@ pub fn new(conf: &config::Configuration) -> Configuration {
             true => Some("/dev/ttyAMA0".to_string()),
             false => None,
         },
-        com_type: ComType::SPI,
-        com_path: "/dev/spidev0.0".to_string(),
-        reset_pin: match conf.gateway.reset_pin {
-            0 => Some((0, 23)),
-            _ => Some((0, conf.gateway.reset_pin)),
-        },
-        power_en_pin: match conf.gateway.power_en_pin {
-            0 => Some((0, 18)),
-            _ => Some((0, conf.gateway.power_en_pin)),
-        },
+        com_type: ComType::USB,
+        com_path: "/dev/ttyACM0".to_string(),
+        reset_pin: None,
+        power_en_pin: None,
     }
 }

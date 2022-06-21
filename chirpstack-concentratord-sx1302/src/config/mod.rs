@@ -165,6 +165,9 @@ pub fn get(filenames: Vec<String>) -> Configuration {
     config.gateway.model_config = match config.gateway.model.as_ref() {
         "semtech_sx1302c868gw1_eu868" => vendor::semtech::sx1302c868gw1_eu868::new(&config),
         "semtech_sx1302c915gw1_us915" => vendor::semtech::sx1302c915gw1_us915::new(&config),
+        "semtech_sx1302css868gw1_eu868" => vendor::semtech::sx1302css868gw1_eu868::new(&config),
+        "semtech_sx1302css915gw1_us915" => vendor::semtech::sx1302css915gw1_us915::new(&config),
+        "semtech_sx1302css923gw1_as923" => vendor::semtech::sx1302css923gw1_as923::new(&config),
         "rak_2287_as923" => vendor::rak::rak2287_as923::new(&config),
         "rak_2287_au915" => vendor::rak::rak2287_au915::new(&config),
         "rak_2287_cn470" => vendor::rak::rak2287_cn470::new(&config),
