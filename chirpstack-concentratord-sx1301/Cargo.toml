@@ -2,7 +2,7 @@
 name = "chirpstack-concentratord-sx1301"
 repository="https://github.com/brocaar/chirpstack-concentratord/"
 license="MIT"
-version = "3.3.2"
+version = "3.3.3"
 authors = ["Orne Brocaar <info@brocaar.com>"]
 edition = "2018"
 publish = false
