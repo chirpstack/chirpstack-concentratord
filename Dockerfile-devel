@@ -1,13 +1,13 @@
-FROM rust:1.45-stretch
+FROM rust:1.62.1-buster
 
 # required by bingen
 RUN apt-get update && \
 	apt-get install -y \
 		build-essential \
 		cmake \
-		clang-3.9 \
-		libclang-3.9-dev \
-		llvm-3.9-dev \
+		clang \
+		libclang-dev \
+		llvm-dev \
 		gcc-arm-linux-gnueabi \
 		g++-arm-linux-gnueabi \
 		gcc-arm-linux-gnueabihf \

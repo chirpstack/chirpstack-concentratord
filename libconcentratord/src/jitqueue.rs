@@ -12,7 +12,7 @@ pub enum TxMode {
 pub trait TxPacket {
     fn get_time_on_air(&self) -> Result<Duration, String>;
     fn get_tx_mode(&self) -> TxMode;
-    fn get_id(&self) -> String;
+    fn get_id(&self) -> u32;
     fn set_tx_mode(&mut self, tx_mode: TxMode);
     fn get_count_us(&self) -> u32;
     fn set_count_us(&mut self, count_us: u32);
@@ -240,8 +240,8 @@ mod tests {
             return self.tx_mode;
         }
 
-        fn get_id(&self) -> String {
-            return "".to_string();
+        fn get_id(&self) -> u32 {
+            0
         }
 
         fn set_tx_mode(&mut self, tx_mode: TxMode) {
