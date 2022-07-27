@@ -62,10 +62,10 @@ mod tests {
                     channels: vec![
                         chirpstack_api::gw::ChannelConfiguration{
                             frequency: 868100000,
-                            modulation: chirpstack_api::common::Modulation::Lora as i32,
-                            modulation_config: Some(chirpstack_api::gw::channel_configuration::ModulationConfig::LoraModulationConfig(chirpstack_api::gw::LoRaModulationConfig{
+                            modulation_config: Some(chirpstack_api::gw::channel_configuration::ModulationConfig::LoraModulationConfig(chirpstack_api::gw::LoraModulationConfig{
                                 bandwidth: 125000,
                                 spreading_factors: vec![7,8,9,10,11,12],
+                                ..Default::default()
                             })),
                             ..Default::default()
                         },
@@ -92,91 +92,91 @@ mod tests {
                     channels: vec![
                         chirpstack_api::gw::ChannelConfiguration{
                             frequency: 868100000,
-                            modulation: chirpstack_api::common::Modulation::Lora as i32,
-                            modulation_config: Some(chirpstack_api::gw::channel_configuration::ModulationConfig::LoraModulationConfig(chirpstack_api::gw::LoRaModulationConfig{
+                            modulation_config: Some(chirpstack_api::gw::channel_configuration::ModulationConfig::LoraModulationConfig(chirpstack_api::gw::LoraModulationConfig{
                                 bandwidth: 125000,
                                 spreading_factors: vec![7,8,9,10,11,12],
+                                ..Default::default()
                             })),
                             ..Default::default()
                         },
                         chirpstack_api::gw::ChannelConfiguration{
                             frequency: 868300000,
-                            modulation: chirpstack_api::common::Modulation::Lora as i32,
-                            modulation_config: Some(chirpstack_api::gw::channel_configuration::ModulationConfig::LoraModulationConfig(chirpstack_api::gw::LoRaModulationConfig{
+                            modulation_config: Some(chirpstack_api::gw::channel_configuration::ModulationConfig::LoraModulationConfig(chirpstack_api::gw::LoraModulationConfig{
                                 bandwidth: 125000,
                                 spreading_factors: vec![7,8,9,10,11,12],
+                                ..Default::default()
                             })),
                             ..Default::default()
                         },
                         chirpstack_api::gw::ChannelConfiguration{
                             frequency: 868500000,
-                            modulation: chirpstack_api::common::Modulation::Lora as i32,
-                            modulation_config: Some(chirpstack_api::gw::channel_configuration::ModulationConfig::LoraModulationConfig(chirpstack_api::gw::LoRaModulationConfig{
+                            modulation_config: Some(chirpstack_api::gw::channel_configuration::ModulationConfig::LoraModulationConfig(chirpstack_api::gw::LoraModulationConfig{
                                 bandwidth: 125000,
                                 spreading_factors: vec![7,8,9,10,11,12],
+                                ..Default::default()
                             })),
                             ..Default::default()
                         },
                         chirpstack_api::gw::ChannelConfiguration{
                             frequency: 867100000,
-                            modulation: chirpstack_api::common::Modulation::Lora as i32,
-                            modulation_config: Some(chirpstack_api::gw::channel_configuration::ModulationConfig::LoraModulationConfig(chirpstack_api::gw::LoRaModulationConfig{
+                            modulation_config: Some(chirpstack_api::gw::channel_configuration::ModulationConfig::LoraModulationConfig(chirpstack_api::gw::LoraModulationConfig{
                                 bandwidth: 125000,
                                 spreading_factors: vec![7,8,9,10,11,12],
+                                ..Default::default()
                             })),
                             ..Default::default()
                         },
                         chirpstack_api::gw::ChannelConfiguration{
                             frequency: 867300000,
-                            modulation: chirpstack_api::common::Modulation::Lora as i32,
-                            modulation_config: Some(chirpstack_api::gw::channel_configuration::ModulationConfig::LoraModulationConfig(chirpstack_api::gw::LoRaModulationConfig{
+                            modulation_config: Some(chirpstack_api::gw::channel_configuration::ModulationConfig::LoraModulationConfig(chirpstack_api::gw::LoraModulationConfig{
                                 bandwidth: 125000,
                                 spreading_factors: vec![7,8,9,10,11,12],
+                                ..Default::default()
                             })),
                             ..Default::default()
                         },
                         chirpstack_api::gw::ChannelConfiguration{
                             frequency: 867500000,
-                            modulation: chirpstack_api::common::Modulation::Lora as i32,
-                            modulation_config: Some(chirpstack_api::gw::channel_configuration::ModulationConfig::LoraModulationConfig(chirpstack_api::gw::LoRaModulationConfig{
+                            modulation_config: Some(chirpstack_api::gw::channel_configuration::ModulationConfig::LoraModulationConfig(chirpstack_api::gw::LoraModulationConfig{
                                 bandwidth: 125000,
                                 spreading_factors: vec![7,8,9,10,11,12],
+                                ..Default::default()
                             })),
                             ..Default::default()
                         },
                         chirpstack_api::gw::ChannelConfiguration{
                             frequency: 867700000,
-                            modulation: chirpstack_api::common::Modulation::Lora as i32,
-                            modulation_config: Some(chirpstack_api::gw::channel_configuration::ModulationConfig::LoraModulationConfig(chirpstack_api::gw::LoRaModulationConfig{
+                            modulation_config: Some(chirpstack_api::gw::channel_configuration::ModulationConfig::LoraModulationConfig(chirpstack_api::gw::LoraModulationConfig{
                                 bandwidth: 125000,
                                 spreading_factors: vec![7,8,9,10,11,12],
+                                ..Default::default()
                             })),
                             ..Default::default()
                         },
                         chirpstack_api::gw::ChannelConfiguration{
                             frequency: 867900000,
-                            modulation: chirpstack_api::common::Modulation::Lora as i32,
-                            modulation_config: Some(chirpstack_api::gw::channel_configuration::ModulationConfig::LoraModulationConfig(chirpstack_api::gw::LoRaModulationConfig{
+                            modulation_config: Some(chirpstack_api::gw::channel_configuration::ModulationConfig::LoraModulationConfig(chirpstack_api::gw::LoraModulationConfig{
                                 bandwidth: 125000,
                                 spreading_factors: vec![7,8,9,10,11,12],
+                                ..Default::default()
                             })),
                             ..Default::default()
                         },
                         chirpstack_api::gw::ChannelConfiguration{
                             frequency: 868300000,
-                            modulation: chirpstack_api::common::Modulation::Lora as i32,
-                            modulation_config: Some(chirpstack_api::gw::channel_configuration::ModulationConfig::LoraModulationConfig(chirpstack_api::gw::LoRaModulationConfig{
+                            modulation_config: Some(chirpstack_api::gw::channel_configuration::ModulationConfig::LoraModulationConfig(chirpstack_api::gw::LoraModulationConfig{
                                 bandwidth: 250000,
                                 spreading_factors: vec![12],
+                                ..Default::default()
                             })),
                             ..Default::default()
                         },
                         chirpstack_api::gw::ChannelConfiguration{
                             frequency: 868800000,
-                            modulation: chirpstack_api::common::Modulation::Lora as i32,
                             modulation_config: Some(chirpstack_api::gw::channel_configuration::ModulationConfig::FskModulationConfig(chirpstack_api::gw::FskModulationConfig{
                                 bandwidth: 125000,
                                 bitrate: 50000,
+                                ..Default::default()
                             })),
                             ..Default::default()
                         },

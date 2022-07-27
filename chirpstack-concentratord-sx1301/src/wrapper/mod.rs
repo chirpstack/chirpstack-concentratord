@@ -196,9 +196,11 @@ pub fn downlink_from_proto(df: &gw::DownlinkFrameItem) -> Result<hal::TxPacket, 
         if let Some(params) = &timing.parameters {
             match params {
                 gw::timing::Parameters::Immediately(_) => {
+                    packet.modulation = hal::Modulation::LoRa;
                     packet.tx_mode = hal::TxMode::Immediate;
                 }
                 gw::timing::Parameters::Delay(v) => {
+                    packet.modulation = hal::Modulation::FSK;
                     packet.tx_mode = hal::TxMode::Timestamped;
                     let ctx = &tx_info.context;
                     if ctx.len() != 4 {

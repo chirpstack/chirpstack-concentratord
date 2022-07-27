@@ -19,14 +19,14 @@ simple_logger = "1.11"
 zmq = "0.9"
 hex = "0.4"
 lazy_static = "1.4"
-uuid = { version = "0.8", features = ["v4"] }
 chrono = "0.4"
 humantime-serde = "1.0"
 syslog = "5.0"
-prost = "0.8"
-prost-types = "0.8"
+prost = "0.10"
+pbjson-types = "0.3.2"
 signal-hook = "0.3"
 handlebars = "4.1"
+rand = "0.8"
 
 [features]
 default = ['zmq/vendored']
