@@ -5,7 +5,6 @@ use std::time::Duration;
 use libconcentratord::signals::Signal;
 use libconcentratord::{events, stats};
 use libloragw_2g4::hal;
-use uuid::Uuid;
 
 use super::super::wrapper;
 
@@ -39,11 +38,10 @@ pub fn handle_loop(gateway_id: &[u8], stop_receive: Receiver<Signal>) {
                     };
 
                     let rx_info = proto.rx_info.as_ref().unwrap();
-                    let uuid = Uuid::from_slice(&rx_info.uplink_id).unwrap();
 
                     info!(
                         "Frame received, uplink_id: {}, count_us: {}, freq: {}, bw: {}, mod: {:?}, dr: {:?}",
-                        uuid,
+                        rx_info.uplink_id,
                         frame.count_us,
                         frame.freq_hz,
                         frame.bandwidth,

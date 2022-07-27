@@ -190,14 +190,14 @@ dependencies = [
  "libconcentratord",
  "libloragw-2g4",
  "log",
- "prost 0.8.0",
- "prost-types 0.8.0",
+ "pbjson-types",
+ "prost 0.10.4",
+ "rand",
  "serde",
  "signal-hook",
  "simple_logger",
  "syslog",
  "toml 0.5.9",
- "uuid",
  "zmq",
 ]
 
@@ -253,9 +253,9 @@ dependencies = [
 
 [[package]]
 name = "chirpstack_api"
-version = "4.0.0-test.12"
+version = "4.0.0-test.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "68e85d219362dda5fe748484774bd82ab6e1210ee1e5b76dfb2085bce5a9d1ca"
+checksum = "6f825a4395334c1e6267f51c2452b2a9131e6251787802a293be900fdc87d7d0"
 dependencies = [
  "hex",
  "pbjson",
