@@ -250,6 +250,7 @@ pub fn downlink_from_proto(df: &gw::DownlinkFrameItem) -> Result<hal::TxPacket, 
         if let Some(params) = &modulation.parameters {
             match params {
                 gw::modulation::Parameters::Lora(v) => {
+                    packet.modulation = hal::Modulation::LoRa;
                     packet.bandwidth = v.bandwidth;
                     packet.datarate = match v.spreading_factor {
                         7 => hal::DataRate::SF7,
@@ -272,6 +273,7 @@ pub fn downlink_from_proto(df: &gw::DownlinkFrameItem) -> Result<hal::TxPacket, 
                     packet.invert_pol = v.polarization_inversion;
                 }
                 gw::modulation::Parameters::Fsk(v) => {
+                    packet.modulation = hal::Modulation::FSK;
                     packet.datarate = hal::DataRate::FSK(v.datarate);
                     packet.f_dev = (v.frequency_deviation / 1000) as u8;
                 }
