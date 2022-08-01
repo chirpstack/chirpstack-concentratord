@@ -71,6 +71,7 @@ fn main() {
             .unwrap();
     } else {
         SimpleLogger::new()
+            .with_utc_timestamps()
             .with_level(
                 log::Level::from_str(&config.concentratord.log_level)
                     .unwrap()
