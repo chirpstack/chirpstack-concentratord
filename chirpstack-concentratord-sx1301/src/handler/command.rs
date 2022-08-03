@@ -5,7 +5,6 @@ use std::time::Duration;
 use libconcentratord::signals::Signal;
 use libconcentratord::{commands, jitqueue, stats};
 use prost::Message;
-use uuid::Uuid;
 
 use super::super::config::vendor;
 use super::super::wrapper;
@@ -72,20 +71,11 @@ fn handle_downlink(
     queue: &Arc<Mutex<jitqueue::Queue<wrapper::TxPacket>>>,
     pl: &chirpstack_api::gw::DownlinkFrame,
 ) -> Result<Vec<u8>, ()> {
-    let id = match Uuid::from_slice(&pl.downlink_id) {
-        Ok(v) => v,
-        Err(err) => {
-            error!("Decode downlink_id error: {}", err);
-            return Err(());
-        }
-    };
-
     stats::inc_tx_packets_received();
 
     let mut tx_ack = chirpstack_api::gw::DownlinkTxAck {
-        gateway_id: gateway_id.to_vec(),
-        token: pl.token,
-        downlink_id: pl.downlink_id.to_vec(),
+        gateway_id: hex::encode(gateway_id),
+        downlink_id: pl.downlink_id,
         items: vec![Default::default(); pl.items.len()],
         ..Default::default()
     };
@@ -98,7 +88,7 @@ fn handle_downlink(
             Err(err) => {
                 error!(
                     "Convert downlink protobuf to HAL struct error, downlink_id: {}, error: {}",
-                    id, err,
+                    pl.downlink_id, err,
                 );
                 return Err(());
             }
@@ -107,7 +97,7 @@ fn handle_downlink(
         // validate frequency range
         let freqs = vendor_config.radio_min_max_tx_freq[tx_packet.rf_chain as usize];
         if tx_packet.freq_hz < freqs.0 || tx_packet.freq_hz > freqs.1 {
-            error!("Frequency is not within min/max gateway frequency, downlink_id: {}, min_freq: {}, max_freq: {}", id, freqs.0, freqs.1);
+            error!("Frequency is not within min/max gateway frequency, downlink_id: {}, min_freq: {}, max_freq: {}", pl.downlink_id, freqs.0, freqs.1);
             tx_ack.items[i].set_status(chirpstack_api::gw::TxAckStatus::TxFreq);
 
             // try next
@@ -117,7 +107,7 @@ fn handle_downlink(
         // try enqueue
         match queue.lock().unwrap().enqueue(
             timersync::get_concentrator_count(),
-            wrapper::TxPacket::new(id, tx_packet),
+            wrapper::TxPacket::new(pl.downlink_id, tx_packet),
         ) {
             Ok(_) => {
                 tx_ack.items[i].set_status(chirpstack_api::gw::TxAckStatus::Ok);

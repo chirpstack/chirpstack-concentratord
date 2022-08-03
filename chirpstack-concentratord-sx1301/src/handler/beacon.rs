@@ -6,7 +6,7 @@ use std::time::Duration;
 use libconcentratord::jitqueue;
 use libconcentratord::signals::Signal;
 use libloragw_sx1301::hal;
-use uuid::Uuid;
+use rand::Rng;
 
 use super::super::{config, wrapper};
 use super::{gps, timersync};
@@ -75,6 +75,8 @@ fn send_beacon(
     beacon_time: Duration,
     queue: &Arc<Mutex<jitqueue::Queue<wrapper::TxPacket>>>,
 ) -> Result<(), String> {
+    let mut rng = rand::thread_rng();
+
     let mut beacon_pl = get_beacon(conf.compulsory_rfu_size, beacon_time);
     let data_size = beacon_pl.len();
 
@@ -113,7 +115,7 @@ fn send_beacon(
         size: data_size as u16,
         payload: data,
     };
-    let tx_packet = wrapper::TxPacket::new(Uuid::new_v4(), tx_packet);
+    let tx_packet = wrapper::TxPacket::new(rng.gen(), tx_packet);
 
     match queue
         .lock()

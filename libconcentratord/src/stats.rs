@@ -2,8 +2,6 @@ use std::collections::HashMap;
 use std::sync::Mutex;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use uuid::Uuid;
-
 use super::events;
 
 lazy_static! {
@@ -14,51 +12,30 @@ pub fn inc_rx_counts(pl: &chirpstack_api::gw::UplinkFrame) {
     let mut stats = STATS.lock().unwrap();
     stats.rx_packets_received_ok += 1;
 
-    match &pl.tx_info {
-        Some(tx_info) => {
-            stats
-                .rx_packets_per_frequency
-                .entry(tx_info.frequency)
-                .and_modify(|v| *v += 1)
-                .or_insert(1);
+    if let Some(tx_info) = &pl.tx_info {
+        stats
+            .rx_packets_per_frequency
+            .entry(tx_info.frequency)
+            .and_modify(|v| *v += 1)
+            .or_insert(1);
 
-            match &tx_info.modulation_info {
-                Some(mod_info) => {
-                    let modulation = Some(chirpstack_api::gw::Modulation {
-                        parameters: Some(match &mod_info {
-                        chirpstack_api::gw::uplink_tx_info::ModulationInfo::LoraModulationInfo(
-                            v,
-                        ) => chirpstack_api::gw::modulation::Parameters::Lora(v.clone()),
-                        chirpstack_api::gw::uplink_tx_info::ModulationInfo::FskModulationInfo(
-                            v,
-                        ) => chirpstack_api::gw::modulation::Parameters::Fsk(v.clone()),
-                        chirpstack_api::gw::uplink_tx_info::ModulationInfo::LrFhssModulationInfo(
-                            v,
-                        ) => chirpstack_api::gw::modulation::Parameters::LrFhss(v.clone()),
-                    })});
-
-                    let mut found = false;
-                    for mod_count in &mut stats.rx_packets_per_modulation {
-                        if mod_count.modulation == modulation {
-                            mod_count.count += 1;
-                            found = true;
-                        }
-                    }
-
-                    if !found {
-                        stats.rx_packets_per_modulation.push(
-                            chirpstack_api::gw::PerModulationCount {
-                                modulation: modulation,
-                                count: 1,
-                            },
-                        );
-                    }
-                }
-                None => {}
-            };
+        let mut found = false;
+        for mod_count in &mut stats.rx_packets_per_modulation {
+            if mod_count.modulation == tx_info.modulation {
+                mod_count.count += 1;
+                found = true;
+            }
         }
-        None => {}
-    };
+
+        if !found {
+            stats
+                .rx_packets_per_modulation
+                .push(chirpstack_api::gw::PerModulationCount {
+                    modulation: tx_info.modulation.clone(),
+                    count: 1,
+                });
+        }
+    }
 }
 
 pub fn inc_tx_counts(tx_info: &chirpstack_api::gw::DownlinkTxInfo) {
@@ -71,38 +48,22 @@ pub fn inc_tx_counts(tx_info: &chirpstack_api::gw::DownlinkTxInfo) {
         .and_modify(|v| *v += 1)
         .or_insert(1);
 
-    match &tx_info.modulation_info {
-        Some(mod_info) => {
-            let modulation = Some(chirpstack_api::gw::Modulation {
-                parameters: Some(match &mod_info {
-                    chirpstack_api::gw::downlink_tx_info::ModulationInfo::LoraModulationInfo(v) => {
-                        chirpstack_api::gw::modulation::Parameters::Lora(v.clone())
-                    }
-                    chirpstack_api::gw::downlink_tx_info::ModulationInfo::FskModulationInfo(v) => {
-                        chirpstack_api::gw::modulation::Parameters::Fsk(v.clone())
-                    }
-                }),
-            });
-
-            let mut found = false;
-            for mod_count in &mut stats.tx_packets_per_modulation {
-                if mod_count.modulation == modulation {
-                    mod_count.count += 1;
-                    found = true;
-                }
-            }
-
-            if !found {
-                stats
-                    .tx_packets_per_modulation
-                    .push(chirpstack_api::gw::PerModulationCount {
-                        modulation: modulation,
-                        count: 1,
-                    });
-            }
+    let mut found = false;
+    for mod_count in &mut stats.tx_packets_per_modulation {
+        if mod_count.modulation == tx_info.modulation {
+            mod_count.count += 1;
+            found = true;
         }
-        None => {}
-    };
+    }
+
+    if !found {
+        stats
+            .tx_packets_per_modulation
+            .push(chirpstack_api::gw::PerModulationCount {
+                modulation: tx_info.modulation.clone(),
+                count: 1,
+            });
+    }
 }
 
 pub fn inc_tx_status_count(status: chirpstack_api::gw::TxAckStatus) {
@@ -146,19 +107,17 @@ pub fn send_and_reset(
 ) -> Result<(), String> {
     let mut stats = STATS.lock().unwrap();
 
-    let stats_id = Uuid::new_v4();
     let now_since_unix = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
 
-    stats.gateway_id = gateway_id.to_vec();
-    stats.stats_id = stats_id.as_bytes().to_vec();
-    stats.time = Some(prost_types::Timestamp {
+    stats.gateway_id = hex::encode(gateway_id);
+    stats.time = Some(pbjson_types::Timestamp {
         seconds: now_since_unix.as_secs() as i64,
         nanos: now_since_unix.subsec_nanos() as i32,
     });
     stats.location = location;
     stats.meta_data = metadata.clone();
 
-    events::send_stats(&stats, &stats_id).unwrap();
+    events::send_stats(&stats).unwrap();
 
     // reset stats
     *stats = Default::default();

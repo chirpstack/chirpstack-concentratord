@@ -2,7 +2,7 @@
 name = "chirpstack-concentratord-sx1301"
 repository="https://github.com/brocaar/chirpstack-concentratord/"
 license="MIT"
-version = "3.3.3"
+version = "4.0.0-test.1"
 authors = ["Orne Brocaar <info@brocaar.com>"]
 edition = "2018"
 publish = false
@@ -10,7 +10,7 @@ publish = false
 [dependencies]
 libloragw-sx1301 = {path = "../libloragw-sx1301"}
 libconcentratord = {path = "../libconcentratord"}
-chirpstack_api = { version = "3.10", default-features = false }
+chirpstack_api = { version = "4.0.0-test.13", default-features = false }
 serde = { version = "1.0", features = ["derive"] }
 toml = "0.5"
 clap = "2.33"
@@ -19,14 +19,14 @@ simple_logger = "1.11"
 zmq = "0.9"
 hex = "0.4"
 lazy_static = "1.4"
-uuid = { version = "0.8", features = ["v4"] }
 chrono = "0.4"
 humantime-serde = "1.0"
 syslog = "5.0"
-prost = "0.8"
-prost-types = "0.8"
+prost = "0.10"
+pbjson-types = "0.3.2"
 signal-hook = "0.3"
 handlebars = "4.1"
+rand = "0.8"
 
 [features]
 default = ['zmq/vendored']

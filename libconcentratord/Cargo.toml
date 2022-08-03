@@ -9,10 +9,10 @@ publish = false
 log = "0.4"
 zmq = "0.9"
 lazy_static = "1.4"
-chirpstack_api = { version = "3.11.1", default-features = false }
-uuid = { version = "0.8", features = ["v4"] }
-prost = "0.8"
-prost-types = "0.8"
+chirpstack_api = { version = "4.0.0-test.13", default-features = false }
+prost = "0.10"
+pbjson-types = "0.3.2"
+hex = "0.4.3"
 gpio-cdev = "0.4"
 
 [features]

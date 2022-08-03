@@ -2,7 +2,6 @@ use std::sync::Mutex;
 
 use log::info;
 use prost::Message;
-use uuid::Uuid;
 
 use super::socket::ZMQ_CONTEXT;
 
@@ -36,11 +35,11 @@ pub fn send_uplink(pl: &chirpstack_api::gw::UplinkFrame) -> Result<(), String> {
     return Ok(());
 }
 
-pub fn send_stats(stats: &chirpstack_api::gw::GatewayStats, stats_id: &Uuid) -> Result<(), String> {
+pub fn send_stats(stats: &chirpstack_api::gw::GatewayStats) -> Result<(), String> {
     let pub_guard = ZMQ_PUB.lock().unwrap();
     let publisher = pub_guard.as_ref().unwrap();
 
-    info!("Publishing stats event, stats_id: {}, rx_received: {}, rx_received_ok: {}, tx_received: {}, tx_emitted: {}", stats_id, stats.rx_packets_received, stats.rx_packets_received_ok, stats.tx_packets_received, stats.tx_packets_emitted);
+    info!("Publishing stats event, rx_received: {}, rx_received_ok: {}, tx_received: {}, tx_emitted: {}", stats.rx_packets_received, stats.rx_packets_received_ok, stats.tx_packets_received, stats.tx_packets_emitted);
 
     let mut buf = Vec::new();
     stats.encode(&mut buf).unwrap();

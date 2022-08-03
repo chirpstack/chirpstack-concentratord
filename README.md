@@ -10,13 +10,10 @@ in a separate daemon and exposing this over a ZeroMQ based API, the packet
 forwarding application can be completely decoupled from the gateway hardware.
 It also allows for running multiple packet forwarding applications simultaniously.
 
-## Architecture
+## Documentation
 
-![architecture](https://www.chirpstack.io/static/img/graphs/architecture.dot.png)
-
-## Links
-
-* [Documentation](https://www.chirpstack.io/concentratord/)
+Please refer to the [ChirpStack documentation](https://www.chirpstack.io/) for
+more information.
 
 ## License
 
