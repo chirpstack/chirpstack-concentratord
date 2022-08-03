@@ -13,7 +13,7 @@ chirpstack_api = { version = "4.0.0-test.13", default-features = false }
 prost = "0.10"
 pbjson-types = "0.3.2"
 hex = "0.4.3"
-gpio-cdev = "0.4"
+gpio-cdev = "0.5"
 
 [features]
 default = ['zmq/vendored']
