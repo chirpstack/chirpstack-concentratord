@@ -1,6 +1,6 @@
 [package]
 name = "chirpstack-concentratord-2g4"
-repository="https://github.com/brocaar/chirpstack-concentratord/"
+repository="https://github.com/chirpstack/chirpstack-concentratord/"
 license="MIT"
 version = "4.0.0-test.1"
 authors = ["Orne Brocaar <info@brocaar.com>"]
