@@ -108,6 +108,8 @@ pub fn uplink_to_proto(
             gateway_id: hex::encode(gateway_id),
             rssi: packet.rssis as i32,
             snr: packet.snr,
+            channel: packet.if_chain as u32,
+            rf_chain: packet.rf_chain as u32,
             time: match gps::cnt2time(packet.count_us) {
                 Ok(v) => {
                     let v = v.duration_since(UNIX_EPOCH).unwrap();

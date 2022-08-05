@@ -10,7 +10,7 @@ publish = false
 [dependencies]
 libloragw-2g4 = {path = "../libloragw-2g4"}
 libconcentratord = {path = "../libconcentratord"}
-chirpstack_api = { version = "4.0.0-test.13", default-features = false }
+chirpstack_api = { version = "4.0.0-test.18", default-features = false }
 serde = { version = "1.0", features = ["derive"] }
 toml = "0.5"
 clap = "2.33"

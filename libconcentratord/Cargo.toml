@@ -9,7 +9,7 @@ publish = false
 log = "0.4"
 zmq = "0.9"
 lazy_static = "1.4"
-chirpstack_api = { version = "4.0.0-test.13", default-features = false }
+chirpstack_api = { version = "4.0.0-test.18", default-features = false }
 prost = "0.10"
 pbjson-types = "0.3.2"
 hex = "0.4.3"

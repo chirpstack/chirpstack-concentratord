@@ -113,8 +113,8 @@ pub fn uplink_to_proto(
     rx_info.gateway_id = hex::encode(gateway_id);
     rx_info.rssi = packet.rssi as i32;
     rx_info.snr = packet.snr;
-    rx_info.board = 0;
-    rx_info.antenna = 0;
+    rx_info.channel = packet.if_chain as u32;
+    rx_info.rf_chain = packet.rf_chain as u32;
     match gps::cnt2time(packet.count_us) {
         Ok(v) => {
             let v = v.duration_since(UNIX_EPOCH).unwrap();
