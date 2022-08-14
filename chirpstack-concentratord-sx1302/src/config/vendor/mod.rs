@@ -1,6 +1,7 @@
 use libloragw_sx1302::hal;
 
 pub mod rak;
+pub mod seeed;
 pub mod semtech;
 
 #[derive(Clone)]
@@ -25,8 +26,9 @@ pub struct Configuration {
     pub gps_tty_path: Option<String>,
     pub com_type: ComType,
     pub com_path: String,
-    pub reset_pin: Option<(u32, u32)>,
-    pub power_en_pin: Option<(u32, u32)>,
+    pub sx1302_reset_pin: Option<(u32, u32)>,
+    pub sx1302_power_en_pin: Option<(u32, u32)>,
+    pub sx1261_reset_pin: Option<(u32, u32)>,
 }
 
 #[derive(Clone)]

@@ -100,10 +100,11 @@ fn main() {
     });
 
     // configure concentrator reset pin
-    if config.gateway.model_config.reset_pin.is_some() {
+    if config.gateway.model_config.sx1302_reset_pin.is_some() {
         reset::setup_pins(
-            config.gateway.model_config.reset_pin.unwrap(),
-            config.gateway.model_config.power_en_pin,
+            config.gateway.model_config.sx1302_reset_pin.unwrap(),
+            config.gateway.model_config.sx1302_power_en_pin,
+            config.gateway.model_config.sx1261_reset_pin,
         )
         .expect("setup reset pin error");
     }

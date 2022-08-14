@@ -42,9 +42,11 @@ pub struct Gateway {
     #[serde(default)]
     pub model_flags: Vec<String>,
     #[serde(default)]
-    pub reset_pin: u32,
+    pub sx1302_reset_pin: u32,
     #[serde(default)]
-    pub power_en_pin: u32,
+    pub sx1302_power_en_pin: u32,
+    #[serde(default)]
+    pub sx1261_reset_pin: u32,
     pub concentrator: Concentrator,
     #[serde(default)]
     pub location: Location,
@@ -163,11 +165,6 @@ pub fn get(filenames: Vec<String>) -> Configuration {
 
     // get model configuration
     config.gateway.model_config = match config.gateway.model.as_ref() {
-        "semtech_sx1302c868gw1_eu868" => vendor::semtech::sx1302c868gw1_eu868::new(&config),
-        "semtech_sx1302c915gw1_us915" => vendor::semtech::sx1302c915gw1_us915::new(&config),
-        "semtech_sx1302css868gw1_eu868" => vendor::semtech::sx1302css868gw1_eu868::new(&config),
-        "semtech_sx1302css915gw1_us915" => vendor::semtech::sx1302css915gw1_us915::new(&config),
-        "semtech_sx1302css923gw1_as923" => vendor::semtech::sx1302css923gw1_as923::new(&config),
         "rak_2287_as923" => vendor::rak::rak2287_as923::new(&config),
         "rak_2287_au915" => vendor::rak::rak2287_au915::new(&config),
         "rak_2287_cn470" => vendor::rak::rak2287_cn470::new(&config),
@@ -186,6 +183,12 @@ pub fn get(filenames: Vec<String>) -> Configuration {
         "rak_5146_kr920" => vendor::rak::rak5146_kr920::new(&config),
         "rak_5146_ru864" => vendor::rak::rak5146_ru864::new(&config),
         "rak_5146_us915" => vendor::rak::rak5146_us915::new(&config),
+        "seeed_wm1302_spi_eu868" => vendor::seeed::wm1302_spi_eu868::new(&config),
+        "semtech_sx1302c868gw1_eu868" => vendor::semtech::sx1302c868gw1_eu868::new(&config),
+        "semtech_sx1302c915gw1_us915" => vendor::semtech::sx1302c915gw1_us915::new(&config),
+        "semtech_sx1302css868gw1_eu868" => vendor::semtech::sx1302css868gw1_eu868::new(&config),
+        "semtech_sx1302css915gw1_us915" => vendor::semtech::sx1302css915gw1_us915::new(&config),
+        "semtech_sx1302css923gw1_as923" => vendor::semtech::sx1302css923gw1_as923::new(&config),
         _ => panic!("unexpected gateway model: {}", config.gateway.model),
     };
 

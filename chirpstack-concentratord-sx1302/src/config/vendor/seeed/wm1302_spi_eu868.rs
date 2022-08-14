@@ -3,12 +3,9 @@ use libloragw_sx1302::hal;
 use super::super::super::super::config;
 use super::super::{ComType, Configuration, RadioConfig};
 
-// source:
-// https://github.com/RAKWireless/rak_common_for_gateway/blob/45c93c07f7/lora/rak2287/global_conf_uart/global_conf.eu_433.json
+// The Seeed wiki for the WM1302 points to the Semtech source:
+// https://wiki.seeedstudio.com/WM1302_module/#step3-get-and-compile-sx1302-source-code
 pub fn new(conf: &config::Configuration) -> Configuration {
-    let gps = conf.gateway.model_flags.contains(&"GNSS".to_string());
-    let usb = conf.gateway.model_flags.contains(&"USB".to_string());
-
     Configuration {
         radio_count: 2,
         clock_source: 0,
@@ -19,7 +16,7 @@ pub fn new(conf: &config::Configuration) -> Configuration {
                 enable: true,
                 radio_type: hal::RadioType::SX1250,
                 single_input_mode: true,
-                rssi_offset: -207.0,
+                rssi_offset: -215.4,
                 rssi_temp_compensation: hal::RssiTempCompensationConfig {
                     coeff_a: 0.0,
                     coeff_b: 0.0,
@@ -28,119 +25,119 @@ pub fn new(conf: &config::Configuration) -> Configuration {
                     coeff_e: 0.0,
                 },
                 tx_enable: true,
-                tx_freq_min: 433050000,
-                tx_freq_max: 434900000,
+                tx_freq_min: 863000000,
+                tx_freq_max: 870000000,
                 tx_gain_table: vec![
                     // 0
                     hal::TxGainConfig {
-                        rf_power: -6,
+                        rf_power: 12,
                         pa_gain: 0,
-                        pwr_idx: 0,
+                        pwr_idx: 15,
                         ..Default::default()
                     },
                     // 1
                     hal::TxGainConfig {
-                        rf_power: -3,
+                        rf_power: 13,
                         pa_gain: 0,
-                        pwr_idx: 1,
+                        pwr_idx: 16,
                         ..Default::default()
                     },
                     // 2
                     hal::TxGainConfig {
-                        rf_power: 0,
+                        rf_power: 14,
                         pa_gain: 0,
-                        pwr_idx: 2,
+                        pwr_idx: 17,
                         ..Default::default()
                     },
                     // 3
                     hal::TxGainConfig {
-                        rf_power: 3,
-                        pa_gain: 1,
-                        pwr_idx: 3,
+                        rf_power: 15,
+                        pa_gain: 0,
+                        pwr_idx: 19,
                         ..Default::default()
                     },
                     // 4
                     hal::TxGainConfig {
-                        rf_power: 6,
-                        pa_gain: 1,
-                        pwr_idx: 4,
+                        rf_power: 16,
+                        pa_gain: 0,
+                        pwr_idx: 20,
                         ..Default::default()
                     },
                     // 5
                     hal::TxGainConfig {
-                        rf_power: 10,
-                        pa_gain: 1,
-                        pwr_idx: 5,
+                        rf_power: 17,
+                        pa_gain: 0,
+                        pwr_idx: 22,
                         ..Default::default()
                     },
                     // 6
                     hal::TxGainConfig {
-                        rf_power: 11,
+                        rf_power: 18,
                         pa_gain: 1,
-                        pwr_idx: 6,
+                        pwr_idx: 1,
                         ..Default::default()
                     },
                     // 7
                     hal::TxGainConfig {
-                        rf_power: 12,
+                        rf_power: 19,
                         pa_gain: 1,
-                        pwr_idx: 7,
+                        pwr_idx: 2,
                         ..Default::default()
                     },
                     // 8
                     hal::TxGainConfig {
-                        rf_power: 13,
+                        rf_power: 20,
                         pa_gain: 1,
-                        pwr_idx: 8,
+                        pwr_idx: 3,
                         ..Default::default()
                     },
                     // 9
                     hal::TxGainConfig {
-                        rf_power: 14,
+                        rf_power: 21,
                         pa_gain: 1,
-                        pwr_idx: 9,
+                        pwr_idx: 4,
                         ..Default::default()
                     },
                     // 10
                     hal::TxGainConfig {
-                        rf_power: 16,
+                        rf_power: 22,
                         pa_gain: 1,
-                        pwr_idx: 10,
+                        pwr_idx: 5,
                         ..Default::default()
                     },
                     // 11
                     hal::TxGainConfig {
-                        rf_power: 20,
+                        rf_power: 23,
                         pa_gain: 1,
-                        pwr_idx: 11,
+                        pwr_idx: 6,
                         ..Default::default()
                     },
                     // 12
                     hal::TxGainConfig {
-                        rf_power: 23,
+                        rf_power: 24,
                         pa_gain: 1,
-                        pwr_idx: 12,
+                        pwr_idx: 7,
                         ..Default::default()
                     },
                     // 13
                     hal::TxGainConfig {
                         rf_power: 25,
                         pa_gain: 1,
-                        pwr_idx: 13,
+                        pwr_idx: 9,
                         ..Default::default()
                     },
                     // 14
                     hal::TxGainConfig {
                         rf_power: 26,
                         pa_gain: 1,
-                        pwr_idx: 14,
+                        pwr_idx: 11,
                         ..Default::default()
                     },
                     // 15
                     hal::TxGainConfig {
                         rf_power: 27,
                         pa_gain: 1,
-                        pwr_idx: 15,
+                        pwr_idx: 14,
                         ..Default::default()
                     },
                 ],
@@ -148,8 +145,8 @@ pub fn new(conf: &config::Configuration) -> Configuration {
             RadioConfig {
                 enable: true,
                 radio_type: hal::RadioType::SX1250,
-                single_input_mode: true,
-                rssi_offset: -207.0,
+                single_input_mode: false,
+                rssi_offset: -215.4,
                 rssi_temp_compensation: hal::RssiTempCompensationConfig {
                     coeff_a: 0.0,
                     coeff_b: 0.0,
@@ -163,26 +160,20 @@ pub fn new(conf: &config::Configuration) -> Configuration {
                 tx_gain_table: vec![],
             },
         ],
-        gps_tty_path: match gps {
-            true => Some("/dev/ttyAMA0".to_string()),
-            false => None,
-        },
-        com_type: match usb {
-            true => ComType::USB,
-            false => ComType::SPI,
-        },
-        com_path: match usb {
-            true => "/dev/ttyACM0".to_string(),
-            false => "/dev/spidev0.0".to_string(),
-        },
+        gps_tty_path: Some("/dev/ttyAMA0".to_string()),
+        com_type: ComType::SPI,
+        com_path: "/dev/spidev0.0".to_string(),
         sx1302_reset_pin: match conf.gateway.sx1302_reset_pin {
             0 => Some((0, 17)),
             _ => Some((0, conf.gateway.sx1302_reset_pin)),
         },
         sx1302_power_en_pin: match conf.gateway.sx1302_power_en_pin {
-            0 => None,
+            0 => Some((0, 18)),
             _ => Some((0, conf.gateway.sx1302_power_en_pin)),
         },
-        sx1261_reset_pin: None,
+        sx1261_reset_pin: match conf.gateway.sx1261_reset_pin {
+            0 => Some((0, 5)),
+            _ => Some((0, conf.gateway.sx1261_reset_pin)),
+        },
     }
 }

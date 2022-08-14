@@ -239,13 +239,14 @@ pub fn new(conf: &config::Configuration) -> Configuration {
             true => "/dev/ttyACM0".to_string(),
             false => "/dev/spidev0.0".to_string(),
         },
-        reset_pin: match conf.gateway.reset_pin {
+        sx1302_reset_pin: match conf.gateway.sx1302_reset_pin {
             0 => Some((0, 17)),
-            _ => Some((0, conf.gateway.reset_pin)),
+            _ => Some((0, conf.gateway.sx1302_reset_pin)),
         },
-        power_en_pin: match conf.gateway.power_en_pin {
+        sx1302_power_en_pin: match conf.gateway.sx1302_power_en_pin {
             0 => None,
-            _ => Some((0, conf.gateway.power_en_pin)),
+            _ => Some((0, conf.gateway.sx1302_power_en_pin)),
         },
+        sx1261_reset_pin: None,
     }
 }

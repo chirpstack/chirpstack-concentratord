@@ -7,55 +7,89 @@ use gpio_cdev::{Chip, LineHandle, LineRequestFlags};
 use log::info;
 
 lazy_static! {
-    static ref RESET: Mutex<Option<LineHandle>> = Mutex::new(None);
-    static ref POWER_EN: Mutex<Option<LineHandle>> = Mutex::new(None);
+    static ref SX1302_RESET: Mutex<Option<LineHandle>> = Mutex::new(None);
+    static ref SX1302_POWER_EN: Mutex<Option<LineHandle>> = Mutex::new(None);
+    static ref SX1261_RESET: Mutex<Option<LineHandle>> = Mutex::new(None);
 }
 
-pub fn setup_pins(reset: (u32, u32), power_en: Option<(u32, u32)>) -> Result<(), Error> {
-    info!("Configuring reset pin, chip: {}, pin: {}", reset.0, reset.1);
+pub fn setup_pins(
+    sx1302_reset: (u32, u32),
+    sx1302_power_en: Option<(u32, u32)>,
+    sx1261_reset: Option<(u32, u32)>,
+) -> Result<(), Error> {
+    info!(
+        "Configuring reset pin, chip: {}, pin: {}",
+        sx1302_reset.0, sx1302_reset.1
+    );
 
-    let mut chip = Chip::new(format!("/dev/gpiochip{}", reset.0))?;
-    let line = chip.get_line(reset.1)?;
-    let mut reset = RESET.lock().unwrap();
-    *reset = Some(line.request(LineRequestFlags::OUTPUT, 0, "reset")?);
+    let mut chip = Chip::new(format!("/dev/gpiochip{}", sx1302_reset.0))?;
+    let line = chip.get_line(sx1302_reset.1)?;
+    let mut sx1302_reset = SX1302_RESET.lock().unwrap();
+    *sx1302_reset = Some(line.request(LineRequestFlags::OUTPUT, 0, "sx1302_reset")?);
 
-    if power_en.is_some() {
-        let power_en = power_en.unwrap();
+    if sx1302_power_en.is_some() {
+        let sx1302_power_en = sx1302_power_en.unwrap();
 
         info!(
-            "Configuring power enable pin, chip: {}, pin: {}",
-            power_en.0, power_en.1
+            "Configuring sx1302 power enable pin, chip: {}, pin: {}",
+            sx1302_power_en.0, sx1302_power_en.1
         );
 
-        let mut chip = Chip::new(format!("/dev/gpiochip{}", power_en.0))?;
-        let line = chip.get_line(power_en.1)?;
-        let mut power_en = POWER_EN.lock().unwrap();
-        *power_en = Some(line.request(LineRequestFlags::OUTPUT, 0, "power_en")?);
+        let mut chip = Chip::new(format!("/dev/gpiochip{}", sx1302_power_en.0))?;
+        let line = chip.get_line(sx1302_power_en.1)?;
+        let mut sx1302_power_en = SX1302_POWER_EN.lock().unwrap();
+        *sx1302_power_en = Some(line.request(LineRequestFlags::OUTPUT, 0, "sx1302_power_en")?);
+    }
+
+    if sx1261_reset.is_some() {
+        let sx1261_reset = sx1261_reset.unwrap();
+
+        info!(
+            "Configuring sx1261 reset pin, chip: {}, pin: {}",
+            sx1261_reset.0, sx1261_reset.1
+        );
+
+        let mut chip = Chip::new(format!("/dev/gpiochip{}", sx1261_reset.0))?;
+        let line = chip.get_line(sx1261_reset.1)?;
+        let mut sx1261_reset = SX1261_RESET.lock().unwrap();
+        *sx1261_reset = Some(line.request(LineRequestFlags::OUTPUT, 0, "sx1261_reset")?);
     }
 
     Ok(())
 }
 
 pub fn reset() -> Result<(), Error> {
-    let reset = RESET.lock().unwrap();
-    if reset.is_some() {
-        let reset = reset.as_ref().unwrap();
+    let sx1302 = SX1302_RESET.lock().unwrap();
+    if sx1302.is_some() {
+        let sx1302 = sx1302.as_ref().unwrap();
 
-        info!("Triggering concentrator reset");
+        info!("Triggering sx1302 reset");
 
-        reset.set_value(1)?;
+        sx1302.set_value(1)?;
         sleep(Duration::from_millis(100));
-        reset.set_value(0)?;
+        sx1302.set_value(0)?;
         sleep(Duration::from_millis(100));
     }
 
-    let power_en = POWER_EN.lock().unwrap();
-    if power_en.is_some() {
-        let power_en = power_en.as_ref().unwrap();
+    let sx1302_power_en = SX1302_POWER_EN.lock().unwrap();
+    if sx1302_power_en.is_some() {
+        let sx1302_power_en = sx1302_power_en.as_ref().unwrap();
 
         info!("Enabling concentrator power");
 
-        power_en.set_value(1)?;
+        sx1302_power_en.set_value(1)?;
+        sleep(Duration::from_millis(100));
+    }
+
+    let sx1261_reset = SX1261_RESET.lock().unwrap();
+    if sx1261_reset.is_some() {
+        let sx1261_reset = sx1261_reset.as_ref().unwrap();
+
+        info!("Triggering sx1261 reset");
+
+        sx1261_reset.set_value(1)?;
+        sleep(Duration::from_millis(100));
+        sx1261_reset.set_value(0)?;
         sleep(Duration::from_millis(100));
     }
 

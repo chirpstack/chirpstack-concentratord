@@ -101,7 +101,7 @@ fn main() {
 
     // configure concentrator reset pin
     if config.gateway.model_config.reset_pin.is_some() {
-        reset::setup_pins(config.gateway.model_config.reset_pin.unwrap(), None)
+        reset::setup_pins(config.gateway.model_config.reset_pin.unwrap(), None, None)
             .expect("setup reset pin error");
     }
 

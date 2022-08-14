@@ -167,7 +167,8 @@ pub fn new(conf: &config::Configuration) -> Configuration {
         },
         com_type: ComType::USB,
         com_path: "/dev/ttyACM0".to_string(),
-        reset_pin: None,
-        power_en_pin: None,
+        sx1302_reset_pin: None,
+        sx1302_power_en_pin: None,
+        sx1261_reset_pin: None,
     }
 }
