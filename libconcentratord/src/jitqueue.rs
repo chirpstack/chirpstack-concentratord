@@ -2,6 +2,8 @@ use std::time::Duration;
 
 use log::{debug, error, info};
 
+use super::regulation;
+
 #[derive(PartialEq, Eq, Copy, Clone, Debug)]
 pub enum TxMode {
     Immediate,
@@ -16,34 +18,50 @@ pub trait TxPacket {
     fn set_tx_mode(&mut self, tx_mode: TxMode);
     fn get_count_us(&self) -> u32;
     fn set_count_us(&mut self, count_us: u32);
+    fn get_frequency(&self) -> u32;
+    fn get_tx_power(&self) -> i8;
 }
 
 pub struct Item<T> {
+    pub(crate) time: Duration,
     pre_delay: Duration,
-    post_delay: Duration,
-    packet: T,
+    pub(crate) post_delay: Duration,
+    pub(crate) packet: T,
 }
 
 pub struct Queue<T> {
     items: Vec<Item<T>>,
+    regul: regulation::Engine<T>,
 
     tx_start_delay: Duration,
     tx_margin_delay: Duration,
     tx_jit_delay: Duration,
     tx_max_advance_delay: Duration,
+    tx_time_last: Duration,
+
+    count_us_last: u32,
+    time_last: Duration,
 }
 
 impl<T: TxPacket + Copy> Queue<T> {
-    pub fn new(capacity: usize) -> Queue<T> {
+    pub fn new(capacity: usize, standard: regulation::Standard) -> Queue<T> {
         info!("Initializing JIT queue, capacity: {}", capacity);
 
         Queue {
             items: Vec::with_capacity(capacity),
+            regul: regulation::Engine::new(
+                capacity,
+                standard,
+            ),
 
             tx_start_delay: Duration::from_micros(1500),
             tx_margin_delay: Duration::from_micros(1000),
             tx_jit_delay: Duration::from_micros(30000),
             tx_max_advance_delay: Duration::from_secs((3 + 1) * 128),
+            tx_time_last: Duration::from_secs(0),
+
+            count_us_last: 0,
+            time_last: Duration::from_secs(0),
         }
     }
 
@@ -60,15 +78,26 @@ impl<T: TxPacket + Copy> Queue<T> {
     }
 
     pub fn pop(&mut self, concentrator_count: u32) -> Option<T> {
+        self.update_time(concentrator_count);
+        self.regul.cleanup(self.time_last);
+
         match self.items.first() {
             None => {
                 // nothing in the queue
                 return None;
             }
             Some(v) => {
-                if v.packet.get_count_us().wrapping_sub(concentrator_count)
-                    > v.pre_delay.as_micros() as u32
-                {
+                if v.time < self.time_last {
+                    // it can happen if cpu load is too high but should normally
+                    // not happen.
+                    error!("Scheduled packet is too old, dropped: count_us: {}, current_counter_us: {}", 
+                        v.packet.get_count_us(), 
+                        concentrator_count);
+                    self.items.remove(0);
+                    return None;
+                }
+
+                if v.time - self.time_last > v.pre_delay {
                     // packet is too far in advance
                     return None;
                 }
@@ -76,6 +105,11 @@ impl<T: TxPacket + Copy> Queue<T> {
         };
 
         let item = self.items.remove(0);
+        // we remove an item here but its airtime is possibly not done yet.
+        // while it is removed, waiting only 1 second for the next one 
+        // would lead to a collision is current tx packet airtime is more than
+        // 1 second.
+        self.tx_time_last = item.time + item.post_delay;
 
         return Some(item.packet);
     }
@@ -85,6 +119,8 @@ impl<T: TxPacket + Copy> Queue<T> {
         concentrator_count: u32,
         packet: T,
     ) -> Result<(), chirpstack_api::gw::TxAckStatus> {
+        self.update_time(concentrator_count);
+
         match packet.get_tx_mode() {
             TxMode::Timestamped => {
                 info!(
@@ -124,6 +160,8 @@ impl<T: TxPacket + Copy> Queue<T> {
         };
 
         let mut item = Item {
+            // time depends on packet count_us, will be set later
+            time: Duration::from_micros(0),
             pre_delay: self.tx_start_delay + self.tx_jit_delay,
             post_delay: time_on_air,
             packet: packet,
@@ -135,46 +173,51 @@ impl<T: TxPacket + Copy> Queue<T> {
             item.packet.set_tx_mode(TxMode::Timestamped);
 
             // use now + 1 sec
-            let mut asap_count_us =
-                concentrator_count.wrapping_add(Duration::from_secs(1).as_micros() as u32);
+            let mut asap_time = self.time_last + Duration::from_secs(1);
+
+            // eventual collision with currently running packet
+            // not anymore in queue but still there
+            let not_before_time = self.tx_time_last + self.tx_margin_delay + item.pre_delay;
+            if asap_time < not_before_time {
+                asap_time = not_before_time;
+            }
 
             // check if there is a collision
-            if self.collision_test(asap_count_us, item.pre_delay, item.post_delay) {
+            if self.collision_test(asap_time, item.pre_delay, item.post_delay) {
                 for p in self.items.iter() {
-                    asap_count_us = p.packet.get_count_us().wrapping_add(
-                        (p.post_delay.as_micros()
-                            + item.pre_delay.as_micros()
-                            + self.tx_margin_delay.as_micros()) as u32,
-                    );
+                    asap_time = p.time + p.post_delay + item.pre_delay + self.tx_margin_delay;
 
-                    if !self.collision_test(asap_count_us, item.pre_delay, item.post_delay) {
+                    if !self.collision_test(asap_time, item.pre_delay, item.post_delay) {
                         break;
                     }
                 }
             }
 
-            item.packet.set_count_us(asap_count_us);
-        } else if item.packet.get_tx_mode() == TxMode::Timestamped {
-            if self.collision_test(item.packet.get_count_us(), item.pre_delay, item.post_delay) {
-                return Err(chirpstack_api::gw::TxAckStatus::CollisionPacket);
-            }
-        } else if item.packet.get_tx_mode() == TxMode::OnGPS {
-            if self.collision_test(item.packet.get_count_us(), item.pre_delay, item.post_delay) {
-                return Err(chirpstack_api::gw::TxAckStatus::CollisionPacket);
+            item.time = asap_time;
+            item.packet.set_count_us(self.time_to_count(asap_time));
+        } else {
+            item.time = self.count_to_time(item.packet.get_count_us());
+            if item.packet.get_tx_mode() == TxMode::Timestamped {
+                if self.collision_test(item.time, item.pre_delay, item.post_delay) {
+                    return Err(chirpstack_api::gw::TxAckStatus::CollisionPacket);
+                }
+            } else if item.packet.get_tx_mode() == TxMode::OnGPS {
+                if self.collision_test(item.time, item.pre_delay, item.post_delay) {
+                    return Err(chirpstack_api::gw::TxAckStatus::CollisionPacket);
+                }
             }
         }
 
         // Is it too late to send this packet?
-        if item.packet.get_count_us().wrapping_sub(concentrator_count)
-            < (self.tx_start_delay + self.tx_margin_delay + self.tx_jit_delay).as_micros() as u32
+        if item.time < self.time_last
+            || item.time - self.time_last
+                < self.tx_start_delay + self.tx_margin_delay + self.tx_jit_delay
         {
             return Err(chirpstack_api::gw::TxAckStatus::TooLate);
         }
 
         // Is it too early to send this packet?
-        if item.packet.get_count_us().wrapping_sub(concentrator_count)
-            > self.tx_max_advance_delay.as_micros() as u32
-        {
+        if item.time - self.time_last > self.tx_max_advance_delay {
             return Err(chirpstack_api::gw::TxAckStatus::TooEarly);
         }
 
@@ -184,38 +227,55 @@ impl<T: TxPacket + Copy> Queue<T> {
             item.packet.get_count_us()
         );
 
+        // push item to regulation engine
+        self.regul.enqueue(self.time_last, &item)?;
+
         self.items.push(item);
-        self.sort(concentrator_count);
+        self.sort();
 
         return Ok(());
     }
 
-    fn sort(&mut self, count_us: u32) {
-        self.items.sort_by(|a, b| {
-            let a_diff = a.packet.get_count_us().wrapping_sub(count_us);
-            let b_diff = b.packet.get_count_us().wrapping_sub(count_us);
+    fn update_time(&mut self, concentrator_count: u32) {
+        let diff_us = concentrator_count.wrapping_sub(self.count_us_last);
+        self.time_last = self.time_last + Duration::from_micros(diff_us as u64);
+        self.count_us_last = concentrator_count;
+    }
 
-            return a_diff.cmp(&b_diff);
+    fn count_to_time(&self, count_us: u32) -> Duration {
+        let diff_us = count_us.wrapping_sub(self.count_us_last);
+        self.time_last + Duration::from_micros(diff_us as u64)
+    }
+
+    fn time_to_count(&self, time: Duration) -> u32 {
+        let diff_time = time - self.time_last;
+        self.count_us_last
+            .wrapping_add(diff_time.as_micros() as u32)
+    }
+
+    fn sort(&mut self) {
+        self.items.sort_by(|a, b| {
+            return a.time.cmp(&b.time);
         })
     }
 
-    fn collision_test(&self, count_us: u32, pre_delay: Duration, post_delay: Duration) -> bool {
-        let pre_delay = pre_delay.as_micros() as u32;
-        let post_delay = post_delay.as_micros() as u32;
-
-        for p2 in self.items.iter() {
-            let p2_pre_delay = p2.pre_delay.as_micros() as u32;
-            let p2_post_delay = p2.post_delay.as_micros() as u32;
-
-            if ((count_us.wrapping_sub(p2.packet.get_count_us()))
-                <= (pre_delay + p2_post_delay + self.tx_margin_delay.as_micros() as u32))
-                || ((p2.packet.get_count_us().wrapping_sub(count_us))
-                    <= (p2_pre_delay + post_delay + self.tx_margin_delay.as_micros() as u32))
-            {
-                return true;
-            }
+    fn collision_test(&self, time: Duration, pre_delay: Duration, post_delay: Duration) -> bool {
+        if time < self.tx_time_last + pre_delay + self.tx_margin_delay {
+            // a packet is currently running, then we need to take it into account
+            return true;
         }
 
+        for p2 in self.items.iter() {
+            if time > p2.time {
+                if time - p2.time <= pre_delay + p2.post_delay + self.tx_margin_delay {
+                    return true;
+                }
+            } else {
+                if p2.time - time <= p2.pre_delay + post_delay + self.tx_margin_delay {
+                    return true;
+                }
+            }
+        }
         return false;
     }
 }
@@ -229,6 +289,8 @@ mod tests {
         time_on_air: Duration,
         tx_mode: TxMode,
         count_us: u32,
+        frequency: u32,
+        tx_power: i8,
     }
 
     impl TxPacket for TxPacketMock {
@@ -255,17 +317,25 @@ mod tests {
         fn set_count_us(&mut self, count_us: u32) {
             self.count_us = count_us;
         }
+
+        fn get_frequency(&self) -> u32 {
+            return self.frequency;
+        }
+
+        fn get_tx_power(&self) -> i8 {
+            return self.tx_power;
+        }
     }
 
     #[test]
     fn test_size() {
-        let q: Queue<TxPacketMock> = Queue::new(10);
+        let q: Queue<TxPacketMock> = Queue::new(10, regulation::Standard::None);
         assert_eq!(10, q.size());
     }
 
     #[test]
     fn test_enqueue_full() {
-        let mut q: Queue<TxPacketMock> = Queue::new(2);
+        let mut q: Queue<TxPacketMock> = Queue::new(2, regulation::Standard::None);
 
         q.enqueue(
             100,
@@ -273,6 +343,8 @@ mod tests {
                 time_on_air: Duration::from_millis(100),
                 tx_mode: TxMode::Immediate,
                 count_us: 0,
+                frequency: 865000000,
+                tx_power: 14,
             },
         )
         .unwrap();
@@ -283,6 +355,8 @@ mod tests {
                 time_on_air: Duration::from_millis(100),
                 tx_mode: TxMode::Immediate,
                 count_us: 0,
+                frequency: 865000000,
+                tx_power: 14,
             },
         )
         .unwrap();
@@ -294,6 +368,8 @@ mod tests {
                     time_on_air: Duration::from_millis(100),
                     tx_mode: TxMode::Immediate,
                     count_us: 0,
+                    frequency: 865000000,
+                    tx_power: 14,
                 },
             )
             .is_err(),
@@ -303,7 +379,7 @@ mod tests {
 
     #[test]
     fn test_enqueue_immediate() {
-        let mut q: Queue<TxPacketMock> = Queue::new(2);
+        let mut q: Queue<TxPacketMock> = Queue::new(2, regulation::Standard::None);
         let concentrator_count = 100;
 
         q.enqueue(
@@ -312,6 +388,8 @@ mod tests {
                 time_on_air: Duration::from_millis(100),
                 tx_mode: TxMode::Immediate,
                 count_us: 0,
+                frequency: 865000000,
+                tx_power: 14,
             },
         )
         .unwrap();
@@ -322,6 +400,8 @@ mod tests {
                 time_on_air: Duration::from_millis(100),
                 tx_mode: TxMode::Immediate,
                 count_us: 0,
+                frequency: 865000000,
+                tx_power: 14,
             },
         )
         .unwrap();
@@ -351,7 +431,7 @@ mod tests {
 
     #[test]
     fn test_enqueue_immediate_u32_wrapping() {
-        let mut q: Queue<TxPacketMock> = Queue::new(2);
+        let mut q: Queue<TxPacketMock> = Queue::new(2, regulation::Standard::None);
         let concentrator_count = 0_u32.wrapping_sub(
             (Duration::from_secs(1)
                 + Duration::from_micros(1500 + 30000)
@@ -365,6 +445,8 @@ mod tests {
                 time_on_air: Duration::from_millis(100),
                 tx_mode: TxMode::Immediate,
                 count_us: 0,
+                frequency: 865000000,
+                tx_power: 14,
             },
         )
         .unwrap();
@@ -375,6 +457,8 @@ mod tests {
                 time_on_air: Duration::from_millis(100),
                 tx_mode: TxMode::Immediate,
                 count_us: 0,
+                frequency: 865000000,
+                tx_power: 14,
             },
         )
         .unwrap();
@@ -388,7 +472,7 @@ mod tests {
 
     #[test]
     fn test_pop_empty() {
-        let mut q: Queue<TxPacketMock> = Queue::new(2);
+        let mut q: Queue<TxPacketMock> = Queue::new(2, regulation::Standard::None);
 
         let item = q.pop(Duration::from_secs(1).as_micros() as u32);
         assert_eq!(true, item.is_none());
@@ -396,7 +480,7 @@ mod tests {
 
     #[test]
     fn test_pop() {
-        let mut q: Queue<TxPacketMock> = Queue::new(2);
+        let mut q: Queue<TxPacketMock> = Queue::new(2, regulation::Standard::None);
         let concentrator_count = Duration::from_secs(1).as_micros() as u32;
 
         q.enqueue(
@@ -405,6 +489,8 @@ mod tests {
                 time_on_air: Duration::from_millis(100),
                 tx_mode: TxMode::Timestamped,
                 count_us: Duration::from_secs(2).as_micros() as u32,
+                frequency: 865000000,
+                tx_power: 14,
             },
         )
         .unwrap();
@@ -415,7 +501,7 @@ mod tests {
 
     #[test]
     fn test_pop_too_far_in_future() {
-        let mut q: Queue<TxPacketMock> = Queue::new(2);
+        let mut q: Queue<TxPacketMock> = Queue::new(2, regulation::Standard::None);
         let concentrator_count = Duration::from_secs(1).as_micros() as u32;
 
         q.enqueue(
@@ -424,6 +510,8 @@ mod tests {
                 time_on_air: Duration::from_millis(100),
                 tx_mode: TxMode::Timestamped,
                 count_us: Duration::from_secs(2).as_micros() as u32,
+                frequency: 865000000,
+                tx_power: 14,
             },
         )
         .unwrap();
@@ -434,7 +522,7 @@ mod tests {
 
     #[test]
     fn test_pop_u32_wrapping() {
-        let mut q: Queue<TxPacketMock> = Queue::new(2);
+        let mut q: Queue<TxPacketMock> = Queue::new(2, regulation::Standard::None);
         let concentrator_count = 0_u32.wrapping_sub(Duration::from_secs(1).as_micros() as u32);
 
         q.enqueue(
@@ -443,6 +531,8 @@ mod tests {
                 time_on_air: Duration::from_millis(100),
                 tx_mode: TxMode::Timestamped,
                 count_us: 1,
+                frequency: 865000000,
+                tx_power: 14,
             },
         )
         .unwrap();

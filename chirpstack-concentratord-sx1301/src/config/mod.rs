@@ -81,6 +81,8 @@ pub struct Concentratord {
     #[serde(with = "humantime_serde")]
     pub stats_interval: Duration,
     pub api: API,
+    #[serde(default)]
+    pub regulation: String,
 }
 
 #[derive(Default, Serialize, Deserialize)]
