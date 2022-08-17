@@ -19,6 +19,9 @@ pub trait TxPacket {
 }
 
 pub struct Item<T> {
+    // This value is derived from the concentrator_count, but will always increment, instead of
+    // periodically rollover as the concentrator_count does.
+    linear_count: Duration,
     pre_delay: Duration,
     post_delay: Duration,
     packet: T,
@@ -31,6 +34,18 @@ pub struct Queue<T> {
     tx_margin_delay: Duration,
     tx_jit_delay: Duration,
     tx_max_advance_delay: Duration,
+
+    // The queue instance keeps track of the last concentrator_count and linear_count values in
+    // order to convert a new concentrator_count value into a linear_count. Note that the
+    // concentrator_count_last will rollover back to 0, the linear_count_last will always
+    // increment.
+    concentrator_count_last: u32,
+    linear_count_last: Duration,
+
+    // This value holds the linear counter value after finishing the last downlink transmission. We
+    // need to store this as once the downlink is scheduled, it is popped from the queue and we no
+    // longer know until when the concentrator is busy transmitting.
+    tx_linear_count_finished: Duration,
 }
 
 impl<T: TxPacket + Copy> Queue<T> {
@@ -44,6 +59,10 @@ impl<T: TxPacket + Copy> Queue<T> {
             tx_margin_delay: Duration::from_micros(1000),
             tx_jit_delay: Duration::from_micros(30000),
             tx_max_advance_delay: Duration::from_secs((3 + 1) * 128),
+
+            concentrator_count_last: 0,
+            linear_count_last: Duration::from_secs(0),
+            tx_linear_count_finished: Duration::from_secs(0),
         }
     }
 
@@ -60,15 +79,25 @@ impl<T: TxPacket + Copy> Queue<T> {
     }
 
     pub fn pop(&mut self, concentrator_count: u32) -> Option<T> {
+        let linear_count = self.get_linear_count(concentrator_count);
+
         match self.items.first() {
             None => {
                 // nothing in the queue
                 return None;
             }
             Some(v) => {
-                if v.packet.get_count_us().wrapping_sub(concentrator_count)
-                    > v.pre_delay.as_micros() as u32
-                {
+                if v.linear_count < linear_count {
+                    // it can happen if cpu load is too high but should normally
+                    // not happen.
+                    error!("Scheduled packet is too old, dropped: count_us: {}, current_counter_us: {}", 
+                        v.packet.get_count_us(),
+                        concentrator_count);
+                    self.items.remove(0);
+                    return None;
+                }
+
+                if v.linear_count - linear_count > v.pre_delay {
                     // packet is too far in advance
                     return None;
                 }
@@ -76,6 +105,10 @@ impl<T: TxPacket + Copy> Queue<T> {
         };
 
         let item = self.items.remove(0);
+
+        // This value holds the counter when the concentrator is done transmitting the packet. This
+        // is needed to detect possible collisions if enqueueing new packets.
+        self.tx_linear_count_finished = item.linear_count + item.post_delay;
 
         return Some(item.packet);
     }
@@ -85,6 +118,8 @@ impl<T: TxPacket + Copy> Queue<T> {
         concentrator_count: u32,
         packet: T,
     ) -> Result<(), chirpstack_api::gw::TxAckStatus> {
+        let linear_count = self.get_linear_count(concentrator_count);
+
         match packet.get_tx_mode() {
             TxMode::Timestamped => {
                 info!(
@@ -124,6 +159,8 @@ impl<T: TxPacket + Copy> Queue<T> {
         };
 
         let mut item = Item {
+            // linear_count depends on packet count_us, will be set later
+            linear_count: Duration::from_micros(0),
             pre_delay: self.tx_start_delay + self.tx_jit_delay,
             post_delay: time_on_air,
             packet: packet,
@@ -135,46 +172,54 @@ impl<T: TxPacket + Copy> Queue<T> {
             item.packet.set_tx_mode(TxMode::Timestamped);
 
             // use now + 1 sec
-            let mut asap_count_us =
-                concentrator_count.wrapping_add(Duration::from_secs(1).as_micros() as u32);
+            let mut asap_count = linear_count + Duration::from_secs(1);
+
+            // eventual collision with currently running packet
+            // not anymore in queue but still there
+            let not_before_count =
+                self.tx_linear_count_finished + self.tx_margin_delay + item.pre_delay;
+            if asap_count < not_before_count {
+                asap_count = not_before_count;
+            }
 
             // check if there is a collision
-            if self.collision_test(asap_count_us, item.pre_delay, item.post_delay) {
+            if self.collision_test(asap_count, item.pre_delay, item.post_delay) {
                 for p in self.items.iter() {
-                    asap_count_us = p.packet.get_count_us().wrapping_add(
-                        (p.post_delay.as_micros()
-                            + item.pre_delay.as_micros()
-                            + self.tx_margin_delay.as_micros()) as u32,
-                    );
+                    asap_count =
+                        p.linear_count + p.post_delay + item.pre_delay + self.tx_margin_delay;
 
-                    if !self.collision_test(asap_count_us, item.pre_delay, item.post_delay) {
+                    if !self.collision_test(asap_count, item.pre_delay, item.post_delay) {
                         break;
                     }
                 }
             }
 
-            item.packet.set_count_us(asap_count_us);
-        } else if item.packet.get_tx_mode() == TxMode::Timestamped {
-            if self.collision_test(item.packet.get_count_us(), item.pre_delay, item.post_delay) {
-                return Err(chirpstack_api::gw::TxAckStatus::CollisionPacket);
-            }
-        } else if item.packet.get_tx_mode() == TxMode::OnGPS {
-            if self.collision_test(item.packet.get_count_us(), item.pre_delay, item.post_delay) {
-                return Err(chirpstack_api::gw::TxAckStatus::CollisionPacket);
+            item.linear_count = asap_count;
+            item.packet
+                .set_count_us(self.linear_count_to_concentrator_count(asap_count));
+        } else {
+            item.linear_count = self.concentrator_count_to_linear_count(item.packet.get_count_us());
+            if item.packet.get_tx_mode() == TxMode::Timestamped {
+                if self.collision_test(item.linear_count, item.pre_delay, item.post_delay) {
+                    return Err(chirpstack_api::gw::TxAckStatus::CollisionPacket);
+                }
+            } else if item.packet.get_tx_mode() == TxMode::OnGPS {
+                if self.collision_test(item.linear_count, item.pre_delay, item.post_delay) {
+                    return Err(chirpstack_api::gw::TxAckStatus::CollisionPacket);
+                }
             }
         }
 
         // Is it too late to send this packet?
-        if item.packet.get_count_us().wrapping_sub(concentrator_count)
-            < (self.tx_start_delay + self.tx_margin_delay + self.tx_jit_delay).as_micros() as u32
+        if item.linear_count < linear_count
+            || item.linear_count - linear_count
+                < self.tx_start_delay + self.tx_margin_delay + self.tx_jit_delay
         {
             return Err(chirpstack_api::gw::TxAckStatus::TooLate);
         }
 
         // Is it too early to send this packet?
-        if item.packet.get_count_us().wrapping_sub(concentrator_count)
-            > self.tx_max_advance_delay.as_micros() as u32
-        {
+        if item.linear_count - linear_count > self.tx_max_advance_delay {
             return Err(chirpstack_api::gw::TxAckStatus::TooEarly);
         }
 
@@ -185,37 +230,54 @@ impl<T: TxPacket + Copy> Queue<T> {
         );
 
         self.items.push(item);
-        self.sort(concentrator_count);
+        self.sort();
 
         return Ok(());
     }
 
-    fn sort(&mut self, count_us: u32) {
-        self.items.sort_by(|a, b| {
-            let a_diff = a.packet.get_count_us().wrapping_sub(count_us);
-            let b_diff = b.packet.get_count_us().wrapping_sub(count_us);
+    fn get_linear_count(&mut self, concentrator_count: u32) -> Duration {
+        // Calculate the diff between the given concentrator_count and the concentrator_count_last,
+        // so that we know by how many micro seconds we need to increment the linear_count_last.
+        let diff_us = concentrator_count.wrapping_sub(self.concentrator_count_last);
+        self.linear_count_last += Duration::from_micros(diff_us as u64);
+        self.concentrator_count_last = concentrator_count;
+        self.linear_count_last
+    }
 
-            return a_diff.cmp(&b_diff);
+    fn concentrator_count_to_linear_count(&self, count_us: u32) -> Duration {
+        let diff_us = count_us.wrapping_sub(self.concentrator_count_last);
+        self.linear_count_last + Duration::from_micros(diff_us as u64)
+    }
+
+    fn linear_count_to_concentrator_count(&self, count: Duration) -> u32 {
+        let diff_count = count - self.linear_count_last;
+        self.concentrator_count_last
+            .wrapping_add(diff_count.as_micros() as u32)
+    }
+
+    fn sort(&mut self) {
+        self.items.sort_by(|a, b| {
+            return a.linear_count.cmp(&b.linear_count);
         })
     }
 
-    fn collision_test(&self, count_us: u32, pre_delay: Duration, post_delay: Duration) -> bool {
-        let pre_delay = pre_delay.as_micros() as u32;
-        let post_delay = post_delay.as_micros() as u32;
-
-        for p2 in self.items.iter() {
-            let p2_pre_delay = p2.pre_delay.as_micros() as u32;
-            let p2_post_delay = p2.post_delay.as_micros() as u32;
-
-            if ((count_us.wrapping_sub(p2.packet.get_count_us()))
-                <= (pre_delay + p2_post_delay + self.tx_margin_delay.as_micros() as u32))
-                || ((p2.packet.get_count_us().wrapping_sub(count_us))
-                    <= (p2_pre_delay + post_delay + self.tx_margin_delay.as_micros() as u32))
-            {
-                return true;
-            }
+    fn collision_test(&self, count: Duration, pre_delay: Duration, post_delay: Duration) -> bool {
+        if count < self.tx_linear_count_finished + pre_delay + self.tx_margin_delay {
+            // a packet is currently running, then we need to take it into account
+            return true;
         }
 
+        for p2 in self.items.iter() {
+            if count > p2.linear_count {
+                if count - p2.linear_count <= pre_delay + p2.post_delay + self.tx_margin_delay {
+                    return true;
+                }
+            } else {
+                if p2.linear_count - count <= p2.pre_delay + post_delay + self.tx_margin_delay {
+                    return true;
+                }
+            }
+        }
         return false;
     }
 }
