@@ -1,0 +1,14 @@
+# LoRa concentrator configuration.
+[gateway.concentrator]
+
+# Multi spreading-factor channels (LoRa).
+multi_sf_channels=[
+  484700000,
+  484900000,
+  485100000,
+  485300000,
+  485500000,
+  485700000,
+  485900000,
+  486100000,
+]
