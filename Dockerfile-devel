@@ -1,4 +1,4 @@
-FROM rust:1.62.1-buster
+FROM rust:1.64.0-buster
 
 # required by bingen
 RUN apt-get update && \
@@ -14,7 +14,8 @@ RUN apt-get update && \
 		g++-arm-linux-gnueabihf \
 		gcc-aarch64-linux-gnu \
 		g++-aarch64-linux-gnu \
-		git && \
+		git \
+		protobuf-compiler && \
 	apt-get clean
 
 RUN rustup target add armv5te-unknown-linux-gnueabi

@@ -33,7 +33,7 @@ fn main() {
         .about("LoRa concentrator HAL daemon (2.4GHz)")
         .arg(
             Arg::with_name("config")
-                .short("c")
+                .short('c')
                 .long("config")
                 .value_name("FILE")
                 .multiple(true)
@@ -44,7 +44,11 @@ fn main() {
         .subcommand(App::new("configfile").about("Print the configuration template"))
         .get_matches();
 
-    let config_files = matches.values_of_lossy("config").unwrap_or(vec![]);
+    let config_files: Vec<String> = if let Some(v) = matches.get_many("config") {
+        v.cloned().collect()
+    } else {
+        vec![]
+    };
     let mut config = config::get(config_files);
 
     if let Some(_) = matches.subcommand_matches("configfile") {
@@ -57,7 +61,7 @@ fn main() {
             facility: Facility::LOG_USER,
             hostname: None,
             process: "chirpstack-concentratord-sx1301".into(),
-            pid: process::id() as i32,
+            pid: process::id().into(),
         };
         let logger = syslog::unix(formatter).expect("could not connect to syslog");
         log::set_boxed_logger(Box::new(BasicLogger::new(logger)))
