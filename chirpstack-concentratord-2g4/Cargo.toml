@@ -1,6 +1,7 @@
 [package]
 name = "chirpstack-concentratord-2g4"
 repository="https://github.com/chirpstack/chirpstack-concentratord/"
+description="LoRa concentrator HAL daemon (2.4GHz)"
 license="MIT"
 version = "4.0.0"
 authors = ["Orne Brocaar <info@brocaar.com>"]
@@ -13,7 +14,7 @@ libconcentratord = {path = "../libconcentratord"}
 chirpstack_api = { version = "4.0.2", default-features = false }
 serde = { version = "1.0", features = ["derive"] }
 toml = "0.5"
-clap = "3.2"
+clap = { version = "4.0", features = ["derive"] }
 log = "0.4"
 simple_logger = "2.3"
 zmq = "0.9"

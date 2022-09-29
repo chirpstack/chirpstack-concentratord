@@ -11,7 +11,7 @@ use std::sync::mpsc::channel;
 use std::sync::Arc;
 use std::thread;
 
-use clap::{App, Arg};
+use clap::{Parser, Subcommand};
 use signal_hook::consts::signal::SIGINT;
 use signal_hook::iterator::Signals;
 use simple_logger::SimpleLogger;
@@ -26,32 +26,27 @@ mod config;
 mod handler;
 mod wrapper;
 
+#[derive(Parser)]
+#[command(author, version, about, long_about = None)]
+struct Cli {
+    #[arg(short, long, value_name = "FILE")]
+    config: Vec<String>,
+
+    #[command(subcommand)]
+    command: Option<Commands>,
+}
+
+#[derive(Subcommand)]
+enum Commands {
+    /// Print the configuration template
+    Configfile {},
+}
+
 fn main() {
-    let matches = App::new("chirpstack-concentratord-sx1302")
-        .version(config::VERSION)
-        .author("Orne Brocaar <info@brocaar.com>")
-        .about("LoRa concentrator HAL daemon for SX1302")
-        .arg(
-            Arg::with_name("config")
-                .short('c')
-                .long("config")
-                .value_name("FILE")
-                .multiple(true)
-                .number_of_values(1)
-                .help("Path to configuration file")
-                .takes_value(true),
-        )
-        .subcommand(App::new("configfile").about("Print the configuration template"))
-        .get_matches();
+    let cli = Cli::parse();
+    let mut config = config::get(cli.config.clone());
 
-    let config_files: Vec<String> = if let Some(v) = matches.get_many("config") {
-        v.cloned().collect()
-    } else {
-        vec![]
-    };
-    let mut config = config::get(config_files);
-
-    if let Some(_) = matches.subcommand_matches("configfile") {
+    if let Some(Commands::Configfile {}) = &cli.command {
         cmd::configfile::run(&config);
         process::exit(0);
     }
