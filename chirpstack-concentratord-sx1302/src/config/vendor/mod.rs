@@ -3,6 +3,7 @@ use libloragw_sx1302::hal;
 pub mod rak;
 pub mod seeed;
 pub mod semtech;
+pub mod waveshare;
 
 #[derive(Clone)]
 pub enum ComType {
