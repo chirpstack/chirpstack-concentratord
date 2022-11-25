@@ -1,13 +1,13 @@
 #!/bin/sh
 
-NAME="chirpstack-concentratord"
-DESC="ChirpStack Concentratord"
+NAME="chirpstack-concentratord-sx1301"
+DESC="ChirpStack Concentratord SX1301"
 DAEMON_BIN=/opt/$NAME/$NAME
 DAEMON_PID=/var/run/$NAME.pid
 
-AP=ap2
+AP=ap1
 GPS_TTY_PATH=/dev/ttyXRUSB2
-CONF_DIR=/var/config/chirpstack-concentratord
+CONF_DIR=/var/config/$NAME
 
 
 function read_lora_hw_info() {
@@ -50,13 +50,13 @@ copy_config() {
     fi
 
 	mkdir -p $CONF_DIR/$AP
-	cp $CONF_DIR/examples/global.toml $CONF_DIR/$AP/global.toml
-	cp $CONF_DIR/examples/$band_config.toml $CONF_DIR/$AP/band.toml
-	cp $CONF_DIR/examples/$channel_config.toml $CONF_DIR/$AP/channels.toml
+	cp $CONF_DIR/examples/concentratord.toml $CONF_DIR/$AP/concentratord.toml
+	cp $CONF_DIR/examples/band_$band_config.toml $CONF_DIR/$AP/band.toml
+	cp $CONF_DIR/examples/channels_$channel_config.toml $CONF_DIR/$AP/channels.toml
 
-	sed -i "s/gateway_id=.*/gateway_id=\"${lora_eui_raw}\"/" $CONF_DIR/$AP/global.toml
-	sed -i "s/model=.*/model=\"multitech_${model}\"/" $CONF_DIR/$AP/global.toml
-	sed -i "s/model_flags=.*/model_flags=[${model_flags}]/" $CONF_DIR/$AP/global.toml
+	sed -i "s/gateway_id=.*/gateway_id=\"${lora_eui_raw}\"/" $CONF_DIR/$AP/concentratord.toml
+	sed -i "s/model=.*/model=\"multitech_${model}\"/" $CONF_DIR/$AP/concentratord.toml
+	sed -i "s/model_flags=.*/model_flags=[${model_flags}]/" $CONF_DIR/$AP/concentratord.toml
 }
 
 function do_start {
@@ -68,7 +68,7 @@ function do_start {
 		exit 1
 	fi
 
-	if ! [ -f "$CONF_DIR/$AP/global.toml" ]; then
+	if ! [ -f "$CONF_DIR/$AP/concentratord.toml" ]; then
 		copy_config
 	fi
 
@@ -78,7 +78,7 @@ function do_start {
         --background \
         --make-pidfile \
         --pidfile $DAEMON_PID \
-        --exec $DAEMON_BIN -- -c $CONF_DIR/$AP/global.toml -c $CONF_DIR/$AP/band.toml -c $CONF_DIR/$AP/channels.toml
+        --exec $DAEMON_BIN -- -c $CONF_DIR/$AP/concentratord.toml -c $CONF_DIR/$AP/band.toml -c $CONF_DIR/$AP/channels.toml
 }
 
 function do_stop {

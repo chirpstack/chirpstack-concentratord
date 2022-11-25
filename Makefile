@@ -45,7 +45,8 @@ package-kerlink: package-kerlink-ifemtocell
 package-multitech-conduit:
 	mkdir -p dist/multitech/conduit
 	rm -f packaging/vendor/multitech/conduit/*.ipk
-	docker-compose run --rm chirpstack-concentratord bash -c 'cd packaging/vendor/multitech/conduit && ./package.sh ${VERSION}'
+	docker-compose run --rm chirpstack-concentratord bash -c 'cd packaging/vendor/multitech/conduit && ./package-sx1301.sh ${VERSION}'
+	docker-compose run --rm chirpstack-concentratord bash -c 'cd packaging/vendor/multitech/conduit && ./package-2g4.sh ${VERSION}'
 	cp packaging/vendor/multitech/conduit/*.ipk dist/multitech/conduit
 
 package-multitech-conduit-ap:
