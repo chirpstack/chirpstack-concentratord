@@ -121,6 +121,7 @@ pub fn get(filenames: Vec<String>) -> Configuration {
 
     // get model configuration
     config.gateway.model_config = match config.gateway.model.as_ref() {
+        "multitech_mtac_lora_2g4" => vendor::multitech::mtac_lora_2g4::new(&config),
         "semtech_sx1280z3dsfgw1" => vendor::semtech::sx1280z3dsfgw1::new(&config),
         _ => panic!("unexpected gateway model: {}", config.gateway.model),
     };
