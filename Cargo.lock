@@ -165,6 +165,7 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 name = "chirpstack-concentratord-2g4"
 version = "4.0.1"
 dependencies = [
+ "anyhow",
  "chirpstack_api",
  "chrono",
  "clap 4.0.4",
@@ -190,6 +191,7 @@ dependencies = [
 name = "chirpstack-concentratord-sx1301"
 version = "4.0.1"
 dependencies = [
+ "anyhow",
  "chirpstack_api",
  "chrono",
  "clap 4.0.4",
@@ -215,6 +217,7 @@ dependencies = [
 name = "chirpstack-concentratord-sx1302"
 version = "4.0.1"
 dependencies = [
+ "anyhow",
  "chirpstack_api",
  "chrono",
  "clap 4.0.4",
@@ -711,6 +714,7 @@ checksum = "329c933548736bc49fd575ee68c89e8be4d260064184389a5b77517cddd99ffb"
 name = "libconcentratord"
 version = "4.0.1"
 dependencies = [
+ "anyhow",
  "chirpstack_api",
  "gpio-cdev",
  "hex",
@@ -735,6 +739,7 @@ dependencies = [
 name = "libloragw-2g4"
 version = "1.0.0"
 dependencies = [
+ "anyhow",
  "bindgen",
  "lazy_static",
 ]
@@ -743,6 +748,7 @@ dependencies = [
 name = "libloragw-sx1301"
 version = "1.0.0"
 dependencies = [
+ "anyhow",
  "bindgen",
  "lazy_static",
 ]
@@ -751,6 +757,7 @@ dependencies = [
 name = "libloragw-sx1302"
 version = "1.0.0"
 dependencies = [
+ "anyhow",
  "bindgen",
  "lazy_static",
 ]

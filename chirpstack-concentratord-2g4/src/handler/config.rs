@@ -1,16 +1,18 @@
+use anyhow::Result;
+
 use super::super::config::{Channel, Concentrator, Configuration};
 
 pub fn update_configuration(
     config: &mut Configuration,
     new_config: &chirpstack_api::gw::GatewayConfiguration,
-) -> Result<(), String> {
+) -> Result<() > {
     info!("Updating concentrator configuration");
 
     // empty concentrator config
     let mut concentrator = Concentrator::default();
 
     if new_config.channels.len() > concentrator.channels.len() {
-        return Err("configuration exceeds max number of channels".to_string());
+        return Err(anyhow!("configuration exceeds max number of channels"));
     }
 
     for (i, channel) in new_config.channels.iter().enumerate() {
@@ -22,8 +24,7 @@ pub fn update_configuration(
             ) => {
                 if v.spreading_factors.len() != 1 {
                     return Err(
-                        "spreading_factors must contain a single spreading-factor".to_string()
-                    );
+                        anyhow!("spreading_factors must contain a single spreading-factor"));
                 }
 
                 concentrator.channels[i] = Channel {
@@ -34,7 +35,7 @@ pub fn update_configuration(
                 };
             }
             _ => {
-                return Err("channel modulation must be LORA".to_string());
+                return Err(anyhow!("channel modulation must be LORA"));
             }
         }
     }
@@ -43,7 +44,7 @@ pub fn update_configuration(
     config.gateway.config_version = new_config.version.clone();
     config.gateway.concentrator = concentrator;
 
-    return Ok(());
+    Ok(())
 }
 
 #[cfg(test)]

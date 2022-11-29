@@ -2,6 +2,8 @@
 extern crate log;
 #[macro_use]
 extern crate lazy_static;
+#[macro_use]
+extern crate anyhow;
 extern crate simple_logger;
 extern crate syslog;
 

@@ -3,9 +3,9 @@ use std::sync::mpsc::Receiver;
 use std::sync::Mutex;
 use std::time::{Duration, SystemTime};
 
+use anyhow::Result;
 use chrono::offset::Utc;
 use chrono::DateTime;
-
 use libconcentratord::signals::Signal;
 use libloragw_sx1302::{gps, hal};
 
@@ -213,30 +213,30 @@ pub fn gps_validate_loop(stop_receive: Receiver<Signal>) {
     debug!("GPS validation loop ended");
 }
 
-pub fn cnt2time(count_us: u32) -> Result<SystemTime, String> {
+pub fn cnt2time(count_us: u32) -> Result<SystemTime> {
     let gps_ref_valid = GPS_TIME_REF_VALID.lock().unwrap();
     if *gps_ref_valid == false {
-        return Err("gps_ref_valid = false".to_string());
+        return Err(anyhow!("gps_ref_valid = false"));
     }
     let gps_time_ref = GPS_TIME_REF.lock().unwrap();
 
     gps::cnt2time(&gps_time_ref, count_us)
 }
 
-pub fn cnt2epoch(count_us: u32) -> Result<Duration, String> {
+pub fn cnt2epoch(count_us: u32) -> Result<Duration> {
     let gps_ref_valid = GPS_TIME_REF_VALID.lock().unwrap();
     if *gps_ref_valid == false {
-        return Err("gps_ref_valid = false".to_string());
+        return Err(anyhow!("gps_ref_valid = false"));
     }
     let gps_time_ref = GPS_TIME_REF.lock().unwrap();
 
     gps::cnt2epoch(&gps_time_ref, count_us)
 }
 
-pub fn epoch2cnt(gps_epoch: &Duration) -> Result<u32, String> {
+pub fn epoch2cnt(gps_epoch: &Duration) -> Result<u32> {
     let gps_ref_valid = GPS_TIME_REF_VALID.lock().unwrap();
     if *gps_ref_valid == false {
-        return Err("gps_ref_valid = false".to_string());
+        return Err(anyhow!("gps_ref_valid = false"));
     }
     let gps_time_ref = GPS_TIME_REF.lock().unwrap();
 

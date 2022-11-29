@@ -2,7 +2,7 @@ use std::sync::Mutex;
 use std::thread::sleep;
 use std::time::Duration;
 
-use gpio_cdev::errors::Error;
+use anyhow::Result;
 use gpio_cdev::{Chip, LineHandle, LineRequestFlags};
 use log::info;
 
@@ -16,7 +16,7 @@ pub fn setup_pins(
     sx1302_reset: (u32, u32),
     sx1302_power_en: Option<(u32, u32)>,
     sx1261_reset: Option<(u32, u32)>,
-) -> Result<(), Error> {
+) -> Result<()> {
     info!(
         "Configuring reset pin, chip: {}, pin: {}",
         sx1302_reset.0, sx1302_reset.1
@@ -58,7 +58,7 @@ pub fn setup_pins(
     Ok(())
 }
 
-pub fn reset() -> Result<(), Error> {
+pub fn reset() -> Result<()> {
     let sx1302 = SX1302_RESET.lock().unwrap();
     if sx1302.is_some() {
         let sx1302 = sx1302.as_ref().unwrap();

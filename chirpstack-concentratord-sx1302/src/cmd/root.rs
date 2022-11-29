@@ -3,6 +3,7 @@ use std::sync::mpsc::{Receiver, Sender};
 use std::sync::{Arc, Mutex};
 use std::thread;
 
+use anyhow::Result;
 use libconcentratord::signals;
 use libconcentratord::signals::Signal;
 use libconcentratord::{commands, events, jitqueue, reset};
@@ -14,7 +15,7 @@ pub fn run(
     config: &config::Configuration,
     stop_send: Sender<Signal>,
     stop_receive: Arc<Receiver<Signal>>,
-) -> Result<Signal, String> {
+) -> Result<Signal> {
     info!(
         "Starting Concentratord SX1302 (version: {}, docs: {})",
         config::VERSION,
@@ -158,5 +159,5 @@ pub fn run(
 
     concentrator::stop()?;
 
-    return Ok(stop_signal);
+    Ok(stop_signal)
 }

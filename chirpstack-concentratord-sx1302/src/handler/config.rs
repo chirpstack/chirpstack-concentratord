@@ -1,9 +1,11 @@
+use anyhow::Result;
+
 use super::super::config::{Concentrator, Configuration};
 
 pub fn update_configuration(
     config: &mut Configuration,
     new_config: &chirpstack_api::gw::GatewayConfiguration,
-) -> Result<(), String> {
+) -> Result<()> {
     info!("Updating concentrator configuration");
 
     // empty concentrator config
@@ -23,7 +25,7 @@ pub fn update_configuration(
                     concentrator.lora_std.spreading_factor = v.spreading_factors[0] as u8;
                 } else if v.spreading_factors.len() > 1 {
                     if multi_sf_count > concentrator.multi_sf_channels.len() - 1 {
-                        return Err("too many multi-SF channels in configuration".to_string());
+                        return Err(anyhow!("too many multi-SF channels in configuration"));
                     }
 
                     concentrator.multi_sf_channels[multi_sf_count] = channel.frequency;
@@ -45,7 +47,7 @@ pub fn update_configuration(
     config.gateway.config_version = new_config.version.clone();
     config.gateway.concentrator = concentrator;
 
-    return Ok(());
+    Ok(())
 }
 
 #[cfg(test)]

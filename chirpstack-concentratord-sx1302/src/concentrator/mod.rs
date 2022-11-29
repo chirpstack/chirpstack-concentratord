@@ -1,9 +1,10 @@
+use anyhow::Result;
 use libloragw_sx1302::{com, hal};
 
 use super::config::vendor::ComType;
 use super::config::{helpers, Configuration};
 
-pub fn board_setconf(config: &Configuration) -> Result<(), String> {
+pub fn board_setconf(config: &Configuration) -> Result<()> {
     let board_config = hal::BoardConfig {
         lorawan_public: config.gateway.lorawan_public,
         clock_source: config.gateway.model_config.clock_source,
@@ -19,12 +20,10 @@ pub fn board_setconf(config: &Configuration) -> Result<(), String> {
         "Setting board configuration, lorawan_public: {}, clock_source: {}",
         board_config.lorawan_public, board_config.clock_source
     );
-    hal::board_setconf(&board_config)?;
-
-    return Ok(());
+    hal::board_setconf(&board_config)
 }
 
-pub fn timestamp_setconf(config: &Configuration) -> Result<(), String> {
+pub fn timestamp_setconf(config: &Configuration) -> Result<()> {
     info!(
         "Setting up fine timestamp, enable: {}",
         config.gateway.fine_timestamp.enable
@@ -35,15 +34,16 @@ pub fn timestamp_setconf(config: &Configuration) -> Result<(), String> {
             "HIGH_CAPACITY" => hal::FineTimestampMode::HighCapacity,
             "ALL_SF" => hal::FineTimestampMode::AllSF,
             _ => {
-                return Err("fine_timestamp mode must be HIGH_CAPACITY or ALL_SF".to_string());
+                return Err(anyhow!(
+                    "fine_timestamp mode must be HIGH_CAPACITY or ALL_SF"
+                ));
             }
         },
     };
-    hal::ftime_setconf(&ts_config)?;
-    return Ok(());
+    hal::ftime_setconf(&ts_config)
 }
 
-pub fn txgain_setconf(config: &Configuration) -> Result<(), String> {
+pub fn txgain_setconf(config: &Configuration) -> Result<()> {
     for (i, radio_config) in config.gateway.model_config.radio_config.iter().enumerate() {
         if radio_config.tx_gain_table.len() == 0 {
             continue;
@@ -56,10 +56,10 @@ pub fn txgain_setconf(config: &Configuration) -> Result<(), String> {
         hal::txgain_setconf(i as u8, &radio_config.tx_gain_table)?;
     }
 
-    return Ok(());
+    Ok(())
 }
 
-pub fn rxrf_setconf(config: &Configuration) -> Result<(), String> {
+pub fn rxrf_setconf(config: &Configuration) -> Result<()> {
     info!("Setting up concentrator channels");
     let radio_freqs = helpers::get_radio_frequencies(&config)?;
     for (i, radio_freq) in radio_freqs.iter().enumerate() {
@@ -82,10 +82,10 @@ pub fn rxrf_setconf(config: &Configuration) -> Result<(), String> {
         hal::rxrf_setconf(i as u8, &rx_rf_config)?;
     }
 
-    return Ok(());
+    Ok(())
 }
 
-pub fn rxif_setconf(config: &Configuration) -> Result<(), String> {
+pub fn rxif_setconf(config: &Configuration) -> Result<()> {
     info!("Setting up concentrator channels");
     let radio_freqs = helpers::get_radio_frequencies(&config)?;
 
@@ -149,7 +149,7 @@ pub fn rxif_setconf(config: &Configuration) -> Result<(), String> {
                 "4/6" => hal::CodeRate::LoRa4_6,
                 "4/7" => hal::CodeRate::LoRa4_7,
                 "4/8" => hal::CodeRate::LoRa4_8,
-                _ => return Err("invalid implicit_coderate".to_string()),
+                _ => return Err(anyhow!("invalid implicit_coderate")),
             };
         }
     }
@@ -179,26 +179,20 @@ pub fn rxif_setconf(config: &Configuration) -> Result<(), String> {
         rx_if_config.rf_chain,
         rx_if_config.freq_hz
     );
-    hal::rxif_setconf(9, &rx_if_config)?;
-
-    return Ok(());
+    hal::rxif_setconf(9, &rx_if_config)
 }
 
-pub fn start() -> Result<(), String> {
+pub fn start() -> Result<()> {
     info!("Starting the concentrator");
-    hal::start()?;
-
-    return Ok(());
+    hal::start()
 }
 
-pub fn stop() -> Result<(), String> {
+pub fn stop() -> Result<()> {
     info!("Stopping the concentrator");
-    hal::stop()?;
-
-    return Ok(());
+    hal::stop()
 }
 
-pub fn get_eui() -> Result<[u8; 8], String> {
+pub fn get_eui() -> Result<[u8; 8]> {
     debug!("Getting gateway EUI");
-    return hal::get_eui();
+    hal::get_eui()
 }

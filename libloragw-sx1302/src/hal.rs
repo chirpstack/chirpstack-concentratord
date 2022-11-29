@@ -4,6 +4,8 @@ use std::mem::transmute;
 use std::os::raw::c_char;
 use std::time::Duration;
 
+use anyhow::Result;
+
 use super::{mutex, wrapper};
 
 // ConvertBandwidth is a trait to convert the bandwidth from / to the HAL
@@ -313,24 +315,24 @@ pub struct BoardConfig {
 }
 
 impl BoardConfig {
-    fn to_hal(&self) -> Result<wrapper::lgw_conf_board_s, String> {
+    fn to_hal(&self) -> Result<wrapper::lgw_conf_board_s> {
         let com_path = CString::new(self.com_path.clone()).unwrap();
         let com_path = com_path.as_bytes_with_nul();
         if com_path.len() > 64 {
-            return Err("com_path max length is 64".to_string());
+            return Err(anyhow!("com_path max length is 64"));
         }
         let mut com_path_chars = [0; 64];
         for (i, b) in com_path.iter().enumerate() {
             com_path_chars[i] = *b as c_char;
         }
 
-        return Ok(wrapper::lgw_conf_board_s {
+        Ok(wrapper::lgw_conf_board_s {
             lorawan_public: self.lorawan_public,
             clksrc: self.clock_source,
             full_duplex: self.full_duplex,
             com_type: self.com_type.to_hal(),
             com_path: com_path_chars,
-        });
+        })
     }
 }
 
@@ -710,9 +712,9 @@ pub struct LBTConfig {
 }
 
 impl LBTConfig {
-    fn to_hal(&self) -> Result<wrapper::lgw_conf_lbt_s, String> {
+    fn to_hal(&self) -> Result<wrapper::lgw_conf_lbt_s> {
         if self.channels.len() > wrapper::LGW_LBT_CHANNEL_NB_MAX as usize {
-            return Err("channels exceeds LGW_LBT_CHANNEL_NB_MAX".to_string());
+            return Err(anyhow!("channels exceeds LGW_LBT_CHANNEL_NB_MAX"));
         }
 
         Ok(wrapper::lgw_conf_lbt_s {
@@ -747,14 +749,14 @@ pub struct SX1261Config {
 }
 
 impl SX1261Config {
-    fn to_hal(&self) -> Result<wrapper::lgw_conf_sx1261_s, String> {
+    fn to_hal(&self) -> Result<wrapper::lgw_conf_sx1261_s> {
         Ok(wrapper::lgw_conf_sx1261_s {
             enable: self.enable,
             spi_path: {
                 let spi_path = CString::new(self.spi_path.clone()).unwrap();
                 let spi_path = spi_path.as_bytes_with_nul();
                 if spi_path.len() > 64 {
-                    return Err("spi_path max length is 64".to_string());
+                    return Err(anyhow!("spi_path max length is 64"));
                 }
                 let mut spi_path_chars = [0; 64];
                 for (i, b) in spi_path.iter().enumerate() {
@@ -780,45 +782,45 @@ pub struct SpectralScanResult {
 const MAX_PKT: usize = 8;
 
 /// Configure the gateway board.
-pub fn board_setconf(conf: &BoardConfig) -> Result<(), String> {
+pub fn board_setconf(conf: &BoardConfig) -> Result<()> {
     let mut conf = conf.to_hal()?;
 
     let _guard = mutex::CONCENTATOR.lock().unwrap();
     let ret = unsafe { wrapper::lgw_board_setconf(&mut conf) };
     if ret != 0 {
-        return Err("lgw_board_setconf failed".to_string());
+        return Err(anyhow!("lgw_board_setconf failed"));
     }
 
-    return Ok(());
+    Ok(())
 }
 
 /// Configure an RF chain (must configure before start).
-pub fn rxrf_setconf(rf_chain: u8, conf: &RxRfConfig) -> Result<(), String> {
+pub fn rxrf_setconf(rf_chain: u8, conf: &RxRfConfig) -> Result<()> {
     let _guard = mutex::CONCENTATOR.lock().unwrap();
     let mut conf = conf.to_hal();
 
     let ret = unsafe { wrapper::lgw_rxrf_setconf(rf_chain, &mut conf) };
     if ret != 0 {
-        return Err("lgw_rxrf_setconf failed".to_string());
+        return Err(anyhow!("lgw_rxrf_setconf failed"));
     }
 
-    return Ok(());
+    Ok(())
 }
 
 /// Configure an IF chain + modem (must configure before start).
-pub fn rxif_setconf(if_chain: u8, conf: &RxIfConfig) -> Result<(), String> {
+pub fn rxif_setconf(if_chain: u8, conf: &RxIfConfig) -> Result<()> {
     let _guard = mutex::CONCENTATOR.lock().unwrap();
     let mut conf = conf.to_hal();
     let ret = unsafe { wrapper::lgw_rxif_setconf(if_chain, &mut conf) };
     if ret != 0 {
-        return Err("lgw_rxif_setconf failed".to_string());
+        return Err(anyhow!("lgw_rxif_setconf failed"));
     }
 
-    return Ok(());
+    Ok(())
 }
 
 /// Configure the Tx gain LUT.
-pub fn txgain_setconf(rf_chain: u8, txgain: &[TxGainConfig]) -> Result<(), String> {
+pub fn txgain_setconf(rf_chain: u8, txgain: &[TxGainConfig]) -> Result<()> {
     let mut conf = wrapper::lgw_tx_gain_lut_s {
         lut: [wrapper::lgw_tx_gain_s {
             ..Default::default()
@@ -833,79 +835,81 @@ pub fn txgain_setconf(rf_chain: u8, txgain: &[TxGainConfig]) -> Result<(), Strin
     let _guard = mutex::CONCENTATOR.lock().unwrap();
     let ret = unsafe { wrapper::lgw_txgain_setconf(rf_chain, &mut conf) };
     if ret != 0 {
-        return Err("lgw_txgain_setconf failed".to_string());
+        return Err(anyhow!("lgw_txgain_setconf failed"));
     }
 
-    return Ok(());
+    Ok(())
 }
 
 /// Configure the fine timestamping.
-pub fn ftime_setconf(conf: &TimestampConfig) -> Result<(), String> {
+pub fn ftime_setconf(conf: &TimestampConfig) -> Result<()> {
     let _guard = mutex::CONCENTATOR.lock().unwrap();
     let mut conf = conf.to_hal();
     let ret = unsafe { wrapper::lgw_ftime_setconf(&mut conf) };
     if ret != 0 {
-        return Err("lgw_ftime_setconf failed".to_string());
+        return Err(anyhow!("lgw_ftime_setconf failed"));
     }
-    return Ok(());
+
+    Ok(())
 }
 
 /// Configure the SX1261 radio for LBT/Spectral Scan.
-pub fn sx1261_setconf(conf: &SX1261Config) -> Result<(), String> {
+pub fn sx1261_setconf(conf: &SX1261Config) -> Result<()> {
     let _guard = mutex::CONCENTATOR.lock().unwrap();
     let mut conf = conf.to_hal()?;
     let ret = unsafe { wrapper::lgw_sx1261_setconf(&mut conf) };
     if ret != 0 {
-        return Err("lgw_sx1261_setconf failed".to_string());
+        return Err(anyhow!("lgw_sx1261_setconf failed"));
     }
-    return Ok(());
+
+    Ok(())
 }
 
 /// Connect to the LoRa concentrator, reset it and configure it according to previously set
 /// parameters.
-pub fn start() -> Result<(), String> {
+pub fn start() -> Result<()> {
     let _guard = mutex::CONCENTATOR.lock().unwrap();
     let ret = unsafe { wrapper::lgw_start() };
     if ret != 0 {
-        return Err("lgw_start failed".to_string());
+        return Err(anyhow!("lgw_start failed"));
     }
 
-    return Ok(());
+    Ok(())
 }
 
 /// Stop the LoRa concentrator and disconnect it.
-pub fn stop() -> Result<(), String> {
+pub fn stop() -> Result<()> {
     let _guard = mutex::CONCENTATOR.lock().unwrap();
     let ret = unsafe { wrapper::lgw_stop() };
     if ret != 0 {
-        return Err("lgw_stop failed".to_string());
+        return Err(anyhow!("lgw_stop failed"));
     }
 
-    return Ok(());
+    Ok(())
 }
 
 /// Return the LoRa concentrator EUI.
-pub fn get_eui() -> Result<[u8; 8], String> {
+pub fn get_eui() -> Result<[u8; 8]> {
     let _guard = mutex::CONCENTATOR.lock().unwrap();
     let mut eui: u64 = 0;
     let ret = unsafe { wrapper::lgw_get_eui(&mut eui) };
     if ret != 0 {
-        return Err("lgw_get_eui failed".to_string());
+        return Err(anyhow!("lgw_get_eui failed"));
     }
 
     let eui = unsafe { transmute(eui.to_be()) };
-    return Ok(eui);
+    Ok(eui)
 }
 
 /// A non-blocking function that will fetch up to 'max_pkt' packets from the LoRa concentrator FIFO
 /// and data buffer.
-pub fn receive() -> Result<Vec<RxPacket>, String> {
+pub fn receive() -> Result<Vec<RxPacket>> {
     let mut packets: [wrapper::lgw_pkt_rx_s; MAX_PKT] = [Default::default(); MAX_PKT];
 
     let _guard = mutex::CONCENTATOR.lock().unwrap();
     let ret = unsafe { wrapper::lgw_receive(MAX_PKT.try_into().unwrap(), packets.as_mut_ptr()) };
     if ret == -1 {
-        return Err("lgw_receive failed".to_string());
+        return Err(anyhow!("lgw_receive failed"));
     }
 
     let mut v: Vec<RxPacket> = Vec::new();
@@ -916,7 +920,7 @@ pub fn receive() -> Result<Vec<RxPacket>, String> {
         v.push(RxPacket::from_hal(pkt));
     }
 
-    return Ok(v);
+    Ok(v)
 }
 
 /// Schedule a packet to be send immediately or after a delay depending on tx_mode.
@@ -937,88 +941,90 @@ pub fn receive() -> Result<Vec<RxPacket>, String> {
 /// trigger signal. Because there is no way to anticipate the triggering event and
 /// start the analog circuitry beforehand, that delay must be taken into account in
 /// the protocol.
-pub fn send(pkt: &TxPacket) -> Result<(), String> {
+pub fn send(pkt: &TxPacket) -> Result<()> {
     let _guard = mutex::CONCENTATOR.lock().unwrap();
     let mut pkt = pkt.to_hal();
     let ret = unsafe { wrapper::lgw_send(&mut pkt) };
     if ret != 0 {
-        return Err("lgw_send failed".to_string());
+        return Err(anyhow!("lgw_send failed"));
     }
-    return Ok(());
+
+    Ok(())
 }
 
 /// Give the the status of different part of the LoRa concentrator.
-pub fn status(rf_chain: u8, select: StatusSelect) -> Result<StatusReturn, String> {
+pub fn status(rf_chain: u8, select: StatusSelect) -> Result<StatusReturn> {
     let mut code = 0;
 
     let _guard = mutex::CONCENTATOR.lock().unwrap();
     let ret = unsafe { wrapper::lgw_status(rf_chain, select.to_hal(), &mut code) };
     if ret != 0 {
-        return Err("lgw_status failed".to_string());
+        return Err(anyhow!("lgw_status failed"));
     }
 
     if select == StatusSelect::Tx {
-        return Ok(StatusReturn::Tx(TxStatus::from_hal(code)));
+        Ok(StatusReturn::Tx(TxStatus::from_hal(code)))
     } else {
-        return Ok(StatusReturn::Rx(RxStatus::from_hal(code)));
+        Ok(StatusReturn::Rx(RxStatus::from_hal(code)))
     }
 }
 
 /// Abort a currently scheduled or ongoing TX.
-pub fn abort_tx(rf_chain: u8) -> Result<(), String> {
+pub fn abort_tx(rf_chain: u8) -> Result<()> {
     let _guard = mutex::CONCENTATOR.lock().unwrap();
     let ret = unsafe { wrapper::lgw_abort_tx(rf_chain) };
     if ret != 0 {
-        return Err("lgw_abort_tx failed".to_string());
+        return Err(anyhow!("lgw_abort_tx failed"));
     }
-    return Ok(());
+
+    Ok(())
 }
 
 /// Return value of internal counter when latest event (eg GPS pulse) was captured.
-pub fn get_trigcnt() -> Result<u32, String> {
+pub fn get_trigcnt() -> Result<u32> {
     let mut cnt = 0;
 
     let _guard = mutex::CONCENTATOR.lock().unwrap();
     let ret = unsafe { wrapper::lgw_get_trigcnt(&mut cnt) };
     if ret != 0 {
-        return Err("lgw_get_trigcnt failed".to_string());
+        return Err(anyhow!("lgw_get_trigcnt failed"));
     }
 
-    return Ok(cnt);
+    Ok(cnt)
 }
 
 /// Return instateneous value of internal counter.
-pub fn get_instcnt() -> Result<u32, String> {
+pub fn get_instcnt() -> Result<u32> {
     let mut cnt = 0;
 
     let _guard = mutex::CONCENTATOR.lock().unwrap();
     let ret = unsafe { wrapper::lgw_get_instcnt(&mut cnt) };
     if ret != 0 {
-        return Err("lgw_get_instcnt failed".to_string());
+        return Err(anyhow!("lgw_get_instcnt failed"));
     }
 
-    return Ok(cnt);
+    Ok(cnt)
 }
 
 /// Return the temperature measured by the LoRa concentrator sensor.
-pub fn get_temperature() -> Result<f32, String> {
+pub fn get_temperature() -> Result<f32> {
     let mut temp: f32 = 0.0;
 
     let _guard = mutex::CONCENTATOR.lock().unwrap();
     let ret = unsafe { wrapper::lgw_get_temperature(&mut temp) };
     if ret != 0 {
-        return Err("lgw_get_temperature failed".to_string());
+        return Err(anyhow!("lgw_get_temperature failed"));
     }
 
-    return Ok(temp);
+    Ok(temp)
 }
 
 /// Return time on air of given packet, in milliseconds.
-pub fn time_on_air(pkt: &TxPacket) -> Result<Duration, String> {
+pub fn time_on_air(pkt: &TxPacket) -> Result<Duration> {
     let _guard = mutex::CONCENTATOR.lock().unwrap();
     let mut pkt = pkt.to_hal();
     let ms = unsafe { wrapper::lgw_time_on_air(&mut pkt) };
-    return Ok(Duration::from_millis(ms as u64));
+    Ok(Duration::from_millis(ms as u64))
 }
 
 /// Allow user to check the version/options of the library once compiled.
@@ -1033,17 +1039,18 @@ pub fn version_info() -> String {
 /// Start scaning the channel centered on the given frequency.
 /// freq_hz channel center frequency.
 /// nb_scan number of measures to be done for the scan.
-pub fn spectral_scan_start(freq_hz: u32, nb_scan: u16) -> Result<(), String> {
+pub fn spectral_scan_start(freq_hz: u32, nb_scan: u16) -> Result<()> {
     let _guard = mutex::CONCENTATOR.lock().unwrap();
     let ret = unsafe { wrapper::lgw_spectral_scan_start(freq_hz, nb_scan) };
     if ret != 0 {
-        return Err("lgw_spectral_scan_start failed".to_string());
+        return Err(anyhow!("lgw_spectral_scan_start failed"));
     }
-    return Ok(());
+
+    Ok(())
 }
 
 /// Get the channel scan results.
-pub fn spectral_scan_get_results() -> Result<Vec<SpectralScanResult>, String> {
+pub fn spectral_scan_get_results() -> Result<Vec<SpectralScanResult>> {
     let _guard = mutex::CONCENTATOR.lock().unwrap();
 
     let mut levels_dbm: [i16; wrapper::LGW_SPECTRAL_SCAN_RESULT_SIZE as usize] =
@@ -1056,7 +1063,7 @@ pub fn spectral_scan_get_results() -> Result<Vec<SpectralScanResult>, String> {
         wrapper::lgw_spectral_scan_get_results(levels_dbm.as_mut_ptr(), results.as_mut_ptr())
     };
     if ret != 0 {
-        return Err("lgw_spectral_scan_get_results failed".to_string());
+        return Err(anyhow!("lgw_spectral_scan_get_results failed"));
     }
 
     let mut v: Vec<SpectralScanResult> = Vec::new();
@@ -1068,5 +1075,5 @@ pub fn spectral_scan_get_results() -> Result<Vec<SpectralScanResult>, String> {
         });
     }
 
-    return Ok(v);
+    Ok(v)
 }

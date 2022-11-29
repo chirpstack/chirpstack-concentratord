@@ -1,3 +1,5 @@
+use anyhow::Result;
+
 use super::Configuration;
 
 const DEFAULT_RADIO_BANDWIDTH: u32 = 925000;
@@ -23,7 +25,7 @@ fn get_radio_bandwidth(channel_bw: u32) -> u32 {
     }
 }
 
-pub fn get_radio_frequencies(config: &Configuration) -> Result<Vec<u32>, String> {
+pub fn get_radio_frequencies(config: &Configuration) -> Result<Vec<u32>> {
     let mut channels: Vec<ChannelConfiguration> = Vec::new();
     let mut radios = vec![0; config.gateway.model_config.radio_count];
 
@@ -75,9 +77,9 @@ pub fn get_radio_frequencies(config: &Configuration) -> Result<Vec<u32>, String>
 
             // the channel does not fit
             if i == (config.gateway.model_config.radio_count - 1) {
-                return Err(
-                    "the channels do not fit within the bandwidth of the two radios".to_string(),
-                );
+                return Err(anyhow!(
+                    "the channels do not fit within the bandwidth of the two radios"
+                ));
             }
         }
     }
@@ -85,11 +87,7 @@ pub fn get_radio_frequencies(config: &Configuration) -> Result<Vec<u32>, String>
     return Ok(radios);
 }
 
-pub fn get_radio_for_channel(
-    radios: &[u32],
-    freq_hz: u32,
-    bandwidth: u32,
-) -> Result<usize, String> {
+pub fn get_radio_for_channel(radios: &[u32], freq_hz: u32, bandwidth: u32) -> Result<usize> {
     let chan_min = freq_hz - (bandwidth / 2);
     let chan_max = freq_hz + (bandwidth / 2);
 
@@ -102,7 +100,7 @@ pub fn get_radio_for_channel(
         }
     }
 
-    return Err("channel does not fit in radio bandwidth".to_string());
+    Err(anyhow!("channel does not fit in radio bandwidth"))
 }
 
 #[cfg(test)]

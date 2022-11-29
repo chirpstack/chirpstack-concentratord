@@ -1,17 +1,20 @@
+use std::io::Cursor;
 use std::time::Duration;
 
+use anyhow::Result;
+use chirpstack_api::gw;
 use log::info;
 use prost::Message;
 
 use super::socket::ZMQ_CONTEXT;
 
-pub fn get_socket(bind: &str) -> Result<zmq::Socket, zmq::Error> {
+pub fn get_socket(bind: &str) -> Result<zmq::Socket> {
     info!("Creating socket for receiving commands, bind: {}", bind);
 
     let zmq_ctx = ZMQ_CONTEXT.lock().unwrap();
     let sock = zmq_ctx.socket(zmq::REP)?;
     sock.bind(&bind)?;
-    return Ok(sock);
+    Ok(sock)
 }
 
 pub enum Command {
@@ -67,40 +70,23 @@ impl Iterator for Reader<'_> {
     }
 }
 
-fn handle_message(msg: Vec<Vec<u8>>) -> Result<Command, String> {
+fn handle_message(msg: Vec<Vec<u8>>) -> Result<Command> {
     if msg.len() != 2 {
-        return Err("command must have two frames".to_string());
+        return Err(anyhow!("Command must have two frames"));
     }
 
-    let command = match String::from_utf8(msg[0].clone()) {
-        Ok(v) => v,
-        Err(err) => return Err(err.to_string()),
-    };
+    let command = String::from_utf8(msg[0].clone())?;
 
     Ok(match command.as_str() {
-        "down" => match parse_down(&msg[1]) {
+        "down" => match gw::DownlinkFrame::decode(&mut Cursor::new(&msg[1])) {
             Ok(v) => Command::Downlink(v),
-            Err(err) => Command::Error(err),
+            Err(err) => Command::Error(err.to_string()),
         },
-        "config" => match parse_config(&msg[1]) {
+        "config" => match gw::GatewayConfiguration::decode(&mut Cursor::new(&msg[1])) {
             Ok(v) => Command::Configuration(v),
-            Err(err) => Command::Error(err),
+            Err(err) => Command::Error(err.to_string()),
         },
         "gateway_id" => Command::GatewayID,
         _ => Command::Unknown(command, msg[1].clone()),
     })
-}
-
-fn parse_down(msg: &[u8]) -> Result<chirpstack_api::gw::DownlinkFrame, String> {
-    match chirpstack_api::gw::DownlinkFrame::decode(msg) {
-        Ok(v) => Ok(v),
-        Err(err) => Err(err.to_string()),
-    }
-}
-
-fn parse_config(msg: &[u8]) -> Result<chirpstack_api::gw::GatewayConfiguration, String> {
-    match chirpstack_api::gw::GatewayConfiguration::decode(msg) {
-        Ok(v) => Ok(v),
-        Err(err) => Err(err.to_string()),
-    }
 }

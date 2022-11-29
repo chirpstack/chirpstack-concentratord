@@ -3,6 +3,7 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
 
+use anyhow::Result;
 use libconcentratord::jitqueue;
 use libconcentratord::signals::Signal;
 use libloragw_sx1301::hal;
@@ -74,7 +75,7 @@ fn send_beacon(
     conf: &config::Beacon,
     beacon_time: Duration,
     queue: &Arc<Mutex<jitqueue::Queue<wrapper::TxPacket>>>,
-) -> Result<(), String> {
+) -> Result<()> {
     let mut rng = rand::thread_rng();
 
     let mut beacon_pl = get_beacon(conf.compulsory_rfu_size, beacon_time);
@@ -104,7 +105,7 @@ fn send_beacon(
             10 => hal::DataRate::SF10,
             11 => hal::DataRate::SF11,
             12 => hal::DataRate::SF12,
-            _ => return Err("invalid spreading-factor configured".to_string()),
+            _ => return Err(anyhow!("invalid spreading-factor configured")),
         },
         coderate: hal::CodeRate::LoRa4_5,
         invert_pol: false,
@@ -123,7 +124,7 @@ fn send_beacon(
         .enqueue(timersync::get_concentrator_count(), tx_packet)
     {
         Ok(_) => Ok(()),
-        Err(status) => Err(format!("{:?}", status)),
+        Err(status) => Err(anyhow!("{:?}", status)),
     }
 }
 

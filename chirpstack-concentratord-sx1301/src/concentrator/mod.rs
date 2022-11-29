@@ -1,18 +1,17 @@
+use anyhow::Result;
 use libloragw_sx1301::{hal, spi};
 
 use super::config::{helpers, Configuration};
 
-pub fn set_spidev_path(config: &Configuration) -> Result<(), String> {
+pub fn set_spidev_path(config: &Configuration) -> Result<()> {
     info!(
         "Setting spi device path, spidev_path: {}",
         config.gateway.model_config.spidev_path
     );
-    spi::set_path(&config.gateway.model_config.spidev_path)?;
-
-    return Ok(());
+    spi::set_path(&config.gateway.model_config.spidev_path)
 }
 
-pub fn board_setconf(config: &Configuration) -> Result<(), String> {
+pub fn board_setconf(config: &Configuration) -> Result<()> {
     let board_config = hal::BoardConfig {
         lorawan_public: config.gateway.lorawan_public,
         clock_source: config.gateway.model_config.clock_source,
@@ -21,21 +20,17 @@ pub fn board_setconf(config: &Configuration) -> Result<(), String> {
         "Setting board configuration, lorawan_public: {}, clock_source: {}",
         board_config.lorawan_public, board_config.clock_source
     );
-    hal::board_setconf(&board_config)?;
-
-    return Ok(());
+    hal::board_setconf(&board_config)
 }
 
-pub fn txgain_setconf(config: &Configuration) -> Result<(), String> {
+pub fn txgain_setconf(config: &Configuration) -> Result<()> {
     for tx_gain_config in &config.gateway.model_config.tx_gain_table {
         debug!("Configuring TX gain, rf_power: {}, pa_gain: {}, mix_gain: {}, dac_gain: {}, dig_gain: {}", tx_gain_config.rf_power, tx_gain_config.pa_gain, tx_gain_config.mix_gain,  tx_gain_config.dac_gain, tx_gain_config.dig_gain);
     }
-    hal::txgain_setconf(&config.gateway.model_config.tx_gain_table)?;
-
-    return Ok(());
+    hal::txgain_setconf(&config.gateway.model_config.tx_gain_table)
 }
 
-pub fn rxrf_setconf(config: &Configuration) -> Result<(), String> {
+pub fn rxrf_setconf(config: &Configuration) -> Result<()> {
     info!("Setting up concentrator radios");
     let radio_freqs = helpers::get_radio_frequencies(&config)?;
     for (i, radio_freq) in radio_freqs.iter().enumerate() {
@@ -55,10 +50,10 @@ pub fn rxrf_setconf(config: &Configuration) -> Result<(), String> {
         hal::rxrf_setconf(i as u8, &rx_rf_config)?;
     }
 
-    return Ok(());
+    Ok(())
 }
 
-pub fn rxif_setconf(config: &Configuration) -> Result<(), String> {
+pub fn rxif_setconf(config: &Configuration) -> Result<()> {
     info!("Setting up concentrator channels");
     let radio_freqs = helpers::get_radio_frequencies(&config)?;
     for (i, chan_freq) in config
@@ -147,21 +142,15 @@ pub fn rxif_setconf(config: &Configuration) -> Result<(), String> {
         rx_if_config.rf_chain,
         rx_if_config.freq_hz
     );
-    hal::rxif_setconf(9, &rx_if_config)?;
-
-    return Ok(());
+    hal::rxif_setconf(9, &rx_if_config)
 }
 
-pub fn start(_config: &Configuration) -> Result<(), String> {
+pub fn start(_config: &Configuration) -> Result<()> {
     info!("Starting the concentrator");
-    hal::start()?;
-
-    return Ok(());
+    hal::start()
 }
 
-pub fn stop(_config: &Configuration) -> Result<(), String> {
+pub fn stop(_config: &Configuration) -> Result<()> {
     info!("Stopping the concentrator");
-    hal::stop()?;
-
-    return Ok(());
+    hal::stop()
 }

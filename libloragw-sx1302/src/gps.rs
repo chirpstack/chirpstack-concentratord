@@ -6,6 +6,8 @@ use std::os::unix::io::{AsRawFd, FromRawFd};
 use std::ptr;
 use std::time::{Duration, SystemTime};
 
+use anyhow::Result;
+
 use super::{mutex, timespec, wrapper};
 
 /// GPS family types.
@@ -70,7 +72,7 @@ pub enum MessageType {
 }
 
 impl MessageType {
-    fn from_hal(msg: wrapper::gps_msg) -> Result<Self, String> {
+    fn from_hal(msg: wrapper::gps_msg) -> Result<Self> {
         Ok(match msg {
             wrapper::gps_msg_UNKNOWN => MessageType::Unknown,
             wrapper::gps_msg_IGNORED => MessageType::Ignored,
@@ -90,7 +92,7 @@ impl MessageType {
             wrapper::gps_msg_UBX_NAV_TIMEGPS => MessageType::UBX_NAV_TIMEGPS,
             wrapper::gps_msg_UBX_NAV_TIMEUTC => MessageType::UBX_NAV_TIMEUTC,
             _ => {
-                return Err(format!("unexpected gps message type: {}", msg));
+                return Err(anyhow!("Unexpected gps message type: {}", msg));
             }
         })
     }
@@ -141,14 +143,14 @@ impl Default for TimeReference {
 
 /// Configure a GPS module.
 /// target_brate: target baudrate for communication (0 keeps default target baudrate).
-pub fn enable(tty_path: &str, gps_family: GPSFamily, target_brate: u32) -> Result<File, String> {
+pub fn enable(tty_path: &str, gps_family: GPSFamily, target_brate: u32) -> Result<File> {
     let _guard = mutex::CONCENTATOR.lock().unwrap();
 
     let mut fd: i32 = 0;
     let gps_family = match gps_family {
         GPSFamily::UBX7 => CString::new("ubx7").unwrap(),
     };
-    let tty_path = CString::new(tty_path).unwrap();
+    let tty_path = CString::new(tty_path)?;
 
     let ret = unsafe {
         wrapper::lgw_gps_enable(
@@ -159,41 +161,41 @@ pub fn enable(tty_path: &str, gps_family: GPSFamily, target_brate: u32) -> Resul
         )
     };
     if ret != 0 {
-        return Err("lgw_gps_enable failed".to_string());
+        return Err(anyhow!("lgw_gps_enable failed"));
     }
 
     let f = unsafe { File::from_raw_fd(fd) };
-    return Ok(f);
+
+    Ok(f)
 }
 
 /// Restore GPS serial configuration and close serial device.
-pub fn disable(f: File) -> Result<(), String> {
+pub fn disable(f: File) -> Result<()> {
     let _guard = mutex::CONCENTATOR.lock().unwrap();
 
     let fd = f.as_raw_fd();
     let ret = unsafe { wrapper::lgw_gps_disable(fd) };
     if ret != 0 {
-        return Err("lgw_gps_disable failed".to_string());
+        return Err(anyhow!("lgw_gps_disable failed"));
     }
-    return Ok(());
+
+    Ok(())
 }
 
 /// Parse messages coming from the GPS system (or other GNSS).
-pub fn parse_nmea(b: &[u8]) -> Result<MessageType, String> {
+pub fn parse_nmea(b: &[u8]) -> Result<MessageType> {
     let _guard = mutex::CONCENTATOR.lock().unwrap();
-    let s = match CString::new(b) {
-        Ok(v) => v,
-        Err(_) => return Err("parse slice to CString error".to_string()),
-    };
+    let s = CString::new(b)?;
 
     let ret =
         unsafe { wrapper::lgw_parse_nmea(s.as_ptr(), s.as_bytes().len().try_into().unwrap()) };
-    return MessageType::from_hal(ret);
+
+    MessageType::from_hal(ret)
 }
 
 /// Parse Ublox proprietary messages coming from the GPS system.
 /// It returns the type parsed and the number of bytes parsed as UBX message if found.
-pub fn parse_ubx(b: &[u8]) -> Result<(MessageType, usize), String> {
+pub fn parse_ubx(b: &[u8]) -> Result<(MessageType, usize)> {
     let _guard = mutex::CONCENTATOR.lock().unwrap();
 
     // from_vec_unchecked is used here as we are passing a slice of bytes that
@@ -210,7 +212,7 @@ pub fn parse_ubx(b: &[u8]) -> Result<(MessageType, usize), String> {
     };
 
     let msg_type = MessageType::from_hal(ret)?;
-    return Ok((msg_type, parsed_size as usize));
+    Ok((msg_type, parsed_size as usize))
 }
 
 /// Get the GPS solution (space & time) for the concentrator.
@@ -219,7 +221,7 @@ pub fn parse_ubx(b: &[u8]) -> Result<(MessageType, usize), String> {
 pub fn get(
     get_time: bool,
     get_location: bool,
-) -> Result<(SystemTime, Duration, Coordinates, Coordinates), String> {
+) -> Result<(SystemTime, Duration, Coordinates, Coordinates)> {
     let _guard = mutex::CONCENTATOR.lock().unwrap();
 
     let mut utc: wrapper::timespec = Default::default();
@@ -240,7 +242,7 @@ pub fn get(
         }
     };
     if ret != 0 {
-        return Err("lgw_gps_get failed".to_string());
+        return Err(anyhow!("lgw_gps_get failed"));
     }
 
     let gps_time = timespec::timespec_to_system_time(&utc);
@@ -257,7 +259,7 @@ pub fn get(
         altitude: err.alt,
     };
 
-    return Ok((gps_time, gps_epoch, loc, err));
+    Ok((gps_time, gps_epoch, loc, err))
 }
 
 /// Get time and position information from the serial GPS last message received.
@@ -267,7 +269,7 @@ pub fn sync(
     count_us: &u32,
     gps_time: &SystemTime,
     gps_epoch: &Duration,
-) -> Result<TimeReference, String> {
+) -> Result<TimeReference> {
     let mut tref = t_ref.to_hal();
 
     let utc = timespec::system_time_to_timespec(gps_time);
@@ -275,7 +277,7 @@ pub fn sync(
 
     let ret = unsafe { wrapper::lgw_gps_sync(&mut tref, *count_us, utc, gps_time) };
     if ret != 0 {
-        return Err("lgw_gps_sync failed".to_string());
+        return Err(anyhow!("lgw_gps_sync failed"));
     }
 
     let tref = TimeReference {
@@ -286,11 +288,11 @@ pub fn sync(
         xtal_err: tref.xtal_err,
     };
 
-    return Ok(tref);
+    Ok(tref)
 }
 
 /// Convert concentrator timestamp counter value to GPS time.
-pub fn cnt2time(t_ref: &TimeReference, count_us: u32) -> Result<SystemTime, String> {
+pub fn cnt2time(t_ref: &TimeReference, count_us: u32) -> Result<SystemTime> {
     let tref = t_ref.to_hal();
     let mut utc = wrapper::timespec {
         tv_sec: 0,
@@ -299,14 +301,14 @@ pub fn cnt2time(t_ref: &TimeReference, count_us: u32) -> Result<SystemTime, Stri
 
     let ret = unsafe { wrapper::lgw_cnt2utc(tref, count_us, &mut utc) };
     if ret != 0 {
-        return Err("lgw_cnt2utc failed".to_string());
+        return Err(anyhow!("lgw_cnt2utc failed"));
     }
 
-    return Ok(timespec::timespec_to_system_time(&utc));
+    Ok(timespec::timespec_to_system_time(&utc))
 }
 
 /// Convert GPS time to concentrator timestamp counter value.
-pub fn time2cnt(t_ref: &TimeReference, gps_time: &SystemTime) -> Result<u32, String> {
+pub fn time2cnt(t_ref: &TimeReference, gps_time: &SystemTime) -> Result<u32> {
     let tref = t_ref.to_hal();
     let utc = timespec::system_time_to_timespec(gps_time);
 
@@ -314,14 +316,14 @@ pub fn time2cnt(t_ref: &TimeReference, gps_time: &SystemTime) -> Result<u32, Str
 
     let ret = unsafe { wrapper::lgw_utc2cnt(tref, utc, &mut count_us) };
     if ret != 0 {
-        return Err("lgw_utc2cnt failed".to_string());
+        return Err(anyhow!("lgw_utc2cnt failed"));
     }
 
-    return Ok(count_us);
+    Ok(count_us)
 }
 
 /// Convert concentrator timestamp counter value to GPS epoch.
-pub fn cnt2epoch(t_ref: &TimeReference, count_us: u32) -> Result<Duration, String> {
+pub fn cnt2epoch(t_ref: &TimeReference, count_us: u32) -> Result<Duration> {
     let tref = t_ref.to_hal();
     let mut gps_time = wrapper::timespec {
         tv_sec: 0,
@@ -330,22 +332,22 @@ pub fn cnt2epoch(t_ref: &TimeReference, count_us: u32) -> Result<Duration, Strin
 
     let ret = unsafe { wrapper::lgw_cnt2gps(tref, count_us, &mut gps_time) };
     if ret != 0 {
-        return Err("lgw_cnt2gps failed".to_string());
+        return Err(anyhow!("lgw_cnt2gps failed"));
     }
 
-    return Ok(timespec::timespec_to_duration(&gps_time));
+    Ok(timespec::timespec_to_duration(&gps_time))
 }
 
 /// Convert GPS epoch to concentrator timestamp counter value.
-pub fn epoch2cnt(t_ref: &TimeReference, gps_epoch: &Duration) -> Result<u32, String> {
+pub fn epoch2cnt(t_ref: &TimeReference, gps_epoch: &Duration) -> Result<u32> {
     let tref = t_ref.to_hal();
     let gps_time = timespec::duration_to_timespec(gps_epoch);
     let mut count_us = 0;
 
     let ret = unsafe { wrapper::lgw_gps2cnt(tref, gps_time, &mut count_us) };
     if ret != 0 {
-        return Err("lgw_gps2cnt failed".to_string());
+        return Err(anyhow!("lgw_gps2cnt failed"));
     }
 
-    return Ok(count_us);
+    Ok(count_us)
 }

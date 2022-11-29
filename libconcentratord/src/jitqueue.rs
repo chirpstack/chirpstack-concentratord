@@ -1,5 +1,6 @@
 use std::time::Duration;
 
+use anyhow::Result;
 use log::{debug, error, info};
 
 #[derive(PartialEq, Eq, Copy, Clone, Debug)]
@@ -10,7 +11,7 @@ pub enum TxMode {
 }
 
 pub trait TxPacket {
-    fn get_time_on_air(&self) -> Result<Duration, String>;
+    fn get_time_on_air(&self) -> Result<Duration>;
     fn get_tx_mode(&self) -> TxMode;
     fn get_id(&self) -> u32;
     fn set_tx_mode(&mut self, tx_mode: TxMode);
@@ -294,12 +295,12 @@ mod tests {
     }
 
     impl TxPacket for TxPacketMock {
-        fn get_time_on_air(&self) -> Result<Duration, String> {
-            return Ok(self.time_on_air);
+        fn get_time_on_air(&self) -> Result<Duration> {
+            Ok(self.time_on_air)
         }
 
         fn get_tx_mode(&self) -> TxMode {
-            return self.tx_mode;
+            self.tx_mode
         }
 
         fn get_id(&self) -> u32 {

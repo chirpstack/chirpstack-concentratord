@@ -1,5 +1,6 @@
 use std::sync::Mutex;
 
+use anyhow::Result;
 use log::info;
 use prost::Message;
 
@@ -9,7 +10,7 @@ lazy_static! {
     static ref ZMQ_PUB: Mutex<Option<zmq::Socket>> = Mutex::new(None);
 }
 
-pub fn bind_socket(bind: &str) -> Result<(), zmq::Error> {
+pub fn bind_socket(bind: &str) -> Result<()> {
     info!("Creating socket for publishing events, bind: {}", bind);
 
     let zmq_ctx = ZMQ_CONTEXT.lock().unwrap();
@@ -20,31 +21,29 @@ pub fn bind_socket(bind: &str) -> Result<(), zmq::Error> {
 
     *zmq_pub = Some(sock);
 
-    return Ok(());
+    Ok(())
 }
 
-pub fn send_uplink(pl: &chirpstack_api::gw::UplinkFrame) -> Result<(), String> {
+pub fn send_uplink(pl: &chirpstack_api::gw::UplinkFrame) -> Result<()> {
     let pub_guard = ZMQ_PUB.lock().unwrap();
     let publisher = pub_guard.as_ref().unwrap();
 
-    let mut buf = Vec::new();
-    pl.encode(&mut buf).unwrap();
+    let b = pl.encode_to_vec();
     publisher.send("up", zmq::SNDMORE).unwrap();
-    publisher.send(buf, 0).unwrap();
+    publisher.send(b, 0).unwrap();
 
-    return Ok(());
+    Ok(())
 }
 
-pub fn send_stats(stats: &chirpstack_api::gw::GatewayStats) -> Result<(), String> {
+pub fn send_stats(stats: &chirpstack_api::gw::GatewayStats) -> Result<()> {
     let pub_guard = ZMQ_PUB.lock().unwrap();
     let publisher = pub_guard.as_ref().unwrap();
 
     info!("Publishing stats event, rx_received: {}, rx_received_ok: {}, tx_received: {}, tx_emitted: {}", stats.rx_packets_received, stats.rx_packets_received_ok, stats.tx_packets_received, stats.tx_packets_emitted);
 
-    let mut buf = Vec::new();
-    stats.encode(&mut buf).unwrap();
+    let b = stats.encode_to_vec();
     publisher.send("stats", zmq::SNDMORE).unwrap();
-    publisher.send(buf, 0).unwrap();
+    publisher.send(b, 0).unwrap();
 
-    return Ok(());
+    Ok(())
 }

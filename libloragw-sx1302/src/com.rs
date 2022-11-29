@@ -1,5 +1,8 @@
-use super::{mutex, wrapper};
 use std::ffi::CString;
+
+use anyhow::Result;
+
+use super::{mutex, wrapper};
 
 /// Communication type.
 #[derive(Debug, PartialEq)]
@@ -19,7 +22,7 @@ impl ComType {
     }
 }
 
-pub fn open(com_type: ComType, com_path: &str) -> Result<(), String> {
+pub fn open(com_type: ComType, com_path: &str) -> Result<()> {
     let _guard = mutex::CONCENTATOR.lock().unwrap();
 
     let com_type = com_type.to_hal();
@@ -27,8 +30,8 @@ pub fn open(com_type: ComType, com_path: &str) -> Result<(), String> {
 
     let ret = unsafe { wrapper::lgw_com_open(com_type, com_path.into_raw()) };
     if ret != 0 {
-        return Err("lgw_com_open failed".to_string());
+        return Err(anyhow!("lgw_com_open failed"));
     }
 
-    return Ok(());
+    Ok(())
 }

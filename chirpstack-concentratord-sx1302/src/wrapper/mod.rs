@@ -1,5 +1,6 @@
 use std::time::{Duration, UNIX_EPOCH};
 
+use anyhow::Result;
 use chirpstack_api::gw;
 use libconcentratord::jitqueue;
 use libloragw_sx1302::hal;
@@ -21,7 +22,7 @@ impl TxPacket {
 }
 
 impl jitqueue::TxPacket for TxPacket {
-    fn get_time_on_air(&self) -> Result<Duration, String> {
+    fn get_time_on_air(&self) -> Result<Duration> {
         hal::time_on_air(&self.0)
     }
 
@@ -51,10 +52,7 @@ impl jitqueue::TxPacket for TxPacket {
     }
 }
 
-pub fn uplink_to_proto(
-    gateway_id: &[u8],
-    packet: &hal::RxPacket,
-) -> Result<gw::UplinkFrame, String> {
+pub fn uplink_to_proto(gateway_id: &[u8], packet: &hal::RxPacket) -> Result<gw::UplinkFrame> {
     let mut rng = rand::thread_rng();
     let uplink_id: u32 = rng.gen();
 
@@ -76,7 +74,7 @@ pub fn uplink_to_proto(
                                 hal::DataRate::SF10 => 10,
                                 hal::DataRate::SF11 => 11,
                                 hal::DataRate::SF12 => 12,
-                                _ => return Err("unexpected spreading-factor".to_string()),
+                                _ => return Err(anyhow!("unexpected spreading-factor")),
                             },
                             code_rate: match packet.coderate {
                                 hal::CodeRate::LoRa4_5 => gw::CodeRate::Cr45,
@@ -92,8 +90,8 @@ pub fn uplink_to_proto(
                     hal::Modulation::FSK => {
                         Some(gw::modulation::Parameters::Fsk(gw::FskModulationInfo {
                             datarate: match packet.datarate {
-                                hal::DataRate::FSK(v) => v * 1001,
-                                _ => return Err("unexpected datarate".to_string()),
+                                hal::DataRate::FSK(v) => v * 1000,
+                                _ => return Err(anyhow!("unexpected datarate")),
                             },
                             ..Default::default()
                         }))
@@ -145,7 +143,7 @@ pub fn uplink_to_proto(
     })
 }
 
-pub fn downlink_from_proto(df: &gw::DownlinkFrameItem) -> Result<hal::TxPacket, String> {
+pub fn downlink_from_proto(df: &gw::DownlinkFrameItem) -> Result<hal::TxPacket> {
     let mut data: [u8; 256] = [0; 256];
     let mut data_slice = df.phy_payload.clone();
     data_slice.resize(data.len(), 0);
@@ -153,7 +151,7 @@ pub fn downlink_from_proto(df: &gw::DownlinkFrameItem) -> Result<hal::TxPacket, 
 
     let tx_info = match df.tx_info.as_ref() {
         Some(v) => v,
-        None => return Err("tx_info must not be blank".to_string()),
+        None => return Err(anyhow!("tx_info must not be blank")),
     };
 
     let mut packet = hal::TxPacket {
@@ -180,7 +178,7 @@ pub fn downlink_from_proto(df: &gw::DownlinkFrameItem) -> Result<hal::TxPacket, 
 
                     let ctx = &tx_info.context;
                     if ctx.len() != 4 {
-                        return Err("context must be exactly 4 bytes".to_string());
+                        return Err(anyhow!("context must be exactly 4 bytes"));
                     }
 
                     match &v.delay {
@@ -194,7 +192,7 @@ pub fn downlink_from_proto(df: &gw::DownlinkFrameItem) -> Result<hal::TxPacket, 
                             );
                         }
                         None => {
-                            return Err("delay must not be nil".to_string());
+                            return Err(anyhow!("delay must not be null"));
                         }
                     }
                 }
@@ -214,7 +212,7 @@ pub fn downlink_from_proto(df: &gw::DownlinkFrameItem) -> Result<hal::TxPacket, 
                             }
                         }
                         None => {
-                            return Err("time_since_gps_epoch must not be nil".to_string());
+                            return Err(anyhow!("time_since_gps_epoch must not be null"));
                         }
                     }
                 }
@@ -237,7 +235,7 @@ pub fn downlink_from_proto(df: &gw::DownlinkFrameItem) -> Result<hal::TxPacket, 
                         10 => hal::DataRate::SF10,
                         11 => hal::DataRate::SF11,
                         12 => hal::DataRate::SF12,
-                        _ => return Err("unexpected spreading-factor".to_string()),
+                        _ => return Err(anyhow!("unexpected spreading-factor")),
                     };
                     packet.coderate = match v.code_rate() {
                         gw::CodeRate::Cr45 => hal::CodeRate::LoRa4_5,
@@ -254,7 +252,7 @@ pub fn downlink_from_proto(df: &gw::DownlinkFrameItem) -> Result<hal::TxPacket, 
                     packet.f_dev = (v.frequency_deviation / 1000) as u8;
                 }
                 gw::modulation::Parameters::LrFhss(_) => {
-                    return Err("LR-FHSS is not supported for downlink".to_string());
+                    return Err(anyhow!("LR-FHSS is not supported for downlink"));
                 }
             }
         }
@@ -263,7 +261,7 @@ pub fn downlink_from_proto(df: &gw::DownlinkFrameItem) -> Result<hal::TxPacket, 
     Ok(packet)
 }
 
-pub fn downlink_to_tx_info_proto(packet: &hal::TxPacket) -> Result<gw::DownlinkTxInfo, String> {
+pub fn downlink_to_tx_info_proto(packet: &hal::TxPacket) -> Result<gw::DownlinkTxInfo> {
     Ok(gw::DownlinkTxInfo {
         frequency: packet.freq_hz,
         modulation: Some(gw::Modulation {
@@ -281,7 +279,7 @@ pub fn downlink_to_tx_info_proto(packet: &hal::TxPacket) -> Result<gw::DownlinkT
                             hal::DataRate::SF11 => 11,
                             hal::DataRate::SF12 => 12,
                             _ => {
-                                return Err("unexpected spreading-factor".to_string());
+                                return Err(anyhow!("unexpected spreading-factor"));
                             }
                         },
                         code_rate: match packet.coderate {
@@ -299,7 +297,7 @@ pub fn downlink_to_tx_info_proto(packet: &hal::TxPacket) -> Result<gw::DownlinkT
                     Some(gw::modulation::Parameters::Fsk(gw::FskModulationInfo {
                         datarate: match packet.datarate {
                             hal::DataRate::FSK(v) => v * 1000,
-                            _ => return Err("unexpected datarate".to_string()),
+                            _ => return Err(anyhow!("unexpected datarate")),
                         },
                         ..Default::default()
                     }))

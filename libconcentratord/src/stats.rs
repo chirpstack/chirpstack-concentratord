@@ -2,6 +2,8 @@ use std::collections::HashMap;
 use std::sync::Mutex;
 use std::time::{SystemTime, UNIX_EPOCH};
 
+use anyhow::Result;
+
 use super::events;
 
 lazy_static! {
@@ -104,7 +106,7 @@ pub fn send_and_reset(
     gateway_id: &[u8],
     location: Option<chirpstack_api::common::Location>,
     metadata: &HashMap<String, String>,
-) -> Result<(), String> {
+) -> Result<()> {
     let mut stats = STATS.lock().unwrap();
 
     let now_since_unix = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
@@ -122,5 +124,5 @@ pub fn send_and_reset(
     // reset stats
     *stats = Default::default();
 
-    return Ok(());
+    Ok(())
 }

@@ -2,6 +2,7 @@ use std::sync::mpsc::{Receiver, Sender};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
+use anyhow::Result;
 use libconcentratord::signals::Signal;
 use libconcentratord::{commands, jitqueue, stats};
 use prost::Message;
@@ -70,7 +71,7 @@ fn handle_downlink(
     gateway_id: &[u8],
     queue: &Arc<Mutex<jitqueue::Queue<wrapper::TxPacket>>>,
     pl: &chirpstack_api::gw::DownlinkFrame,
-) -> Result<Vec<u8>, ()> {
+) -> Result<Vec<u8>> {
     stats::inc_tx_packets_received();
 
     let mut tx_ack = chirpstack_api::gw::DownlinkTxAck {
@@ -90,7 +91,7 @@ fn handle_downlink(
                     "Convert downlink protobuf to HAL struct error, downlink_id: {}, error: {}",
                     pl.downlink_id, err,
                 );
-                return Err(());
+                return Err(err);
             }
         };
 
@@ -125,15 +126,13 @@ fn handle_downlink(
 
     stats::inc_tx_status_count(stats_tx_status);
 
-    let mut buf = Vec::new();
-    tx_ack.encode(&mut buf).unwrap();
-    return Ok(buf);
+    Ok(tx_ack.encode_to_vec())
 }
 
 fn handle_configuration(
     stop_send: Sender<Signal>,
     pl: chirpstack_api::gw::GatewayConfiguration,
-) -> Result<Vec<u8>, ()> {
+) -> Result<Vec<u8>> {
     stop_send.send(Signal::Configuration(pl)).unwrap();
     return Ok(Vec::new());
 }
