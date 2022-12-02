@@ -1,11 +1,12 @@
 #!/bin/sh
 
+AP=ap2
+
 NAME="chirpstack-concentratord-2g4"
 DESC="ChirpStack Concentratord 2g4"
 DAEMON_BIN=/opt/$NAME/$NAME
-DAEMON_PID=/var/run/$NAME.pid
+DAEMON_PID=/var/run/$NAME_$AP.pid
 
-AP=ap2
 GPS_TTY_PATH=/dev/ttyXRUSB2
 CONF_DIR=/var/config/$NAME
 
@@ -40,6 +41,8 @@ copy_config() {
 
 	sed -i "s/gateway_id=.*/gateway_id=\"${lora_eui_raw}\"/" $CONF_DIR/$AP/concentratord.toml
 	sed -i "s/model_flags=.*/model_flags=[${model_flags}]/" $CONF_DIR/$AP/concentratord.toml
+	sed -i "s/event_bind=.*/event_bind=\"ipc:\/\/\/tmp\/concentratord_event_$AP\"/" $CONF_DIR/$AP/concentratord.toml
+	sed -i "s/command_bind=.*/command_bind=\"ipc:\/\/\/tmp\/concentratord_command_$AP\"/" $CONF_DIR/$AP/concentratord.toml
 }
 
 function do_start {
