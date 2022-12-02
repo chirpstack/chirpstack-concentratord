@@ -3,13 +3,38 @@ use std::thread::sleep;
 use std::time::Duration;
 
 use anyhow::Result;
-use gpio_cdev::{Chip, LineHandle, LineRequestFlags};
+use gpio_cdev::{chips, Chip, LineHandle, LineRequestFlags};
 use log::info;
 
 lazy_static! {
     static ref SX1302_RESET: Mutex<Option<LineHandle>> = Mutex::new(None);
     static ref SX1302_POWER_EN: Mutex<Option<LineHandle>> = Mutex::new(None);
     static ref SX1261_RESET: Mutex<Option<LineHandle>> = Mutex::new(None);
+}
+
+pub fn get_pin_by_name(name: &str) -> Result<(String, u32)> {
+    info!("Retrieving pin by name, name: {}", name);
+
+    for chip in chips()? {
+        let chip = chip?;
+        for line in chip.lines() {
+            let info = line.info()?;
+            if let Some(consumer) = info.consumer() {
+                if name == consumer {
+                    info!(
+                        "Found pin by name, name: {}, dev: {}, pin: {}",
+                        name,
+                        chip.path().display(),
+                        line.offset()
+                    );
+
+                    return Ok((chip.path().to_str().unwrap().to_string(), line.offset()));
+                }
+            }
+        }
+    }
+
+    Err(anyhow!("Pin not found, name: {}", name))
 }
 
 pub fn setup_pins(
