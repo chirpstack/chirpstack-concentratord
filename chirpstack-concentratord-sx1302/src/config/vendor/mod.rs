@@ -27,9 +27,9 @@ pub struct Configuration {
     pub gps_tty_path: Option<String>,
     pub com_type: ComType,
     pub com_path: String,
-    pub sx1302_reset_pin: Option<(u32, u32)>,
-    pub sx1302_power_en_pin: Option<(u32, u32)>,
-    pub sx1261_reset_pin: Option<(u32, u32)>,
+    pub sx1302_reset_pin: Option<(String, u32)>,
+    pub sx1302_power_en_pin: Option<(String, u32)>,
+    pub sx1261_reset_pin: Option<(String, u32)>,
 }
 
 #[derive(Clone)]

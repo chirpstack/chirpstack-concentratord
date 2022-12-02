@@ -283,6 +283,6 @@ pub fn new(conf: &config::Configuration) -> Configuration {
         },
         gps_tty_path: None,
         spidev_path: "/dev/spidev0.0".to_string(),
-        reset_pin: Some((0, 1)),
+        reset_pin: Some(("/dev/gpiochip0".to_string(), 1)),
     }
 }

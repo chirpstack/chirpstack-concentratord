@@ -148,8 +148,8 @@ pub fn new(conf: &config::Configuration) -> Configuration {
         gps_tty_path: None,
         spidev_path: "/dev/spidev0.0".to_string(),
         reset_pin: match conf.gateway.reset_pin {
-            0 => Some((0, 5)),
-            _ => Some((0, conf.gateway.reset_pin)),
+            0 => Some(("/dev/gpiochip0".to_string(), 5)),
+            _ => Some(("/dev/gpiochip0".to_string(), conf.gateway.reset_pin)),
         },
     }
 }

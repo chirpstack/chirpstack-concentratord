@@ -13,43 +13,41 @@ lazy_static! {
 }
 
 pub fn setup_pins(
-    sx1302_reset: (u32, u32),
-    sx1302_power_en: Option<(u32, u32)>,
-    sx1261_reset: Option<(u32, u32)>,
+    sx1302_reset: Option<(String, u32)>,
+    sx1302_power_en: Option<(String, u32)>,
+    sx1261_reset: Option<(String, u32)>,
 ) -> Result<()> {
-    info!(
-        "Configuring reset pin, chip: {}, pin: {}",
-        sx1302_reset.0, sx1302_reset.1
-    );
-
-    let mut chip = Chip::new(format!("/dev/gpiochip{}", sx1302_reset.0))?;
-    let line = chip.get_line(sx1302_reset.1)?;
-    let mut sx1302_reset = SX1302_RESET.lock().unwrap();
-    *sx1302_reset = Some(line.request(LineRequestFlags::OUTPUT, 0, "sx1302_reset")?);
-
-    if sx1302_power_en.is_some() {
-        let sx1302_power_en = sx1302_power_en.unwrap();
-
+    if let Some(sx1302_reset) = sx1302_reset {
         info!(
-            "Configuring sx1302 power enable pin, chip: {}, pin: {}",
+            "Configuring reset pin, dev: {}, pin: {}",
+            sx1302_reset.0, sx1302_reset.1
+        );
+
+        let mut chip = Chip::new(sx1302_reset.0)?;
+        let line = chip.get_line(sx1302_reset.1)?;
+        let mut sx1302_reset = SX1302_RESET.lock().unwrap();
+        *sx1302_reset = Some(line.request(LineRequestFlags::OUTPUT, 0, "sx1302_reset")?);
+    }
+
+    if let Some(sx1302_power_en) = sx1302_power_en {
+        info!(
+            "Configuring sx1302 power enable pin, dev: {}, pin: {}",
             sx1302_power_en.0, sx1302_power_en.1
         );
 
-        let mut chip = Chip::new(format!("/dev/gpiochip{}", sx1302_power_en.0))?;
+        let mut chip = Chip::new(sx1302_power_en.0)?;
         let line = chip.get_line(sx1302_power_en.1)?;
         let mut sx1302_power_en = SX1302_POWER_EN.lock().unwrap();
         *sx1302_power_en = Some(line.request(LineRequestFlags::OUTPUT, 0, "sx1302_power_en")?);
     }
 
-    if sx1261_reset.is_some() {
-        let sx1261_reset = sx1261_reset.unwrap();
-
+    if let Some(sx1261_reset) = sx1261_reset {
         info!(
-            "Configuring sx1261 reset pin, chip: {}, pin: {}",
+            "Configuring sx1261 reset pin, dev: {}, pin: {}",
             sx1261_reset.0, sx1261_reset.1
         );
 
-        let mut chip = Chip::new(format!("/dev/gpiochip{}", sx1261_reset.0))?;
+        let mut chip = Chip::new(sx1261_reset.0)?;
         let line = chip.get_line(sx1261_reset.1)?;
         let mut sx1261_reset = SX1261_RESET.lock().unwrap();
         *sx1261_reset = Some(line.request(LineRequestFlags::OUTPUT, 0, "sx1261_reset")?);

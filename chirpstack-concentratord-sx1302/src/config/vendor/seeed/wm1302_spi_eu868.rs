@@ -164,16 +164,19 @@ pub fn new(conf: &config::Configuration) -> Configuration {
         com_type: ComType::SPI,
         com_path: "/dev/spidev0.0".to_string(),
         sx1302_reset_pin: match conf.gateway.sx1302_reset_pin {
-            0 => Some((0, 17)),
-            _ => Some((0, conf.gateway.sx1302_reset_pin)),
+            0 => Some(("/dev/gpiochip0".to_string(), 17)),
+            _ => Some(("/dev/gpiochip0".to_string(), conf.gateway.sx1302_reset_pin)),
         },
         sx1302_power_en_pin: match conf.gateway.sx1302_power_en_pin {
-            0 => Some((0, 18)),
-            _ => Some((0, conf.gateway.sx1302_power_en_pin)),
+            0 => Some(("/dev/gpiochip0".to_string(), 18)),
+            _ => Some((
+                "/dev/gpiochip0".to_string(),
+                conf.gateway.sx1302_power_en_pin,
+            )),
         },
         sx1261_reset_pin: match conf.gateway.sx1261_reset_pin {
-            0 => Some((0, 5)),
-            _ => Some((0, conf.gateway.sx1261_reset_pin)),
+            0 => Some(("/dev/gpiochip0".to_string(), 5)),
+            _ => Some(("/dev/gpiochip0".to_string(), conf.gateway.sx1261_reset_pin)),
         },
     }
 }
