@@ -5,7 +5,7 @@ AP=ap1
 NAME="chirpstack-concentratord-sx1301"
 DESC="ChirpStack Concentratord SX1301"
 DAEMON_BIN=/opt/$NAME/$NAME
-DAEMON_PID=/var/run/$NAME_$AP.pid
+DAEMON_PID=/var/run/$NAME-$AP.pid
 
 GPS_TTY_PATH=/dev/ttyXRUSB2
 CONF_DIR=/var/config/$NAME
