@@ -1,6 +1,6 @@
 [package]
 name = "libconcentratord"
-version = "4.0.1"
+version = "4.0.2-test.1"
 authors = ["Orne Brocaar <@brocaar.com>"]
 edition = "2018"
 publish = false

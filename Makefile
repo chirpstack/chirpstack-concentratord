@@ -9,6 +9,9 @@ version:
 	sed -i 's/^version.*/version = "$(VERSION)"/g' ./gateway-id/Cargo.toml
 	sed -i 's/^version.*/version = "$(VERSION)"/g' ./libconcentratord/Cargo.toml
 	make test
+	git add .
+	git commit -v -m "Bump version to $(VERSION)"
+	git tag -a v$(VERSION) -m "v$(VERSION)"
 
 # Cleanup dist.
 clean:
