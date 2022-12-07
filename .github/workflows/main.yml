@@ -1,9 +1,63 @@
-name: ChirpStack Concentratord
-on: [push, pull_request]
+name: CI
+on:
+  push:
+    branches:
+      - '*'
+    tags:
+      - 'v*'
+  pull_request:
+
 jobs:
   tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Run the tests
+      -
+        name: Checkout
+        uses: actions/checkout@v2
+      -
+        name: Cargo cache
+        uses: actions/cache@v3
+        with:
+          path: .rust/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.lock') }}
+      -
+        name: Run tests
         run: make test
+      -
+        name: Make cache accessible to caching action
+        run: |
+          sudo chown $(whoami):$(whoami) -R .rust
+
+  dist:
+    needs: tests
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v2
+      -
+        name: Cargo cache
+        uses: actions/cache@v3
+        with:
+          path: .rust/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.lock') }}
+      -
+        name: Build distributables
+        run: make dist
+      -
+        name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-1
+      -
+        name: Upload binaries to S3
+        run: |
+          aws s3 sync dist s3://builds.loraserver.io/chirpstack-concentratord
+        if: startsWith(github.ref, 'refs/tags/v')
+      -
+        name: Make cache accessible to caching action
+        run: |
+          sudo chown $(whoami):$(whoami) -R .rust
