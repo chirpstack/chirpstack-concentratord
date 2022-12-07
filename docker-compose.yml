@@ -6,3 +6,4 @@ services:
       dockerfile: Dockerfile-devel
     volumes:
       - ./:/chirpstack-concentratord
+      - ./.rust/target:/chirpstack-concentratord/target
