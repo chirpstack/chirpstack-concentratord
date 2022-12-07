@@ -2,12 +2,12 @@
 
 set -e
 
-PACKAGE_NAME="chirpstack-concentratord-sx1301"
-PACKAGE_VERSION=$1
 REV="r1"
 
-
-BIN_PATH="../../../../target/armv5te-unknown-linux-gnueabi/release/chirpstack-concentratord-sx1301"
+PACKAGE_NAME="chirpstack-concentratord-2g4"
+PACKAGE_VERSION=`cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "chirpstack-concentratord-sx1301").version'`
+PACKAGE_DESCRIPTION=`cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "chirpstack-concentratord-sx1301").description'`
+BIN_PATH="../../../../target/armv5te-unknown-linux-gnueabi/release/${PACKAGE_NAME}"
 DIR=`dirname $0`
 PACKAGE_DIR="${DIR}/package-sx1301"
 
@@ -24,7 +24,7 @@ Maintainer: Orne Brocaar <info@brocaar.com>
 Priority: optional
 Section: network
 Source: N/A
-Description: ChirpStack Concentratord SX1301
+Description: $PACKAGE_DESCRIPTION
 EOF
 
 cat > $PACKAGE_DIR/CONTROL/postinst << EOF
