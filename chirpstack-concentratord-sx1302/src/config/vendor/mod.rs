@@ -5,6 +5,19 @@ pub mod seeed;
 pub mod semtech;
 pub mod waveshare;
 
+#[derive(Clone, PartialEq)]
+pub enum Gps {
+    None,
+    TtyPath(String),
+    Gpsd,
+}
+
+impl Default for Gps {
+    fn default() -> Self {
+        Gps::None
+    }
+}
+
 #[derive(Clone)]
 pub enum ComType {
     SPI,
@@ -24,7 +37,7 @@ pub struct Configuration {
     pub full_duplex: bool,
     pub lora_multi_sf_bandwidth: u32,
     pub radio_config: Vec<RadioConfig>,
-    pub gps_tty_path: Option<String>,
+    pub gps: Gps,
     pub com_type: ComType,
     pub com_path: String,
     pub sx1302_reset_pin: Option<(String, u32)>,

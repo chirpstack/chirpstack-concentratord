@@ -1,7 +1,7 @@
 use libloragw_sx1302::hal;
 
 use super::super::super::super::config;
-use super::super::{ComType, Configuration, RadioConfig};
+use super::super::{ComType, Configuration, Gps, RadioConfig};
 
 // source:
 // https://github.com/RAKWireless/rak_common_for_gateway/blob/55fd13c12b/lora/rak2287/global_conf_uart/global_conf.in_865_867.json
@@ -228,9 +228,9 @@ pub fn new(conf: &config::Configuration) -> Configuration {
                 tx_gain_table: vec![],
             },
         ],
-        gps_tty_path: match gps {
-            true => Some("/dev/ttyAMA0".to_string()),
-            false => None,
+        gps: match gps {
+            true => Gps::TtyPath("/dev/ttyAMA0".to_string()),
+            false => Gps::None,
         },
         com_type: match usb {
             true => ComType::USB,

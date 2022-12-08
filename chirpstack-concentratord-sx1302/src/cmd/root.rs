@@ -123,20 +123,14 @@ pub fn run(
         }
     }));
 
-    if config.gateway.model_config.gps_tty_path.is_some() {
+    if config.gateway.model_config.gps != config::vendor::Gps::None {
         // gps thread
         threads.push(thread::spawn({
-            let gps_tty_path = config
-                .gateway
-                .model_config
-                .gps_tty_path
-                .as_ref()
-                .unwrap()
-                .clone();
+            let gps = config.gateway.model_config.gps.clone();
             let stop_receive = signal_pool.new_receiver();
 
             move || {
-                handler::gps::gps_loop(&gps_tty_path, stop_receive);
+                handler::gps::gps_loop(gps, stop_receive);
             }
         }));
 

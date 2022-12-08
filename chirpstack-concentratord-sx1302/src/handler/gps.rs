@@ -3,10 +3,11 @@ use std::sync::mpsc::Receiver;
 use std::sync::Mutex;
 use std::time::{Duration, SystemTime};
 
+use crate::config;
 use anyhow::Result;
 use chrono::offset::Utc;
 use chrono::DateTime;
-use libconcentratord::signals::Signal;
+use libconcentratord::{gpsd, signals::Signal};
 use libloragw_sx1302::{gps, hal};
 
 lazy_static! {
@@ -40,17 +41,26 @@ pub fn set_static_gps_coords(lat: f64, lon: f64, alt: i16) {
     }
 }
 
-pub fn gps_loop(gps_tty_path: &str, stop_receive: Receiver<Signal>) {
+pub fn gps_loop(gps_device: config::vendor::Gps, stop_receive: Receiver<Signal>) {
     debug!("Starting GPS loop");
 
-    let gps_file = gps::enable(gps_tty_path, gps::GPSFamily::UBX7, 0)
-        .expect("could not open gps tty path for gps sync");
-    let mut gps_reader = BufReader::new(gps_file);
-
-    info!(
-        "GPS TTY port opened for GPS synchronization, gps_tty_path: {}",
-        gps_tty_path
-    );
+    let mut gps_reader: Box<dyn BufRead> = match gps_device {
+        config::vendor::Gps::TtyPath(tty_path) => {
+            info!("Enabling GPS device, tty_path: {}", tty_path);
+            let gps_file = gps::enable(&tty_path, gps::GPSFamily::UBX7, 0)
+                .expect("could not open gps tty path for gps sync");
+            Box::new(BufReader::new(gps_file)) as Box<dyn BufRead>
+        }
+        config::vendor::Gps::Gpsd => {
+            info!("Starting gpsd reader, server: localhost:2947");
+            Box::new(gpsd::get_reader("localhost:2947").expect("could not open gpsd reader"))
+                as Box<dyn BufRead>
+        }
+        config::vendor::Gps::None => {
+            warn!("No GPS device configured");
+            return;
+        }
+    };
 
     loop {
         match stop_receive.recv_timeout(Duration::from_millis(0)) {
