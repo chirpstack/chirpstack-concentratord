@@ -1,7 +1,7 @@
 use libloragw_sx1301::hal;
 
 use super::super::super::super::config;
-use super::super::Configuration;
+use super::super::{Configuration, Gps};
 
 // source:
 // https://github.com/RAKWireless/rak_common_for_gateway/blob/713ebf74f65beecdbc0304c7d880d05890f84315/lora/rak2246/global_conf/global_conf.au_915_928.json
@@ -83,9 +83,9 @@ pub fn new(conf: &config::Configuration) -> Configuration {
                 dac_gain: 3,
             },
         ],
-        gps_tty_path: match gps {
-            true => Some("/dev/ttyAMA0".to_string()),
-            false => None,
+        gps: match gps {
+            true => Gps::TtyPath("/dev/ttyAMA0".to_string()),
+            false => Gps::None,
         },
         spidev_path: "/dev/spidev0.0".to_string(),
         reset_pin: match conf.gateway.reset_pin {

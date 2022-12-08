@@ -1,7 +1,7 @@
 use libloragw_sx1301::hal;
 
 use super::super::super::super::config;
-use super::super::Configuration;
+use super::super::{Configuration, Gps};
 
 // source:
 // https://github.com/Wifx/meta-wifx/blob/krogoth/recipes-connectivity/packet-forwarder/files/configs/global_conf_EU868_2dBi_indoor.json
@@ -281,7 +281,7 @@ pub fn new(conf: &config::Configuration) -> Configuration {
         } else {
             panic!("Invalid antenna_gain: {}", conf.gateway.antenna_gain);
         },
-        gps_tty_path: None,
+        gps: Gps::None,
         spidev_path: "/dev/spidev0.0".to_string(),
         reset_pin: Some(("/dev/gpiochip0".to_string(), 1)),
     }

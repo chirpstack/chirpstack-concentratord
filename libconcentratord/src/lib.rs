@@ -5,6 +5,7 @@ extern crate anyhow;
 
 pub mod commands;
 pub mod events;
+pub mod gpsd;
 pub mod jitqueue;
 pub mod reset;
 pub mod signals;

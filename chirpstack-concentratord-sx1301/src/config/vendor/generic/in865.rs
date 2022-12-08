@@ -1,7 +1,7 @@
 use libloragw_sx1301::hal;
 
 use super::super::super::super::config;
-use super::super::Configuration;
+use super::super::{Configuration, Gps};
 
 pub fn new(conf: &config::Configuration) -> Configuration {
     let gps = conf.gateway.model_flags.contains(&"GNSS".to_string());
@@ -145,9 +145,9 @@ pub fn new(conf: &config::Configuration) -> Configuration {
                 dac_gain: 3,
             },
         ],
-        gps_tty_path: match gps {
-            true => Some("/dev/ttyAMA0".to_string()),
-            false => None,
+        gps: match gps {
+            true => Gps::TtyPath("/dev/ttyAMA0".to_string()),
+            false => Gps::None,
         },
         spidev_path: "/dev/spidev0.0".to_string(),
         reset_pin: Some(("/dev/gpiochip0".to_string(), conf.gateway.reset_pin)),

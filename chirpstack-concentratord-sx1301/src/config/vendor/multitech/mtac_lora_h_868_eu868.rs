@@ -1,7 +1,7 @@
 use libloragw_sx1301::hal;
 
 use super::super::super::super::config;
-use super::super::Configuration;
+use super::super::{Configuration, Gps};
 
 pub enum Port {
     AP1,
@@ -156,9 +156,9 @@ pub fn new(conf: &config::Configuration) -> Configuration {
                 dac_gain: 3,
             },
         ],
-        gps_tty_path: match gps {
-            true => Some("/dev/ttyXRUSB2".to_string()),
-            false => None,
+        gps: match gps {
+            true => Gps::Gpsd,
+            false => Gps::None,
         },
         spidev_path: match port {
             Port::AP1 => "/dev/spidev0.2".to_string(),

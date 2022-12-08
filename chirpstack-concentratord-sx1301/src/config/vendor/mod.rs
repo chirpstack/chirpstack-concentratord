@@ -10,6 +10,19 @@ pub mod risinghf;
 pub mod sandbox;
 pub mod wifx;
 
+#[derive(Clone, PartialEq)]
+pub enum Gps {
+    None,
+    TtyPath(String),
+    Gpsd,
+}
+
+impl Default for Gps {
+    fn default() -> Self {
+        Gps::None
+    }
+}
+
 #[derive(Default, Clone)]
 pub struct Configuration {
     pub radio_count: usize,
@@ -21,7 +34,7 @@ pub struct Configuration {
     pub radio_tx_notch_freq: Vec<u32>,
     pub lora_multi_sf_bandwidth: u32,
     pub tx_gain_table: Vec<hal::TxGainConfig>,
-    pub gps_tty_path: Option<String>,
+    pub gps: Gps,
     pub spidev_path: String,
     pub reset_pin: Option<(String, u32)>,
 }

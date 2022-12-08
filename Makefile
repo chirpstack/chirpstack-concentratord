@@ -1,5 +1,8 @@
 .PHONY: dist
 
+build:
+	cargo build
+
 # Update the version.
 version:
 	test -n "$(VERSION)"

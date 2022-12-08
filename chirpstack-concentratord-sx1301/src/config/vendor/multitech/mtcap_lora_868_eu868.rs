@@ -1,6 +1,6 @@
 use libloragw_sx1301::hal;
 
-use super::super::Configuration;
+use super::super::{Configuration, Gps};
 
 // source: http://git.multitech.net/cgi-bin/cgit.cgi/meta-mlinux.git/tree/recipes-connectivity/lora/lora-packet-forwarder/global_conf.json.3.1.0.MTCAP-LORA-1-5.US915.basic
 pub fn new() -> Configuration {
@@ -143,7 +143,7 @@ pub fn new() -> Configuration {
                 dac_gain: 3,
             },
         ],
-        gps_tty_path: None,
+        gps: Gps::None,
         spidev_path: "/dev/spidev0.0".to_string(),
         reset_pin: None,
     }
