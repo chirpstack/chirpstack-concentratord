@@ -1,5 +1,6 @@
 use libloragw_sx1302::hal;
 
+pub mod multitech;
 pub mod rak;
 pub mod seeed;
 pub mod semtech;
@@ -43,6 +44,8 @@ pub struct Configuration {
     pub sx1302_reset_pin: Option<(String, u32)>,
     pub sx1302_power_en_pin: Option<(String, u32)>,
     pub sx1261_reset_pin: Option<(String, u32)>,
+    pub ad5338r_reset_pin: Option<(String, u32)>,
+    pub reset_commands: Option<Vec<(String, Vec<String>)>>,
 }
 
 #[derive(Clone)]

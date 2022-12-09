@@ -101,12 +101,14 @@ fn main() {
     });
 
     // configure concentrator reset pin
-    reset::setup_pins(
-        config.gateway.model_config.sx1302_reset_pin.clone(),
-        config.gateway.model_config.sx1302_power_en_pin.clone(),
-        config.gateway.model_config.sx1261_reset_pin.clone(),
-    )
-    .expect("setup reset pin error");
+    reset::setup_pins(reset::Configuration {
+        sx130x_reset: config.gateway.model_config.sx1302_reset_pin.clone(),
+        sx1302_power_en: config.gateway.model_config.sx1302_power_en_pin.clone(),
+        sx1261_reset: config.gateway.model_config.sx1261_reset_pin.clone(),
+        ad5338r_reset: config.gateway.model_config.ad5338r_reset_pin.clone(),
+        reset_commands: config.gateway.model_config.reset_commands.clone(),
+    })
+    .expect("setup reset pins error");
 
     loop {
         match cmd::root::run(&config, stop_send.clone(), stop_receive.clone()).unwrap() {

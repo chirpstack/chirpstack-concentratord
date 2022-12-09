@@ -3,9 +3,20 @@ use libloragw_sx1302::hal;
 use super::super::super::super::config;
 use super::super::{ComType, Configuration, Gps, RadioConfig};
 
-// source: https://github.com/Lora-net/sx1302_hal/blob/master/packet_forwarder/global_conf.json.sx1250.EU868.USB
+pub enum Port {
+    AP1,
+    AP2,
+}
+
+// source:
+// mPower FW (/opt/lora/global_conf.json.MTAC_003_0_0.EU868)
 pub fn new(conf: &config::Configuration) -> Configuration {
     let gps = conf.gateway.model_flags.contains(&"GNSS".to_string());
+    let port = if conf.gateway.model_flags.contains(&"AP2".to_string()) {
+        Port::AP2
+    } else {
+        Port::AP1
+    };
 
     Configuration {
         radio_count: 2,
@@ -31,65 +42,65 @@ pub fn new(conf: &config::Configuration) -> Configuration {
                 tx_gain_table: vec![
                     // 0
                     hal::TxGainConfig {
-                        rf_power: 12,
+                        rf_power: 10,
                         pa_gain: 0,
-                        pwr_idx: 15,
+                        pwr_idx: 12,
                         ..Default::default()
                     },
                     // 1
                     hal::TxGainConfig {
-                        rf_power: 13,
+                        rf_power: 11,
                         pa_gain: 0,
-                        pwr_idx: 16,
+                        pwr_idx: 13,
                         ..Default::default()
                     },
                     // 2
                     hal::TxGainConfig {
-                        rf_power: 14,
+                        rf_power: 12,
                         pa_gain: 0,
-                        pwr_idx: 17,
+                        pwr_idx: 14,
                         ..Default::default()
                     },
                     // 3
                     hal::TxGainConfig {
-                        rf_power: 15,
+                        rf_power: 13,
                         pa_gain: 0,
-                        pwr_idx: 19,
+                        pwr_idx: 15,
                         ..Default::default()
                     },
                     // 4
                     hal::TxGainConfig {
-                        rf_power: 16,
+                        rf_power: 14,
                         pa_gain: 0,
-                        pwr_idx: 20,
+                        pwr_idx: 16,
                         ..Default::default()
                     },
                     // 5
                     hal::TxGainConfig {
-                        rf_power: 17,
+                        rf_power: 16,
                         pa_gain: 0,
-                        pwr_idx: 22,
+                        pwr_idx: 17,
                         ..Default::default()
                     },
                     // 6
+                    hal::TxGainConfig {
+                        rf_power: 17,
+                        pa_gain: 1,
+                        pwr_idx: 0,
+                        ..Default::default()
+                    },
+                    // 7
                     hal::TxGainConfig {
                         rf_power: 18,
                         pa_gain: 1,
                         pwr_idx: 1,
                         ..Default::default()
                     },
-                    // 7
+                    // 8
                     hal::TxGainConfig {
                         rf_power: 19,
                         pa_gain: 1,
                         pwr_idx: 2,
-                        ..Default::default()
-                    },
-                    // 8
-                    hal::TxGainConfig {
-                        rf_power: 20,
-                        pa_gain: 1,
-                        pwr_idx: 3,
                         ..Default::default()
                     },
                     // 9
@@ -124,7 +135,7 @@ pub fn new(conf: &config::Configuration) -> Configuration {
                     hal::TxGainConfig {
                         rf_power: 25,
                         pa_gain: 1,
-                        pwr_idx: 9,
+                        pwr_idx: 8,
                         ..Default::default()
                     },
                     // 14
@@ -162,15 +173,119 @@ pub fn new(conf: &config::Configuration) -> Configuration {
             },
         ],
         gps: match gps {
-            true => Gps::TtyPath("/dev/ttyAMA0".to_string()),
+            true => Gps::Gpsd,
             false => Gps::None,
         },
-        com_type: ComType::USB,
-        com_path: "/dev/ttyACM0".to_string(),
+        com_type: ComType::SPI,
+        com_path: match port {
+            Port::AP1 => "/dev/spidev0.0".to_string(),
+            Port::AP2 => "/dev/spidev1.0".to_string(),
+        },
         sx1302_reset_pin: None,
         sx1302_power_en_pin: None,
         sx1261_reset_pin: None,
         ad5338r_reset_pin: None,
-        reset_commands: None,
+        reset_commands: Some(match port {
+            Port::AP1 => vec![
+                (
+                    "mts-io-sysfs".to_string(),
+                    vec![
+                        "store".to_string(),
+                        "ap1/creset".to_string(),
+                        "1".to_string(),
+                    ],
+                ),
+                (
+                    "mts-io-sysfs".to_string(),
+                    vec![
+                        "store".to_string(),
+                        "ap1/creset".to_string(),
+                        "0".to_string(),
+                    ],
+                ),
+                (
+                    "mts-io-sysfs".to_string(),
+                    vec![
+                        "store".to_string(),
+                        "ap1/lbtreset".to_string(),
+                        "0".to_string(),
+                    ],
+                ),
+                (
+                    "mts-io-sysfs".to_string(),
+                    vec![
+                        "store".to_string(),
+                        "ap1/lbtreset".to_string(),
+                        "1".to_string(),
+                    ],
+                ),
+                (
+                    "mts-io-sysfs".to_string(),
+                    vec![
+                        "store".to_string(),
+                        "ap1/reset".to_string(),
+                        "0".to_string(),
+                    ],
+                ),
+                (
+                    "mts-io-sysfs".to_string(),
+                    vec![
+                        "store".to_string(),
+                        "ap1/reset".to_string(),
+                        "1".to_string(),
+                    ],
+                ),
+            ],
+            Port::AP2 => vec![
+                (
+                    "mts-io-sysfs".to_string(),
+                    vec![
+                        "store".to_string(),
+                        "ap2/creset".to_string(),
+                        "1".to_string(),
+                    ],
+                ),
+                (
+                    "mts-io-sysfs".to_string(),
+                    vec![
+                        "store".to_string(),
+                        "ap2/creset".to_string(),
+                        "0".to_string(),
+                    ],
+                ),
+                (
+                    "mts-io-sysfs".to_string(),
+                    vec![
+                        "store".to_string(),
+                        "ap2/lbtreset".to_string(),
+                        "0".to_string(),
+                    ],
+                ),
+                (
+                    "mts-io-sysfs".to_string(),
+                    vec![
+                        "store".to_string(),
+                        "ap2/lbtreset".to_string(),
+                        "1".to_string(),
+                    ],
+                ),
+                (
+                    "mts-io-sysfs".to_string(),
+                    vec![
+                        "store".to_string(),
+                        "ap2/reset".to_string(),
+                        "0".to_string(),
+                    ],
+                ),
+                (
+                    "mts-io-sysfs".to_string(),
+                    vec![
+                        "store".to_string(),
+                        "ap2/reset".to_string(),
+                        "1".to_string(),
+                    ],
+                ),
+            ],
+        }),
     }
 }

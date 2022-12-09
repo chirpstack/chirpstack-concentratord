@@ -178,5 +178,7 @@ pub fn new(conf: &config::Configuration) -> Configuration {
             0 => Some(("/dev/gpiochip0".to_string(), 5)),
             _ => Some(("/dev/gpiochip0".to_string(), conf.gateway.sx1261_reset_pin)),
         },
+        ad5338r_reset_pin: None,
+        reset_commands: None,
     }
 }

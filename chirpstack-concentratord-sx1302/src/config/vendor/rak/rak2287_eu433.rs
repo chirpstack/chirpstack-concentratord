@@ -187,5 +187,7 @@ pub fn new(conf: &config::Configuration) -> Configuration {
             )),
         },
         sx1261_reset_pin: None,
+        ad5338r_reset_pin: None,
+        reset_commands: None,
     }
 }

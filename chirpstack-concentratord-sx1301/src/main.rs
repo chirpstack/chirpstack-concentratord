@@ -101,8 +101,11 @@ fn main() {
     });
 
     // configure concentrator reset pin
-    reset::setup_pins(config.gateway.model_config.reset_pin.clone(), None, None)
-        .expect("setup reset pin error");
+    reset::setup_pins(reset::Configuration {
+        sx130x_reset: config.gateway.model_config.reset_pin.clone(),
+        ..Default::default()
+    })
+    .expect("setup reset pin error");
 
     loop {
         match cmd::root::run(&config, stop_send.clone(), stop_receive.clone()).unwrap() {
