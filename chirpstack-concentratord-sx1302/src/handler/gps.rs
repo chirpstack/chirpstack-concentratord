@@ -79,22 +79,23 @@ pub fn gps_loop(gps_device: config::vendor::Gps, stop_receive: Receiver<Signal>)
         match buffer[0] {
             // ubx
             0xb5 => {
-                // We need to read 3 additional bytes for the header.
-                buffer.resize(4, 0);
+                // We need to read 5 additional bytes for the header + PL length.
+                buffer.resize(6, 0);
                 gps_reader
                     .read_exact(&mut buffer[1..])
                     .expect("read from gps error");
 
+                // Parse PL length and read additional payload.
+                let len: usize = u16::from_le_bytes([buffer[4], buffer[5]]).into();
+                buffer.resize(6 + len + 2, 0);
+                gps_reader
+                    .read_exact(&mut buffer[6..])
+                    .expect("read from gps error");
+
                 // Ignore messages other than "B5620120"
-                if !buffer.eq(&[0xb5, 0x62, 0x01, 0x20]) {
+                if !buffer[0..4].eq(&[0xb5, 0x62, 0x01, 0x20]) {
                     continue;
                 }
-
-                // We need to read 20 additional bytes for the payload.
-                buffer.resize(24, 0);
-                gps_reader
-                    .read_exact(&mut buffer[4..])
-                    .expect("read from gps error");
 
                 match gps::parse_ubx(&buffer) {
                     Ok((m_type, _)) => {
