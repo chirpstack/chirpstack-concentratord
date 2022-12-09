@@ -52,7 +52,7 @@ docker-release-arm64:
 		cargo build --target aarch64-unknown-linux-gnu --release
 
 docker-package-multitech-conduit: docker-release-armv5
-	cd packaging/vendor/multitech/conduit && ./package-sx1301.sh && ./package-2g4.sh
+	cd packaging/vendor/multitech/conduit && ./package-sx1301.sh && ./package-sx1302.sh && ./package-2g4.sh
 	mkdir -p dist/vendor/multitech/conduit
 	cp packaging/vendor/multitech/conduit/*.ipk dist/vendor/multitech/conduit
 
