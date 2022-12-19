@@ -181,10 +181,11 @@ pub fn new(conf: &config::Configuration) -> Configuration {
             Port::AP1 => "/dev/spidev0.0".to_string(),
             Port::AP2 => "/dev/spidev1.0".to_string(),
         },
-        sx1302_reset_pin: None,
-        sx1302_power_en_pin: None,
-        sx1261_reset_pin: None,
-        ad5338r_reset_pin: None,
+        i2c_path: Some("/dev/i2c-1".to_string()),
+        i2c_temp_sensor_addr: match port {
+            Port::AP1 => Some(0x48),
+            Port::AP2 => Some(0x49),
+        },
         reset_commands: Some(match port {
             Port::AP1 => vec![
                 (
@@ -287,5 +288,6 @@ pub fn new(conf: &config::Configuration) -> Configuration {
                 ),
             ],
         }),
+        ..Default::default()
     }
 }

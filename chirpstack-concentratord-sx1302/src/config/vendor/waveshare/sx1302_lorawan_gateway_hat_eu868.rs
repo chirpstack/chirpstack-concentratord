@@ -162,6 +162,8 @@ pub fn new(conf: &config::Configuration) -> Configuration {
         gps: Gps::None,
         com_type: ComType::SPI,
         com_path: "/dev/spidev0.0".to_string(),
+        i2c_path: Some("/dev/i2c-1".to_string()),
+        i2c_temp_sensor_addr: Some(0x39),
         sx1302_reset_pin: match conf.gateway.sx1302_reset_pin {
             0 => Some(("/dev/gpiochip0".to_string(), 23)),
             _ => Some(("/dev/gpiochip0".to_string(), conf.gateway.sx1302_reset_pin)),
@@ -173,8 +175,6 @@ pub fn new(conf: &config::Configuration) -> Configuration {
                 conf.gateway.sx1302_power_en_pin,
             )),
         },
-        sx1261_reset_pin: None,
-        ad5338r_reset_pin: None,
-        reset_commands: None,
+        ..Default::default()
     }
 }

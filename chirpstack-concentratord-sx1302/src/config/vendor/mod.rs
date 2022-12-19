@@ -41,6 +41,8 @@ pub struct Configuration {
     pub gps: Gps,
     pub com_type: ComType,
     pub com_path: String,
+    pub i2c_path: Option<String>,
+    pub i2c_temp_sensor_addr: Option<u8>,
     pub sx1302_reset_pin: Option<(String, u32)>,
     pub sx1302_power_en_pin: Option<(String, u32)>,
     pub sx1261_reset_pin: Option<(String, u32)>,

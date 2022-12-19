@@ -38,7 +38,7 @@ RUN cd /tmp && git clone https://github.com/seife/opkg-utils.git && cd /tmp/opkg
 RUN mkdir -p /hal/native && \
 	cd /hal/native && \
 	git clone https://github.com/brocaar/lora_gateway.git -b v5.0.1r2 && \
-	git clone https://github.com/brocaar/sx1302_hal.git -b V2.1.0r1 && \
+	git clone https://github.com/brocaar/sx1302_hal.git -b V2.1.0r5 && \
 	git clone https://github.com/Lora-net/gateway_2g4_hal.git -b V1.1.0
 
 RUN cd /hal/native/lora_gateway && \
@@ -61,19 +61,19 @@ RUN cd /hal/native/gateway_2g4_hal && \
 RUN mkdir -p /hal/armv5 && \
 	cd /hal/armv5 && \
 	git clone https://github.com/brocaar/lora_gateway.git -b v5.0.1r2 && \
-	git clone https://github.com/brocaar/sx1302_hal.git -b V2.1.0r1 && \
+	git clone https://github.com/brocaar/sx1302_hal.git -b V2.1.0r5 && \
 	git clone https://github.com/Lora-net/gateway_2g4_hal.git -b V1.1.0
 
 RUN mkdir -p /hal/armv7hf && \
 	cd /hal/armv7hf && \
 	git clone https://github.com/brocaar/lora_gateway.git -b v5.0.1r2 && \
-	git clone https://github.com/brocaar/sx1302_hal.git -b V2.1.0r1 && \
+	git clone https://github.com/brocaar/sx1302_hal.git -b V2.1.0r5 && \
 	git clone https://github.com/Lora-net/gateway_2g4_hal.git -b V1.1.0
 
 RUN mkdir -p /hal/aarch64 && \
 	cd /hal/aarch64 && \
 	git clone https://github.com/brocaar/lora_gateway.git -b v5.0.1r2 && \
-	git clone https://github.com/brocaar/sx1302_hal.git -b V2.1.0r1 && \
+	git clone https://github.com/brocaar/sx1302_hal.git -b V2.1.0r5 && \
 	git clone https://github.com/Lora-net/gateway_2g4_hal.git -b V1.1.0
 
 # Needed for RAK shields, works with other shields too

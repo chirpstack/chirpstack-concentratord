@@ -781,6 +781,29 @@ pub struct SpectralScanResult {
 
 const MAX_PKT: usize = 8;
 
+/// Set I2C device path.
+pub fn set_i2c_device_path(path: &str) -> Result<()> {
+    let _guard = mutex::CONCENTATOR.lock().unwrap();
+    let path = CString::new(path).unwrap();
+    let ret = unsafe { wrapper::lgw_i2c_set_path(path.as_ptr()) };
+    if ret != 0 {
+        return Err(anyhow!("lgw_i2c_set_path failed"));
+    }
+
+    Ok(())
+}
+
+/// Set I2C temperature device addr.
+pub fn set_i2c_temp_sensor_addr(addr: u8) -> Result<()> {
+    let _guard = mutex::CONCENTATOR.lock().unwrap();
+    let ret = unsafe { wrapper::lgw_i2c_set_temp_sensor_addr(addr) };
+    if ret != 0 {
+        return Err(anyhow!("lgw_i2c_set_temp_sensor addr failed"));
+    }
+
+    Ok(())
+}
+
 /// Configure the gateway board.
 pub fn board_setconf(conf: &BoardConfig) -> Result<()> {
     let mut conf = conf.to_hal()?;

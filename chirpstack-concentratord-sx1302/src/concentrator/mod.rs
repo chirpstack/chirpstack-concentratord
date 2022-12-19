@@ -4,6 +4,29 @@ use libloragw_sx1302::{com, hal};
 use super::config::vendor::ComType;
 use super::config::{helpers, Configuration};
 
+pub fn set_i2c_device_path(config: &Configuration) -> Result<()> {
+    let path = config
+        .gateway
+        .model_config
+        .i2c_path
+        .as_ref()
+        .cloned()
+        .unwrap_or("/dev/i2c-1".to_string());
+
+    info!("Setting i2c device path, path: {}", path);
+
+    hal::set_i2c_device_path(&path)
+}
+
+pub fn set_i2c_temp_sensor_addr(config: &Configuration) -> Result<()> {
+    if let Some(addr) = config.gateway.model_config.i2c_temp_sensor_addr {
+        info!("Setting i2c temperature sensor address, address: {}", addr);
+        hal::set_i2c_temp_sensor_addr(addr)?;
+    }
+
+    Ok(())
+}
+
 pub fn board_setconf(config: &Configuration) -> Result<()> {
     let board_config = hal::BoardConfig {
         lorawan_public: config.gateway.lorawan_public,

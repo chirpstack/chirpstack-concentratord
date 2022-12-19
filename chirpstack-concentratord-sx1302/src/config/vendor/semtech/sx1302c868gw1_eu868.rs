@@ -167,6 +167,8 @@ pub fn new(conf: &config::Configuration) -> Configuration {
         },
         com_type: ComType::SPI,
         com_path: "/dev/spidev0.0".to_string(),
+        i2c_path: Some("/dev/i2c-1".to_string()),
+        i2c_temp_sensor_addr: Some(0x3b),
         sx1302_reset_pin: match conf.gateway.sx1302_reset_pin {
             0 => Some(("/dev/gpiochip0".to_string(), 23)),
             _ => Some(("/dev/gpiochip0".to_string(), conf.gateway.sx1302_reset_pin)),

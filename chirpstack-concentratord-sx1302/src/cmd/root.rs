@@ -26,6 +26,8 @@ pub fn run(
     reset::reset().expect("concentrator reset failed");
 
     // setup concentrator
+    concentrator::set_i2c_device_path(&config)?;
+    concentrator::set_i2c_temp_sensor_addr(&config)?;
     concentrator::board_setconf(&config)?;
     concentrator::timestamp_setconf(&config)?;
     concentrator::txgain_setconf(&config)?;
