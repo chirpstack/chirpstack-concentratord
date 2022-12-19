@@ -166,6 +166,7 @@ pub fn get(filenames: Vec<String>) -> Configuration {
     // get model configuration
     config.gateway.model_config = match config.gateway.model.as_ref() {
         "multitech_mtac_003e00_eu868" => vendor::multitech::mtac_003e00::new(&config),
+        "multitech_mtac_003u00_us915" => vendor::multitech::mtac_003u00::new(&config),
         "rak_2287_as923" => vendor::rak::rak2287_as923::new(&config),
         "rak_2287_au915" => vendor::rak::rak2287_au915::new(&config),
         "rak_2287_cn470" => vendor::rak::rak2287_cn470::new(&config),
