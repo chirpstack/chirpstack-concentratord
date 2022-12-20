@@ -40,7 +40,7 @@ antenna_gain=0
 lorawan_public=true
 
 # Gateway vendor / model.
-model=""
+model="kerlink_ifemtocell_eu868"
 
 # Gateway vendor / model flags.
 model_flags=[]

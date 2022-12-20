@@ -33,6 +33,7 @@ dist:
 	docker-compose run --rm chirpstack-concentratord make \
 		docker-package-targz-armv7hf \
 		docker-package-targz-arm64 \
+		docker-package-kerlink-ifemtocell \
 		docker-package-multitech-conduit
 
 ###
@@ -50,6 +51,11 @@ docker-release-armv5:
 docker-release-arm64:
 	BINDGEN_EXTRA_CLANG_ARGS="--sysroot=/usr/aarch64-linux-gnu" \
 		cargo build --target aarch64-unknown-linux-gnu --release
+
+docker-package-kerlink-ifemtocell: docker-release-armv7hf
+	cd packaging/vendor/kerlink/ifemtocell && ./package.sh
+	mkdir -p dist/vendor/kerlink/ifemtocell
+	cp packaging/vendor/kerlink/ifemtocell/*.ipk dist/vendor/kerlink/ifemtocell
 
 docker-package-multitech-conduit: docker-release-armv5
 	cd packaging/vendor/multitech/conduit && ./package-sx1301.sh && ./package-sx1302.sh && ./package-2g4.sh

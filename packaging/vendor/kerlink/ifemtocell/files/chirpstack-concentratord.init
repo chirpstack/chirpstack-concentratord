@@ -2,25 +2,18 @@
 
 NAME="chirpstack-concentratord"
 DESC="ChirpStack Concentratord"
-DAEMON_BIN=/opt/$NAME/$NAME
+DAEMON_BIN=/usr/bin/$NAME
+DAEMON_CONF_DIR=/etc/$NAME
 DAEMON_PID=/var/run/$NAME.pid
-DAEMON_CONF_DIR=/user/etc/$NAME
 
 
-copy_config() {
+set_gateway_id() {
 	gateway_id=`cat /tmp/board_info.json |grep EUI64 |cut -d'"' -f 4`
-
-	cp $DAEMON_CONF_DIR/examples/global.toml $DAEMON_CONF_DIR/global.toml
-	cp $DAEMON_CONF_DIR/examples/eu868_0.toml $DAEMON_CONF_DIR/channels.toml
-
-	sed -i "s/gateway_id=.*/gateway_id=\"${gateway_id}\"/" $DAEMON_CONF_DIR/global.toml
-	sed -i "s/model=.*/model=\"kerlink_ifemtocell_eu868\"/" $DAEMON_CONF_DIR/global.toml
+	sed -i "s/gateway_id=.*/gateway_id=\"${gateway_id}\"/" $DAEMON_CONF_DIR/concentratord.toml
 }
 
 function do_start {
-	if ! [ -f "$DAEMON_CONF_DIR/global.toml" ]; then
-		copy_config
-	fi
+	set_gateway_id
 
     echo "Starting $NAME"
 	start-stop-daemon \
@@ -28,7 +21,7 @@ function do_start {
         --background \
         --make-pidfile \
         --pidfile $DAEMON_PID \
-        --exec $DAEMON_BIN -- -c $DAEMON_CONF_DIR/global.toml -c $DAEMON_CONF_DIR/channels.toml
+        --exec $DAEMON_BIN -- -c $DAEMON_CONF_DIR/concentratord.toml -c $DAEMON_CONF_DIR/channels.toml
 }
 
 function do_stop {
