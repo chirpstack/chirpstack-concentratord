@@ -34,7 +34,8 @@ dist:
 		docker-package-targz-armv7hf \
 		docker-package-targz-arm64 \
 		docker-package-kerlink-ifemtocell \
-		docker-package-multitech-conduit
+		docker-package-multitech-conduit \
+		docker-package-multitech-conduit-ap
 
 ###
 # All docker-... commands must be executed within the Docker Compose environment.
@@ -61,6 +62,11 @@ docker-package-multitech-conduit: docker-release-armv5
 	cd packaging/vendor/multitech/conduit && ./package-sx1301.sh && ./package-sx1302.sh && ./package-2g4.sh
 	mkdir -p dist/vendor/multitech/conduit
 	cp packaging/vendor/multitech/conduit/*.ipk dist/vendor/multitech/conduit
+
+docker-package-multitech-conduit-ap: docker-release-armv5
+	cd packaging/vendor/multitech/conduit-ap && ./package.sh
+	mkdir -p dist/vendor/multitech/conduit-ap
+	cp packaging/vendor/multitech/conduit-ap/*.ipk dist/vendor/multitech/conduit-ap
 
 docker-package-targz-armv7hf: docker-release-armv7hf
 	$(eval PKG_VERSION := $(shell cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].version'))

@@ -3,9 +3,9 @@
 NAME="chirpstack-concentratord"
 DESC="ChirpStack Concentratord"
 DAEMON_BIN=/opt/$NAME/$NAME
+DAEMON_CONF_DIR=/var/config/$NAME
 DAEMON_PID=/var/run/$NAME.pid
 
-CONF_DIR=/var/config/chirpstack-concentratord
 
 read_lora_hw_info() {
 	lora_id=$(mts-io-sysfs show lora/product-id 2> /dev/null)
@@ -40,12 +40,12 @@ copy_config() {
 		channel_config="us915_0"
 	fi
 
-	mkdir -p $CONF_DIR
-	cp $CONF_DIR/examples/global.toml $CONF_DIR/global.toml
-	cp $CONF_DIR/examples/$channel_config.toml $CONF_DIR/channels.toml
+	mkdir -p $DAEMON_CONF_DIR
+	cp $DAEMON_CONF_DIR/examples/concentratord.toml $DAEMON_CONF_DIR/concentratord.toml
+	cp $DAEMON_CONF_DIR/examples/$channel_config.toml $DAEMON_CONF_DIR/channels.toml
 
-	sed -i "s/gateway_id=.*/gateway_id=\"${lora_eui_raw}\"/" $CONF_DIR/global.toml
-	sed -i "s/model=.*/model=\"multitech_${model}\"/" $CONF_DIR/global.toml
+	sed -i "s/gateway_id=.*/gateway_id=\"${lora_eui_raw}\"/" $DAEMON_CONF_DIR/concentratord.toml
+	sed -i "s/model=.*/model=\"multitech_${model}\"/" $DAEMON_CONF_DIR/concentratord.toml
 }
 
 do_start() {
@@ -57,7 +57,7 @@ do_start() {
 		exit 1
 	fi
 
-	if ! [ -f "$CONF_DIR/global.toml" ]; then
+	if ! [ -f "$DAEMON_CONF_DIR/concentratord.toml" ]; then
 		copy_config
 	fi
 
@@ -67,7 +67,7 @@ do_start() {
         --background \
         --make-pidfile \
         --pidfile $DAEMON_PID \
-        --exec $DAEMON_BIN -- -c $CONF_DIR/global.toml -c $CONF_DIR/channels.toml
+        --exec $DAEMON_BIN -- -c $DAEMON_CONF_DIR/concentratord.toml -c $DAEMON_CONF_DIR/channels.toml
 }
 
 function do_stop {
