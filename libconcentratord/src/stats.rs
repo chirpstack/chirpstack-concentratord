@@ -117,7 +117,7 @@ pub fn send_and_reset(
         nanos: now_since_unix.subsec_nanos() as i32,
     });
     stats.location = location;
-    stats.meta_data = metadata.clone();
+    stats.metadata = metadata.clone();
 
     events::send_stats(&stats).unwrap();
 
