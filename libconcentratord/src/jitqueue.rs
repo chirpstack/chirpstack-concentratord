@@ -58,7 +58,7 @@ impl<T: TxPacket + Copy> Queue<T> {
 
             tx_start_delay: Duration::from_micros(1500),
             tx_margin_delay: Duration::from_micros(1000),
-            tx_jit_delay: Duration::from_micros(30000),
+            tx_jit_delay: Duration::from_micros(40000),
             tx_max_advance_delay: Duration::from_secs((3 + 1) * 128),
 
             concentrator_count_last: 0,
