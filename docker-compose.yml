@@ -7,3 +7,6 @@ services:
     volumes:
       - ./:/chirpstack-concentratord
       - ./.rust/target:/chirpstack-concentratord/target
+      - ./.rust/.cargo/registry/index:/usr/local/cargo/registry/index
+      - ./.rust/.cargo/registry/cache:/usr/local/cargo/registry/cache
+      - ./.rust/.cargo/git/db:/usr/local/cargo/git/db
