@@ -392,7 +392,7 @@ mod tests {
         // first item is schedule 1s after concentrator_count.
         let item = &q.items[0];
         assert_eq!(TxMode::Timestamped, item.packet.get_tx_mode());
-        assert_eq!(Duration::from_micros(1500 + 30000), item.pre_delay);
+        assert_eq!(Duration::from_micros(1500 + 40000), item.pre_delay);
         assert_eq!(Duration::from_millis(100), item.post_delay);
         assert_eq!(
             concentrator_count + Duration::from_secs(1).as_micros() as u32,
@@ -404,7 +404,7 @@ mod tests {
 
         let item = &q.items[1];
         assert_eq!(TxMode::Timestamped, item.packet.get_tx_mode());
-        assert_eq!(Duration::from_micros(1500 + 30000), item.pre_delay);
+        assert_eq!(Duration::from_micros(1500 + 40000), item.pre_delay);
         assert_eq!(Duration::from_millis(100), item.post_delay);
         assert_eq!(
             first_end_us + item.pre_delay.as_micros() as u32 + q.tx_margin_delay.as_micros() as u32,
@@ -417,7 +417,7 @@ mod tests {
         let mut q: Queue<TxPacketMock> = Queue::new(2);
         let concentrator_count = 0_u32.wrapping_sub(
             (Duration::from_secs(1)
-                + Duration::from_micros(1500 + 30000)
+                + Duration::from_micros(1500 + 40000)
                 + Duration::from_millis(100))
             .as_micros() as u32,
         );
@@ -443,7 +443,7 @@ mod tests {
         .unwrap();
 
         let item = &q.items[0];
-        assert_eq!(4294835796, item.packet.get_count_us());
+        assert_eq!(4294825796, item.packet.get_count_us());
 
         let item = &q.items[1];
         assert_eq!(1000, item.packet.get_count_us());
