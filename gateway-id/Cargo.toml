@@ -8,9 +8,6 @@ edition = "2018"
 publish = false
 
 [dependencies]
-zmq = "0.9"
+zmq = "0.10"
 clap = "2.33"
 hex = "0.4"
-
-[features]
-default = ['zmq/vendored']
