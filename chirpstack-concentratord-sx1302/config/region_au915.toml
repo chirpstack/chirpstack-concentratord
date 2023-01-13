@@ -1,0 +1,28 @@
+# beacon configuration.
+#
+# this requires a gateway with gps / gnss.
+[gateway.beacon]
+
+# compulsory rfu size.
+compulsory_rfu_size=3
+
+# beacon frequency / frequencies (hz).
+frequencies=[
+  923300000,
+  923900000,
+  924500000,
+  925100000,
+  925700000,
+  926300000,
+  926900000,
+  927500000,
+]
+
+# bandwidth (hz).
+bandwidth=500000
+
+# spreading factor.
+spreading_factor=12
+
+# tx power.
+tx_power=14
