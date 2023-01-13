@@ -49,6 +49,8 @@ pub struct Gateway {
     pub sx1261_reset_pin: u32,
     pub concentrator: Concentrator,
     #[serde(default)]
+    pub beacon: Beacon,
+    #[serde(default)]
     pub location: Location,
 
     #[serde(default)]
@@ -90,6 +92,15 @@ pub struct FSKChannel {
     pub frequency: u32,
     pub bandwidth: u32,
     pub datarate: u32,
+}
+
+#[derive(Default, Serialize, Deserialize, Debug, PartialEq, Clone)]
+pub struct Beacon {
+    pub compulsory_rfu_size: usize,
+    pub frequencies: Vec<u32>,
+    pub spreading_factor: u32,
+    pub bandwidth: u32,
+    pub tx_power: u32,
 }
 
 #[derive(Serialize, Deserialize)]

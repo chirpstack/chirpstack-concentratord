@@ -268,6 +268,14 @@ pub fn get_coords() -> Option<gps::Coordinates> {
     return *gps_coords;
 }
 
+pub fn get_gps_epoch() -> Result<Duration> {
+    if *GPS_TIME_REF_VALID.lock().unwrap() == false {
+        return Err(anyhow!("gps time reference not available"));
+    }
+
+    Ok(GPS_TIME_REF.lock().unwrap().gps_epoch)
+}
+
 fn gps_process_sync() {
     let (gps_time, gps_epoch, _, _) = match gps::get(true, false) {
         Ok(v) => v,

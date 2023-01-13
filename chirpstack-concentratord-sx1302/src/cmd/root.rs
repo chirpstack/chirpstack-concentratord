@@ -88,6 +88,7 @@ pub fn run(
     threads.push(thread::spawn({
         let vendor_config = config.gateway.model_config.clone();
         let gateway_id = gateway_id.clone();
+        let queue = Arc::clone(&queue);
         let stop_receive = signal_pool.new_receiver();
         let stop_send = stop_send.clone();
 
@@ -144,6 +145,19 @@ pub fn run(
                 handler::gps::gps_validate_loop(stop_receive);
             }
         }));
+
+        // beacon thread
+        if config.gateway.beacon.frequencies.len() != 0 {
+            threads.push(thread::spawn({
+                let beacon_config = config.gateway.beacon.clone();
+                let queue = Arc::clone(&queue);
+                let stop_receive = signal_pool.new_receiver();
+
+                move || {
+                    handler::beacon::beacon_loop(&beacon_config, queue, stop_receive);
+                }
+            }));
+        }
     }
 
     let stop_signal = stop_receive.recv().unwrap();
