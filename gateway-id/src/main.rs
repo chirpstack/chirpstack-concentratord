@@ -1,29 +1,24 @@
 use std::process::exit;
 
-use clap::{App, Arg};
+use clap::Parser;
 
-pub const VERSION: &'static str = env!("CARGO_PKG_VERSION");
+#[derive(Parser)]
+#[command(author, version, about)]
+struct Cli {
+    /// ZMQ command URL
+    #[arg(short, long, default_value = "ipc:///tmp/concentratord_command")]
+    command_url: String,
+}
 
 fn main() {
-    let matches = App::new("gateway-id")
-        .version(VERSION)
-        .author("Orne Brocaar <info@brocaar.com>")
-        .about("Print the Gateway ID")
-        .arg(
-            Arg::with_name("command_url")
-                .short("c")
-                .long("command-url")
-                .help("ZMQ command URL")
-                .default_value("ipc:///tmp/concentratord_command")
-                .takes_value(true),
-        )
-        .get_matches();
-    let command_url = matches.value_of_lossy("command_url").unwrap();
+    let cli = Cli::parse();
 
     // create new zmq REQ socket
     let zmq_ctx = zmq::Context::new();
     let zmq_sock = zmq_ctx.socket(zmq::REQ).expect("new ZMQ socket error");
-    zmq_sock.connect(&command_url).expect("ZMQ connect error");
+    zmq_sock
+        .connect(&cli.command_url)
+        .expect("ZMQ connect error");
 
     // send 'gateway_id' command with empty payload
     zmq_sock.send("gateway_id", zmq::SNDMORE).unwrap();
