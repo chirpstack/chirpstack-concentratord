@@ -52,7 +52,7 @@ copy_config() {
 
 	mkdir -p $CONF_DIR/$AP
 	cp $CONF_DIR/examples/concentratord.toml $CONF_DIR/$AP/concentratord.toml
-	cp $CONF_DIR/examples/band_$band_config.toml $CONF_DIR/$AP/band.toml
+	cp $CONF_DIR/examples/region_$band_config.toml $CONF_DIR/$AP/region.toml
 	cp $CONF_DIR/examples/channels_$channel_config.toml $CONF_DIR/$AP/channels.toml
 
 	sed -i "s/gateway_id=.*/gateway_id=\"${lora_eui_raw}\"/" $CONF_DIR/$AP/concentratord.toml
@@ -81,7 +81,7 @@ function do_start {
         --background \
         --make-pidfile \
         --pidfile $DAEMON_PID \
-        --exec $DAEMON_BIN -- -c $CONF_DIR/$AP/concentratord.toml -c $CONF_DIR/$AP/band.toml -c $CONF_DIR/$AP/channels.toml
+        --exec $DAEMON_BIN -- -c $CONF_DIR/$AP/concentratord.toml -c $CONF_DIR/$AP/region.toml -c $CONF_DIR/$AP/channels.toml
 }
 
 function do_stop {

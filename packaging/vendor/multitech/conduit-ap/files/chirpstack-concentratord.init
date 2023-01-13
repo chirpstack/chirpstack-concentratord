@@ -29,7 +29,7 @@ copy_config() {
 		model="${model//-/_}"
 		model="${model}_eu868"
 		band_config="eu868"
-		channel_config="eu868_0"
+		channel_config="channels_eu868_0"
 	fi
 
 	if [ $lora_id == "MTCAP-LORA-915" ]; then
@@ -37,7 +37,7 @@ copy_config() {
 		model="${model//-/_}"
 		model="${model}_us915"
 		band_config="us915"
-		channel_config="us915_0"
+		channel_config="channels_us915_0"
 	fi
 
 	mkdir -p $DAEMON_CONF_DIR
