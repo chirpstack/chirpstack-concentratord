@@ -22,6 +22,7 @@ clean:
 
 # Run tests.
 test:
+	docker-compose run --rm chirpstack-concentratord cargo clippy --no-deps
 	docker-compose run --rm chirpstack-concentratord cargo test
 
 # Enter the devshell.

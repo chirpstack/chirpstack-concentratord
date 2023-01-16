@@ -1,4 +1,4 @@
-FROM rust:1.65.0-buster
+FROM rust:1.66.1-buster
 
 # required by bingen
 RUN apt-get update && \
@@ -19,22 +19,18 @@ RUN apt-get update && \
 		protobuf-compiler && \
 	apt-get clean
 
+RUN rustup component add rustfmt clippy
 RUN rustup target add armv5te-unknown-linux-gnueabi
 RUN rustup target add arm-unknown-linux-gnueabihf
 RUN rustup target add aarch64-unknown-linux-gnu
 RUN cargo install cargo-bitbake
 
-RUN echo '[target.armv5te-unknown-linux-gnueabi]\n\
-linker = "arm-linux-gnueabi-gcc"\n\
-[target.arm-unknown-linux-gnueabihf]\n\
-linker = "arm-linux-gnueabihf-gcc"\n\
-[target.aarch64-unknown-linux-gnu]\n\
-linker = "aarch64-linux-gnu-gcc"\n'\
->> /usr/local/cargo/config
+# Install opkg-utils
+RUN git clone git://git.yoctoproject.org/opkg-utils /opt/opkg-utils && \
+	cd /opt/opkg-utils && \
+	make install
 
-RUN mkdir -p /tmp
-RUN cd /tmp && git clone https://github.com/seife/opkg-utils.git && cd /tmp/opkg-utils && PREFIX=/usr make install
-
+# Build Semtech HALs
 RUN mkdir -p /hal/native && \
 	cd /hal/native && \
 	git clone https://github.com/brocaar/lora_gateway.git -b v5.0.1r2 && \
