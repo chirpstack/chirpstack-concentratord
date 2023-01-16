@@ -10,5 +10,5 @@ publish = false
 
 [dependencies]
 zmq = "0.10"
-clap = { version = "4.0", features = ["derive"] }
+clap = { version = "4.1", features = ["derive"] }
 hex = "0.4"
