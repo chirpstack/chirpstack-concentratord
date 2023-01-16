@@ -99,6 +99,12 @@ pub fn uplink_to_proto(gateway_id: &[u8], packet: &hal::RxPacket) -> Result<gw::
             gateway_id: hex::encode(gateway_id),
             rssi: packet.rssi as i32,
             snr: packet.snr,
+            crc_status: match packet.status {
+                hal::CRC::CRCOk => gw::CrcStatus::CrcOk,
+                hal::CRC::BadCRC => gw::CrcStatus::BadCrc,
+                hal::CRC::NoCRC | hal::CRC::Undefined => gw::CrcStatus::NoCrc,
+            }
+            .into(),
             ..Default::default()
         }),
         ..Default::default()
