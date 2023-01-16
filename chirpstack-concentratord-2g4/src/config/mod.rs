@@ -21,6 +21,8 @@ pub struct Concentratord {
     pub log_to_syslog: bool,
     #[serde(with = "humantime_serde")]
     pub stats_interval: Duration,
+    #[serde(default)]
+    pub disable_crc_filter: bool,
     pub api: Api,
 }
 

@@ -8,7 +8,7 @@ use libloragw_sx1302::hal;
 
 use super::super::wrapper;
 
-pub fn handle_loop(gateway_id: &[u8], stop_receive: Receiver<Signal>) {
+pub fn handle_loop(gateway_id: &[u8], stop_receive: Receiver<Signal>, disable_crc_filter: bool) {
     debug!("Starting uplink handle loop");
 
     loop {
@@ -21,8 +21,9 @@ pub fn handle_loop(gateway_id: &[u8], stop_receive: Receiver<Signal>) {
             Ok(frames) => {
                 for frame in frames {
                     stats::inc_rx_packets_received();
-                    if frame.status != hal::CRC::CRCOk {
-                        debug!("Frame received with invalid CRC");
+
+                    if !disable_crc_filter && frame.status != hal::CRC::CRCOk {
+                        debug!("Frame received with invalid CRC, see disable_crc_filter configuration option if you want to receive these frames");
                         continue;
                     }
 
@@ -46,7 +47,9 @@ pub fn handle_loop(gateway_id: &[u8], stop_receive: Receiver<Signal>) {
                         frame.datarate,
                     );
 
-                    stats::inc_rx_counts(&proto);
+                    if frame.status == hal::CRC::CRCOk {
+                        stats::inc_rx_counts(&proto);
+                    }
                     events::send_uplink(&proto).unwrap();
                 }
             }

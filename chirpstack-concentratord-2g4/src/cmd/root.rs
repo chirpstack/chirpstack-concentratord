@@ -63,9 +63,10 @@ pub fn run(
     threads.push(thread::spawn({
         let gateway_id = gateway_id;
         let stop_receive = signal_pool.new_receiver();
+        let disable_crc_filter = config.concentratord.disable_crc_filter;
 
         move || {
-            handler::uplink::handle_loop(&gateway_id, stop_receive);
+            handler::uplink::handle_loop(&gateway_id, stop_receive, disable_crc_filter);
         }
     }));
 

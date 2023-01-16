@@ -25,6 +25,13 @@ pub fn run(config: &config::Configuration) {
   # Statistics interval.
   stats_interval="{{ concentratord.stats_interval }}"
 
+  # Disable CRC status filter.
+  #
+  # By default, the Concentratord will ignore received frames which do not have
+  # a valid CRC. This option makes it possible to disable this filter such that
+  # received frames without (valid) CRC can be analyzed.
+  disable_crc_filter={{ concentratord.disable_crc_filter }}
+
   # Configuration for the (ZeroMQ based) API.
   [concentratord.api]
     # Event PUB socket bind.
