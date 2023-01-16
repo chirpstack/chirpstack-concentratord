@@ -72,9 +72,9 @@ docker-package-multitech-conduit-ap: docker-release-armv5
 docker-package-targz-armv7hf: docker-release-armv7hf
 	$(eval PKG_VERSION := $(shell cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].version'))
 	mkdir -p dist
-	tar -czvf dist/chirpstack-concentratord-sx1301_$(PKG_VERSION)_armv7hf.tar.gz -C target/arm-unknown-linux-gnueabihf/release chirpstack-concentratord-sx1301
-	tar -czvf dist/chirpstack-concentratord-sx1302_$(PKG_VERSION)_armv7hf.tar.gz -C target/arm-unknown-linux-gnueabihf/release chirpstack-concentratord-sx1302
-	tar -czvf dist/chirpstack-concentratord-2g4_$(PKG_VERSION)_armv7hf.tar.gz -C target/arm-unknown-linux-gnueabihf/release chirpstack-concentratord-2g4
+	tar -czvf dist/chirpstack-concentratord-sx1301_$(PKG_VERSION)_armv7hf.tar.gz -C target/armv7-unknown-linux-gnueabihf/release chirpstack-concentratord-sx1301
+	tar -czvf dist/chirpstack-concentratord-sx1302_$(PKG_VERSION)_armv7hf.tar.gz -C target/armv7-unknown-linux-gnueabihf/release chirpstack-concentratord-sx1302
+	tar -czvf dist/chirpstack-concentratord-2g4_$(PKG_VERSION)_armv7hf.tar.gz -C target/armv7-unknown-linux-gnueabihf/release chirpstack-concentratord-2g4
 
 docker-package-targz-arm64: docker-release-arm64
 	$(eval PKG_VERSION := $(shell cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].version'))
