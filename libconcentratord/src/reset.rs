@@ -7,12 +7,14 @@ use anyhow::Result;
 use gpio_cdev::{Chip, LineHandle, LineRequestFlags};
 use log::info;
 
+type ResetCommand = (String, Vec<String>);
+
 lazy_static! {
     static ref SX1302_RESET: Mutex<Option<LineHandle>> = Mutex::new(None);
     static ref SX1302_POWER_EN: Mutex<Option<LineHandle>> = Mutex::new(None);
     static ref SX1261_RESET: Mutex<Option<LineHandle>> = Mutex::new(None);
     static ref AD5338R_RESET: Mutex<Option<LineHandle>> = Mutex::new(None);
-    static ref RESET_COMMANDS: Mutex<Option<Vec<(String, Vec<String>)>>> = Mutex::new(None);
+    static ref RESET_COMMANDS: Mutex<Option<Vec<ResetCommand>>> = Mutex::new(None);
 }
 
 #[derive(Default)]

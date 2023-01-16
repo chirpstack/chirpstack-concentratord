@@ -12,13 +12,10 @@ pub fn handle_loop(gateway_id: &[u8], stop_receive: Receiver<Signal>) {
     debug!("Starting uplink handle loop");
 
     loop {
-        match stop_receive.recv_timeout(Duration::from_millis(0)) {
-            Ok(v) => {
-                debug!("Received stop signal, signal: {}", v);
-                break;
-            }
-            _ => {}
-        };
+        if let Ok(v) = stop_receive.recv_timeout(Duration::from_millis(0)) {
+            debug!("Received stop signal, signal: {}", v);
+            break;
+        }
 
         match hal::receive() {
             Ok(frames) => {
@@ -29,7 +26,7 @@ pub fn handle_loop(gateway_id: &[u8], stop_receive: Receiver<Signal>) {
                         continue;
                     }
 
-                    let proto = match wrapper::uplink_to_proto(gateway_id.clone(), &frame) {
+                    let proto = match wrapper::uplink_to_proto(gateway_id, &frame) {
                         Ok(v) => v,
                         Err(err) => {
                             error!("Convert uplink frame to protobuf error, error: {}", err);

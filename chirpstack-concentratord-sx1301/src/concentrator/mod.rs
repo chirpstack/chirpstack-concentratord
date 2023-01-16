@@ -32,7 +32,7 @@ pub fn txgain_setconf(config: &Configuration) -> Result<()> {
 
 pub fn rxrf_setconf(config: &Configuration) -> Result<()> {
     info!("Setting up concentrator radios");
-    let radio_freqs = helpers::get_radio_frequencies(&config)?;
+    let radio_freqs = helpers::get_radio_frequencies(config)?;
     for (i, radio_freq) in radio_freqs.iter().enumerate() {
         let rx_rf_config = hal::RxRfConfig {
             enable: *radio_freq > 0,
@@ -55,7 +55,7 @@ pub fn rxrf_setconf(config: &Configuration) -> Result<()> {
 
 pub fn rxif_setconf(config: &Configuration) -> Result<()> {
     info!("Setting up concentrator channels");
-    let radio_freqs = helpers::get_radio_frequencies(&config)?;
+    let radio_freqs = helpers::get_radio_frequencies(config)?;
     for (i, chan_freq) in config
         .gateway
         .concentrator
@@ -63,8 +63,10 @@ pub fn rxif_setconf(config: &Configuration) -> Result<()> {
         .iter()
         .enumerate()
     {
-        let mut rx_if_config: hal::RxIfConfig = Default::default();
-        rx_if_config.enable = *chan_freq > 0;
+        let mut rx_if_config = hal::RxIfConfig {
+            enable: *chan_freq > 0,
+            ..Default::default()
+        };
 
         if rx_if_config.enable {
             let chan_radio = helpers::get_radio_for_channel(
@@ -84,8 +86,10 @@ pub fn rxif_setconf(config: &Configuration) -> Result<()> {
         hal::rxif_setconf(i as u8, &rx_if_config)?;
     }
 
-    let mut rx_if_config: hal::RxIfConfig = Default::default();
-    rx_if_config.enable = config.gateway.concentrator.lora_std.frequency > 0;
+    let mut rx_if_config = hal::RxIfConfig {
+        enable: config.gateway.concentrator.lora_std.frequency > 0,
+        ..Default::default()
+    };
 
     if rx_if_config.enable {
         let chan_radio = helpers::get_radio_for_channel(
@@ -118,8 +122,10 @@ pub fn rxif_setconf(config: &Configuration) -> Result<()> {
     );
     hal::rxif_setconf(8, &rx_if_config)?;
 
-    let mut rx_if_config: hal::RxIfConfig = Default::default();
-    rx_if_config.enable = config.gateway.concentrator.fsk.frequency > 0;
+    let mut rx_if_config = hal::RxIfConfig {
+        enable: config.gateway.concentrator.fsk.frequency > 0,
+        ..Default::default()
+    };
 
     if rx_if_config.enable {
         let chan_radio = helpers::get_radio_for_channel(

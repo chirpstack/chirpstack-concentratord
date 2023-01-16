@@ -176,7 +176,7 @@ pub fn new(conf: &config::Configuration) -> Configuration {
             true => Gps::Gpsd,
             false => Gps::None,
         },
-        com_type: ComType::SPI,
+        com_type: ComType::Spi,
         com_path: match port {
             Port::AP1 => "/dev/spidev0.0".to_string(),
             Port::AP2 => "/dev/spidev1.0".to_string(),

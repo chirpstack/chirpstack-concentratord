@@ -31,7 +31,7 @@ impl ConvertBandwidth for Bandwidth {
     }
 
     fn to_hal(&self) -> u8 {
-        return match self {
+        (match self {
             500000 => wrapper::BW_500KHZ,
             250000 => wrapper::BW_250KHZ,
             125000 => wrapper::BW_125KHZ,
@@ -40,7 +40,7 @@ impl ConvertBandwidth for Bandwidth {
             15600 => wrapper::BW_15K6HZ,
             7800 => wrapper::BW_7K8HZ,
             _ => wrapper::BW_UNDEFINED,
-        } as u8;
+        }) as u8
     }
 }
 
@@ -53,7 +53,7 @@ pub enum RadioType {
 }
 
 impl RadioType {
-    fn to_hal(&self) -> wrapper::lgw_radio_type_e {
+    fn to_hal(self) -> wrapper::lgw_radio_type_e {
         match self {
             RadioType::SX1255 => wrapper::lgw_radio_type_e_LGW_RADIO_TYPE_SX1255,
             RadioType::SX1257 => wrapper::lgw_radio_type_e_LGW_RADIO_TYPE_SX1257,
@@ -100,12 +100,12 @@ impl Modulation {
 }
 
 impl Modulation {
-    fn to_hal(&self) -> u8 {
-        return match self {
+    fn to_hal(self) -> u8 {
+        (match self {
             Modulation::Undefined => wrapper::MOD_UNDEFINED,
             Modulation::LoRa => wrapper::MOD_LORA,
             Modulation::FSK => wrapper::MOD_FSK,
-        } as u8;
+        }) as u8
     }
 }
 
@@ -123,8 +123,8 @@ pub enum DataRate {
 }
 
 impl DataRate {
-    fn to_hal(&self) -> u32 {
-        return match self {
+    fn to_hal(self) -> u32 {
+        match self {
             DataRate::Undefined => wrapper::DR_UNDEFINED,
             DataRate::SF7 => wrapper::DR_LORA_SF7,
             DataRate::SF8 => wrapper::DR_LORA_SF8,
@@ -133,8 +133,8 @@ impl DataRate {
             DataRate::SF11 => wrapper::DR_LORA_SF11,
             DataRate::SF12 => wrapper::DR_LORA_SF12,
             DataRate::MultiSF => wrapper::DR_LORA_MULTI,
-            DataRate::FSK(dr) => *dr,
-        } as u32;
+            DataRate::FSK(dr) => dr,
+        }
     }
 
     fn from_hal(datarate: u32) -> Self {
@@ -161,14 +161,14 @@ pub enum CodeRate {
 }
 
 impl CodeRate {
-    fn to_hal(&self) -> u8 {
-        return match self {
+    fn to_hal(self) -> u8 {
+        (match self {
             CodeRate::Undefined => wrapper::CR_UNDEFINED,
             CodeRate::LoRa4_5 => wrapper::CR_LORA_4_5,
             CodeRate::LoRa4_6 => wrapper::CR_LORA_4_6,
             CodeRate::LoRa4_7 => wrapper::CR_LORA_4_7,
             CodeRate::LoRa4_8 => wrapper::CR_LORA_4_8,
-        } as u8;
+        }) as u8
     }
 
     fn from_hal(coderate: u8) -> Self {
@@ -190,27 +190,27 @@ pub enum TxMode {
 }
 
 impl TxMode {
-    fn to_hal(&self) -> u8 {
-        return match self {
+    fn to_hal(self) -> u8 {
+        (match self {
             TxMode::Immediate => wrapper::IMMEDIATE,
             TxMode::Timestamped => wrapper::TIMESTAMPED,
             TxMode::OnGPS => wrapper::ON_GPS,
-        } as u8;
+        }) as u8
     }
 }
 
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq, Eq, Copy, Clone)]
 pub enum StatusSelect {
     Tx,
     Rx,
 }
 
 impl StatusSelect {
-    fn to_hal(&self) -> u8 {
-        return match self {
+    fn to_hal(self) -> u8 {
+        (match self {
             StatusSelect::Tx => wrapper::TX_STATUS,
             StatusSelect::Rx => wrapper::RX_STATUS,
-        } as u8;
+        }) as u8
     }
 }
 
@@ -324,7 +324,6 @@ impl RxIfConfig {
             datarate: self.datarate.to_hal(),
             sync_word_size: self.sync_word_size,
             sync_word: self.sync_word,
-            ..Default::default()
         }
     }
 }
@@ -502,7 +501,7 @@ impl Default for TxPacket {
 }
 
 impl TxPacket {
-    fn to_hal(&self) -> wrapper::lgw_pkt_tx_s {
+    fn to_hal(self) -> wrapper::lgw_pkt_tx_s {
         wrapper::lgw_pkt_tx_s {
             freq_hz: self.freq_hz,
             tx_mode: self.tx_mode.to_hal(),

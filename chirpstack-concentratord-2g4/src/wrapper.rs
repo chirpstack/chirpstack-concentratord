@@ -98,7 +98,7 @@ pub fn uplink_to_proto(gateway_id: &[u8], packet: &hal::RxPacket) -> Result<gw::
             context: packet.count_us.to_be_bytes().to_vec(),
             gateway_id: hex::encode(gateway_id),
             rssi: packet.rssi as i32,
-            snr: packet.snr as f32,
+            snr: packet.snr,
             ..Default::default()
         }),
         ..Default::default()
@@ -150,7 +150,7 @@ pub fn downlink_from_proto(
                     match &v.delay {
                         Some(v) => {
                             let mut array = [0; 4];
-                            array.copy_from_slice(&ctx);
+                            array.copy_from_slice(ctx);
                             packet.count_us = u32::from_be_bytes(array).wrapping_add(
                                 (Duration::from_secs(v.seconds as u64)
                                     + Duration::from_nanos(v.nanos as u64))

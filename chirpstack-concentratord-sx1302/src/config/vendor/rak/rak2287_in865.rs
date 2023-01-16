@@ -233,8 +233,8 @@ pub fn new(conf: &config::Configuration) -> Configuration {
             false => Gps::None,
         },
         com_type: match usb {
-            true => ComType::USB,
-            false => ComType::SPI,
+            true => ComType::Usb,
+            false => ComType::Spi,
         },
         com_path: match usb {
             true => "/dev/ttyACM0".to_string(),

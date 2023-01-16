@@ -1,3 +1,5 @@
+use std::cmp::Ordering;
+
 use anyhow::Result;
 
 use super::super::config::{Concentrator, Configuration};
@@ -18,12 +20,13 @@ pub fn update_configuration(
                 chirpstack_api::gw::channel_configuration::ModulationConfig::LoraModulationConfig(
                     v,
                 ),
-            ) => {
-                if v.spreading_factors.len() == 1 {
+            ) => match v.spreading_factors.len().cmp(&1) {
+                Ordering::Equal => {
                     concentrator.lora_std.frequency = channel.frequency;
                     concentrator.lora_std.bandwidth = v.bandwidth;
                     concentrator.lora_std.spreading_factor = v.spreading_factors[0] as u8;
-                } else if v.spreading_factors.len() > 1 {
+                }
+                Ordering::Greater => {
                     if multi_sf_count > concentrator.multi_sf_channels.len() - 1 {
                         return Err(anyhow!("too many multi-SF channels in configuration"));
                     }
@@ -31,7 +34,8 @@ pub fn update_configuration(
                     concentrator.multi_sf_channels[multi_sf_count] = channel.frequency;
                     multi_sf_count += 1;
                 }
-            }
+                _ => {}
+            },
             Some(
                 chirpstack_api::gw::channel_configuration::ModulationConfig::FskModulationConfig(v),
             ) => {

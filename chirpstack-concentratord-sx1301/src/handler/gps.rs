@@ -1,3 +1,4 @@
+use std::cmp::Ordering;
 use std::io::{BufRead, BufReader, Read};
 use std::sync::mpsc::Receiver;
 use std::sync::Mutex;
@@ -64,13 +65,10 @@ pub fn gps_loop(gps_device: config::vendor::Gps, stop_receive: Receiver<Signal>)
     };
 
     loop {
-        match stop_receive.recv_timeout(Duration::from_millis(0)) {
-            Ok(v) => {
-                debug!("Received stop signal, signal: {}", v);
-                break;
-            }
-            _ => {}
-        };
+        if let Ok(v) = stop_receive.recv_timeout(Duration::from_millis(0)) {
+            debug!("Received stop signal, signal: {}", v);
+            break;
+        }
 
         let mut buffer = vec![0; 1];
         gps_reader
@@ -148,13 +146,10 @@ pub fn gps_validate_loop(stop_receive: Receiver<Signal>) {
     loop {
         // Instead of a 1s sleep, we receive from the stop channel with a
         // timeout of 1 second.
-        match stop_receive.recv_timeout(Duration::from_secs(1)) {
-            Ok(v) => {
-                debug!("Received stop signal, signal: {}", v);
-                break;
-            }
-            _ => {}
-        };
+        if let Ok(v) = stop_receive.recv_timeout(Duration::from_secs(1)) {
+            debug!("Received stop signal, signal: {}", v);
+            break;
+        }
 
         // Scope to make sure the mutex guard is dereferenced after validation.
         {
@@ -184,39 +179,43 @@ pub fn gps_validate_loop(stop_receive: Receiver<Signal>) {
             }
 
             // manage xtal correction
-            if *gps_ref_valid == false {
+            if !(*gps_ref_valid) {
                 *xtal_correct_ok = false;
                 *xtal_correct = 1.0;
                 init_cpt = 0;
                 init_acc = 0.0;
             } else {
-                if init_cpt < XERR_INIT_AVG {
-                    init_acc += time_ref.xtal_err;
-                    init_cpt += 1;
-                    trace!(
-                        "Initial accumulation, xtal_err: {}, init_acc: {}, init_cpt: {}",
-                        time_ref.xtal_err,
-                        init_acc,
-                        init_cpt
-                    );
-                } else if init_cpt == XERR_INIT_AVG {
-                    *xtal_correct = XERR_INIT_AVG as f64 / init_acc;
-                    *xtal_correct_ok = true;
-                    init_cpt += 1;
-                    trace!(
-                        "Initial average calculation, xtal_correct: {}, init_cpt: {}",
-                        xtal_correct,
-                        init_cpt
-                    );
-                } else {
-                    let x = 1.0 / time_ref.xtal_err;
-                    *xtal_correct =
-                        *xtal_correct - *xtal_correct / XERR_FILT_COEF + x / XERR_FILT_COEF;
-                    trace!(
-                        "Tracking with low-pass filter, x: {}, xtal_correct: {}",
-                        x,
-                        xtal_correct
-                    );
+                match init_cpt.cmp(&XERR_INIT_AVG) {
+                    Ordering::Less => {
+                        init_acc += time_ref.xtal_err;
+                        init_cpt += 1;
+                        trace!(
+                            "Initial accumulation, xtal_err: {}, init_acc: {}, init_cpt: {}",
+                            time_ref.xtal_err,
+                            init_acc,
+                            init_cpt
+                        );
+                    }
+                    Ordering::Equal => {
+                        *xtal_correct = XERR_INIT_AVG as f64 / init_acc;
+                        *xtal_correct_ok = true;
+                        init_cpt += 1;
+                        trace!(
+                            "Initial average calculation, xtal_correct: {}, init_cpt: {}",
+                            xtal_correct,
+                            init_cpt
+                        );
+                    }
+                    Ordering::Greater => {
+                        let x = 1.0 / time_ref.xtal_err;
+                        *xtal_correct =
+                            *xtal_correct - *xtal_correct / XERR_FILT_COEF + x / XERR_FILT_COEF;
+                        trace!(
+                            "Tracking with low-pass filter, x: {}, xtal_correct: {}",
+                            x,
+                            xtal_correct
+                        );
+                    }
                 }
             }
         }
@@ -227,7 +226,7 @@ pub fn gps_validate_loop(stop_receive: Receiver<Signal>) {
 
 pub fn cnt2time(count_us: u32) -> Result<SystemTime> {
     let gps_ref_valid = GPS_TIME_REF_VALID.lock().unwrap();
-    if *gps_ref_valid == false {
+    if !(*gps_ref_valid) {
         return Err(anyhow!("gps_ref_valid = false"));
     }
     let gps_time_ref = GPS_TIME_REF.lock().unwrap();
@@ -237,7 +236,7 @@ pub fn cnt2time(count_us: u32) -> Result<SystemTime> {
 
 pub fn cnt2epoch(count_us: u32) -> Result<Duration> {
     let gps_ref_valid = GPS_TIME_REF_VALID.lock().unwrap();
-    if *gps_ref_valid == false {
+    if !(*gps_ref_valid) {
         return Err(anyhow!("gps_ref_valid = false"));
     }
     let gps_time_ref = GPS_TIME_REF.lock().unwrap();
@@ -247,7 +246,7 @@ pub fn cnt2epoch(count_us: u32) -> Result<Duration> {
 
 pub fn epoch2cnt(gps_epoch: &Duration) -> Result<u32> {
     let gps_ref_valid = GPS_TIME_REF_VALID.lock().unwrap();
-    if *gps_ref_valid == false {
+    if !(*gps_ref_valid) {
         return Err(anyhow!("gps_ref_valid = false"));
     }
     let gps_time_ref = GPS_TIME_REF.lock().unwrap();
@@ -262,15 +261,15 @@ pub fn get_coords() -> Option<gps::Coordinates> {
 
     // In case the gps time reference is invalid or no gps coordinates
     // are available, use static coords (which can be None).
-    if *gps_time_ref_valid == false || coords.is_none() {
+    if !(*gps_time_ref_valid) || coords.is_none() {
         return *static_gps_coords;
     }
 
-    return *coords;
+    *coords
 }
 
 pub fn get_gps_epoch() -> Result<Duration> {
-    if *GPS_TIME_REF_VALID.lock().unwrap() == false {
+    if !(*GPS_TIME_REF_VALID.lock().unwrap()) {
         return Err(anyhow!("gps time reference not available"));
     }
 

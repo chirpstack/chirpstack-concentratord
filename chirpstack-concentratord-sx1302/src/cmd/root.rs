@@ -26,13 +26,13 @@ pub fn run(
     reset::reset().expect("concentrator reset failed");
 
     // setup concentrator
-    concentrator::set_i2c_device_path(&config)?;
-    concentrator::set_i2c_temp_sensor_addr(&config)?;
-    concentrator::board_setconf(&config)?;
-    concentrator::timestamp_setconf(&config)?;
-    concentrator::txgain_setconf(&config)?;
-    concentrator::rxrf_setconf(&config)?;
-    concentrator::rxif_setconf(&config)?;
+    concentrator::set_i2c_device_path(config)?;
+    concentrator::set_i2c_temp_sensor_addr(config)?;
+    concentrator::board_setconf(config)?;
+    concentrator::timestamp_setconf(config)?;
+    concentrator::txgain_setconf(config)?;
+    concentrator::rxrf_setconf(config)?;
+    concentrator::rxif_setconf(config)?;
     concentrator::start()?;
 
     // setup static location
@@ -60,12 +60,12 @@ pub fn run(
         .expect("bind command socket error");
 
     // setup threads
-    let mut signal_pool = signals::SignalPool::new();
+    let mut signal_pool = signals::SignalPool::default();
     let mut threads: Vec<thread::JoinHandle<()>> = vec![];
 
     // uplink thread
     threads.push(thread::spawn({
-        let gateway_id = gateway_id.clone();
+        let gateway_id = gateway_id;
         let stop_receive = signal_pool.new_receiver();
 
         move || {
@@ -87,10 +87,10 @@ pub fn run(
     // command thread
     threads.push(thread::spawn({
         let vendor_config = config.gateway.model_config.clone();
-        let gateway_id = gateway_id.clone();
+        let gateway_id = gateway_id;
         let queue = Arc::clone(&queue);
         let stop_receive = signal_pool.new_receiver();
-        let stop_send = stop_send.clone();
+        let stop_send = stop_send;
 
         move || {
             handler::command::handle_loop(
@@ -106,7 +106,7 @@ pub fn run(
 
     // stats thread
     threads.push(thread::spawn({
-        let gateway_id = gateway_id.clone();
+        let gateway_id = gateway_id;
         let stats_interval = config.concentratord.stats_interval;
         let stop_receive = signal_pool.new_receiver();
         let mut metadata = HashMap::new();
@@ -147,7 +147,7 @@ pub fn run(
         }));
 
         // beacon thread
-        if config.gateway.beacon.frequencies.len() != 0 {
+        if !config.gateway.beacon.frequencies.is_empty() {
             threads.push(thread::spawn({
                 let beacon_config = config.gateway.beacon.clone();
                 let queue = Arc::clone(&queue);

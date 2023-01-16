@@ -56,8 +56,10 @@ pub fn uplink_to_proto(gateway_id: &[u8], packet: &hal::RxPacket) -> Result<gw::
     let mut rng = rand::thread_rng();
 
     // tx info
-    let mut tx_info: gw::UplinkTxInfo = Default::default();
-    tx_info.frequency = packet.freq_hz;
+    let mut tx_info = gw::UplinkTxInfo {
+        frequency: packet.freq_hz,
+        ..Default::default()
+    };
 
     match packet.modulation {
         hal::Modulation::LoRa => {
@@ -102,15 +104,17 @@ pub fn uplink_to_proto(gateway_id: &[u8], packet: &hal::RxPacket) -> Result<gw::
     }
 
     // rx info
-    let mut rx_info: gw::UplinkRxInfo = Default::default();
+    let mut rx_info = gw::UplinkRxInfo {
+        uplink_id: rng.gen(),
+        context: packet.count_us.to_be_bytes().to_vec(),
+        gateway_id: hex::encode(gateway_id),
+        rssi: packet.rssi as i32,
+        snr: packet.snr,
+        channel: packet.if_chain as u32,
+        rf_chain: packet.rf_chain as u32,
+        ..Default::default()
+    };
 
-    rx_info.uplink_id = rng.gen();
-    rx_info.context = packet.count_us.to_be_bytes().to_vec();
-    rx_info.gateway_id = hex::encode(gateway_id);
-    rx_info.rssi = packet.rssi as i32;
-    rx_info.snr = packet.snr;
-    rx_info.channel = packet.if_chain as u32;
-    rx_info.rf_chain = packet.rf_chain as u32;
     match gps::cnt2time(packet.count_us) {
         Ok(v) => {
             let v = v.duration_since(UNIX_EPOCH).unwrap();
@@ -141,28 +145,24 @@ pub fn uplink_to_proto(gateway_id: &[u8], packet: &hal::RxPacket) -> Result<gw::
             );
         }
     }
-    match gps::get_coords() {
-        Some(v) => {
-            let mut proto_loc = chirpstack_api::common::Location {
-                latitude: v.latitude,
-                longitude: v.longitude,
-                altitude: v.altitude as f64,
-                ..Default::default()
-            };
-            proto_loc.set_source(chirpstack_api::common::LocationSource::Gps);
+    if let Some(v) = gps::get_coords() {
+        let mut proto_loc = chirpstack_api::common::Location {
+            latitude: v.latitude,
+            longitude: v.longitude,
+            altitude: v.altitude as f64,
+            ..Default::default()
+        };
+        proto_loc.set_source(chirpstack_api::common::LocationSource::Gps);
 
-            rx_info.location = Some(proto_loc);
-        }
-        None => {}
+        rx_info.location = Some(proto_loc);
     }
 
-    let mut pb: gw::UplinkFrame = Default::default();
-
-    pb.phy_payload = packet.payload[..packet.size as usize].to_vec();
-    pb.tx_info = Some(tx_info);
-    pb.rx_info = Some(rx_info);
-
-    Ok(pb)
+    Ok(gw::UplinkFrame {
+        phy_payload: packet.payload[..packet.size as usize].to_vec(),
+        tx_info: Some(tx_info),
+        rx_info: Some(rx_info),
+        ..Default::default()
+    })
 }
 
 pub fn downlink_from_proto(df: &gw::DownlinkFrameItem) -> Result<hal::TxPacket> {
@@ -206,7 +206,7 @@ pub fn downlink_from_proto(df: &gw::DownlinkFrameItem) -> Result<hal::TxPacket> 
                     match &v.delay {
                         Some(v) => {
                             let mut array = [0; 4];
-                            array.copy_from_slice(&ctx);
+                            array.copy_from_slice(ctx);
                             packet.count_us = u32::from_be_bytes(array).wrapping_add(
                                 (Duration::from_secs(v.seconds as u64)
                                     + Duration::from_nanos(v.nanos as u64))
@@ -280,12 +280,14 @@ pub fn downlink_from_proto(df: &gw::DownlinkFrameItem) -> Result<hal::TxPacket> 
         }
     }
 
-    return Ok(packet);
+    Ok(packet)
 }
 
 pub fn downlink_to_tx_info_proto(packet: &hal::TxPacket) -> Result<gw::DownlinkTxInfo> {
-    let mut tx_info: gw::DownlinkTxInfo = Default::default();
-    tx_info.frequency = packet.freq_hz;
+    let mut tx_info = gw::DownlinkTxInfo {
+        frequency: packet.freq_hz,
+        ..Default::default()
+    };
 
     match packet.modulation {
         hal::Modulation::LoRa => {

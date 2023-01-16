@@ -24,13 +24,10 @@ pub fn timesync_loop(stop_receive: Receiver<Signal>) {
 
         // Instead of a 60s sleep, we receive from the stop channel with a
         // timeout of 60 seconds.
-        match stop_receive.recv_timeout(Duration::from_secs(60)) {
-            Ok(v) => {
-                debug!("Received stop signal, signal: {}", v);
-                break;
-            }
-            _ => {}
-        };
+        if let Ok(v) = stop_receive.recv_timeout(Duration::from_secs(60)) {
+            debug!("Received stop signal, signal: {}", v);
+            break;
+        }
     }
 
     debug!("Timesync loop ended");
@@ -45,7 +42,7 @@ pub fn get_concentrator_count() -> u32 {
         .unwrap()
         - *prev_unix_time;
 
-    return prev_concentrator_count.wrapping_add(unix_diff.as_micros() as u32);
+    prev_concentrator_count.wrapping_add(unix_diff.as_micros() as u32)
 }
 
 fn timesync() {
@@ -61,17 +58,10 @@ fn timesync() {
         .unwrap();
 
     let unix_time_diff = unix_time - *prev_unix_time;
-    let concentrator_diff = {
-        let diff: i64;
-
-        if concentrator_count > *prev_concentrator_count {
-            diff = (concentrator_count - *prev_concentrator_count) as i64;
-        } else {
-            diff =
-                (concentrator_count as i64) + ((1 << 32) - 1) - (*prev_concentrator_count as i64);
-        }
-
-        diff
+    let concentrator_diff: i64 = if concentrator_count > *prev_concentrator_count {
+        (concentrator_count - *prev_concentrator_count) as i64
+    } else {
+        (concentrator_count as i64) + ((1 << 32) - 1) - (*prev_concentrator_count as i64)
     };
 
     let drift = (unix_time_diff.as_micros() as i64) - concentrator_diff;

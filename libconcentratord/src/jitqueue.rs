@@ -72,7 +72,7 @@ impl<T: TxPacket + Copy> Queue<T> {
     }
 
     pub fn empty(&self) -> bool {
-        self.items.len() == 0
+        self.items.is_empty()
     }
 
     pub fn full(&self) -> bool {
@@ -111,7 +111,7 @@ impl<T: TxPacket + Copy> Queue<T> {
         // is needed to detect possible collisions if enqueueing new packets.
         self.tx_linear_count_finished = item.linear_count + item.post_delay;
 
-        return Some(item.packet);
+        Some(item.packet)
     }
 
     pub fn enqueue(
@@ -164,7 +164,7 @@ impl<T: TxPacket + Copy> Queue<T> {
             linear_count: Duration::from_micros(0),
             pre_delay: self.tx_start_delay + self.tx_jit_delay,
             post_delay: time_on_air,
-            packet: packet,
+            packet,
         };
 
         // An immediate downlink becomes a timestamped downlink "ASAP".
@@ -200,14 +200,11 @@ impl<T: TxPacket + Copy> Queue<T> {
                 .set_count_us(self.linear_count_to_concentrator_count(asap_count));
         } else {
             item.linear_count = self.concentrator_count_to_linear_count(item.packet.get_count_us());
-            if item.packet.get_tx_mode() == TxMode::Timestamped {
-                if self.collision_test(item.linear_count, item.pre_delay, item.post_delay) {
-                    return Err(chirpstack_api::gw::TxAckStatus::CollisionPacket);
-                }
-            } else if item.packet.get_tx_mode() == TxMode::OnGPS {
-                if self.collision_test(item.linear_count, item.pre_delay, item.post_delay) {
-                    return Err(chirpstack_api::gw::TxAckStatus::CollisionPacket);
-                }
+            if (item.packet.get_tx_mode() == TxMode::Timestamped
+                || item.packet.get_tx_mode() == TxMode::OnGPS)
+                && self.collision_test(item.linear_count, item.pre_delay, item.post_delay)
+            {
+                return Err(chirpstack_api::gw::TxAckStatus::CollisionPacket);
             }
         }
 
@@ -233,7 +230,7 @@ impl<T: TxPacket + Copy> Queue<T> {
         self.items.push(item);
         self.sort();
 
-        return Ok(());
+        Ok(())
     }
 
     fn get_linear_count(&mut self, concentrator_count: u32) -> Duration {
@@ -257,9 +254,8 @@ impl<T: TxPacket + Copy> Queue<T> {
     }
 
     fn sort(&mut self) {
-        self.items.sort_by(|a, b| {
-            return a.linear_count.cmp(&b.linear_count);
-        })
+        self.items
+            .sort_by(|a, b| a.linear_count.cmp(&b.linear_count))
     }
 
     fn collision_test(&self, count: Duration, pre_delay: Duration, post_delay: Duration) -> bool {
@@ -273,13 +269,12 @@ impl<T: TxPacket + Copy> Queue<T> {
                 if count - p2.linear_count <= pre_delay + p2.post_delay + self.tx_margin_delay {
                     return true;
                 }
-            } else {
-                if p2.linear_count - count <= p2.pre_delay + post_delay + self.tx_margin_delay {
-                    return true;
-                }
+            } else if p2.linear_count - count <= p2.pre_delay + post_delay + self.tx_margin_delay {
+                return true;
             }
         }
-        return false;
+
+        false
     }
 }
 

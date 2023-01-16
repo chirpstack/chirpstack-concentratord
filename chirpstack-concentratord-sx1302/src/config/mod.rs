@@ -6,7 +6,7 @@ use std::time::Duration;
 pub mod helpers;
 pub mod vendor;
 
-pub const VERSION: &'static str = env!("CARGO_PKG_VERSION");
+pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[derive(Default, Serialize, Deserialize)]
 pub struct Concentratord {
@@ -15,11 +15,11 @@ pub struct Concentratord {
     pub log_to_syslog: bool,
     #[serde(with = "humantime_serde")]
     pub stats_interval: Duration,
-    pub api: API,
+    pub api: Api,
 }
 
 #[derive(Default, Serialize, Deserialize)]
-pub struct API {
+pub struct Api {
     pub event_bind: String,
     pub command_bind: String,
 }
@@ -130,7 +130,7 @@ fn example_configuration() -> Configuration {
         concentratord: Concentratord {
             log_level: "INFO".to_string(),
             stats_interval: Duration::from_secs(30),
-            api: API {
+            api: Api {
                 event_bind: "ipc:///tmp/concentratord_event".to_string(),
                 command_bind: "ipc:///tmp/concentratord_command".to_string(),
             },
@@ -169,7 +169,7 @@ pub fn get(filenames: Vec<String>) -> Configuration {
     let mut content: String = String::new();
 
     for file_name in &filenames {
-        content.push_str(&fs::read_to_string(&file_name).expect("Error reading config file"));
+        content.push_str(&fs::read_to_string(file_name).expect("Error reading config file"));
     }
 
     let mut config: Configuration = toml::from_str(&content).expect("Error parsing config file");
@@ -210,5 +210,5 @@ pub fn get(filenames: Vec<String>) -> Configuration {
 
     debug!("Antenna gain {} dB", config.gateway.antenna_gain);
 
-    return config;
+    config
 }

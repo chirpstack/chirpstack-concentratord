@@ -17,7 +17,7 @@ pub fn bind_socket(bind: &str) -> Result<()> {
     let mut zmq_pub = ZMQ_PUB.lock().unwrap();
 
     let sock = zmq_ctx.socket(zmq::PUB)?;
-    sock.bind(&bind)?;
+    sock.bind(bind)?;
 
     *zmq_pub = Some(sock);
 

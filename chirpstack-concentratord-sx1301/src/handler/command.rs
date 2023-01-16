@@ -25,13 +25,10 @@ pub fn handle_loop(
     let reader = commands::Reader::new(&rep_sock, Duration::from_millis(100));
 
     for cmd in reader {
-        match stop_receive.recv_timeout(Duration::from_millis(0)) {
-            Ok(v) => {
-                debug!("Received stop signal, signal: {}", v);
-                break;
-            }
-            _ => {}
-        };
+        if let Ok(v) = stop_receive.recv_timeout(Duration::from_millis(0)) {
+            debug!("Received stop signal, signal: {}", v);
+            break;
+        }
 
         let resp = match cmd {
             commands::Command::Timeout => {
@@ -134,5 +131,5 @@ fn handle_configuration(
     pl: chirpstack_api::gw::GatewayConfiguration,
 ) -> Result<Vec<u8>> {
     stop_send.send(Signal::Configuration(pl)).unwrap();
-    return Ok(Vec::new());
+    Ok(Vec::new())
 }

@@ -13,7 +13,7 @@ pub fn get_socket(bind: &str) -> Result<zmq::Socket> {
 
     let zmq_ctx = ZMQ_CONTEXT.lock().unwrap();
     let sock = zmq_ctx.socket(zmq::REP)?;
-    sock.bind(&bind)?;
+    sock.bind(bind)?;
     Ok(sock)
 }
 
@@ -43,11 +43,8 @@ pub struct Reader<'a> {
 }
 
 impl<'a> Reader<'a> {
-    pub fn new(sock: &'a zmq::Socket, timeout: Duration) -> Self {
-        Reader {
-            rep_sock: sock,
-            timeout: timeout,
-        }
+    pub fn new(rep_sock: &'a zmq::Socket, timeout: Duration) -> Self {
+        Reader { rep_sock, timeout }
     }
 }
 

@@ -1,6 +1,5 @@
 use std::convert::TryInto;
 use std::ffi::{CStr, CString};
-use std::mem::transmute;
 use std::os::raw::c_char;
 use std::time::Duration;
 
@@ -13,7 +12,7 @@ use super::{mutex, wrapper};
 // a type alias.
 trait ConvertBandwidth {
     fn from_hal(_: u8) -> u32;
-    fn to_hal(&self) -> u8;
+    fn to_hal(self) -> u8;
 }
 
 /// Bandwidth in Hz.
@@ -29,13 +28,13 @@ impl ConvertBandwidth for Bandwidth {
         }
     }
 
-    fn to_hal(&self) -> u8 {
-        return match self {
+    fn to_hal(self) -> u8 {
+        (match self {
             500000 => wrapper::BW_500KHZ,
             250000 => wrapper::BW_250KHZ,
             125000 => wrapper::BW_125KHZ,
             _ => wrapper::BW_UNDEFINED,
-        } as u8;
+        }) as u8
     }
 }
 
@@ -50,7 +49,7 @@ pub enum RadioType {
 }
 
 impl RadioType {
-    fn to_hal(&self) -> u32 {
+    fn to_hal(self) -> u32 {
         match self {
             RadioType::NONE => wrapper::lgw_radio_type_t_LGW_RADIO_TYPE_NONE,
             RadioType::SX1255 => wrapper::lgw_radio_type_t_LGW_RADIO_TYPE_SX1255,
@@ -89,12 +88,12 @@ pub enum Modulation {
 }
 
 impl Modulation {
-    fn to_hal(&self) -> u8 {
-        return match self {
+    fn to_hal(self) -> u8 {
+        (match self {
             Modulation::Undefined => wrapper::MOD_UNDEFINED,
             Modulation::LoRa => wrapper::MOD_LORA,
             Modulation::FSK => wrapper::MOD_FSK,
-        } as u8;
+        }) as u8
     }
 
     fn from_hal(modulation: u8) -> Self {
@@ -123,8 +122,8 @@ pub enum DataRate {
 }
 
 impl DataRate {
-    fn to_hal(&self) -> u32 {
-        return match self {
+    fn to_hal(self) -> u32 {
+        match self {
             DataRate::Undefined => wrapper::DR_UNDEFINED,
             DataRate::SF5 => wrapper::DR_LORA_SF5,
             DataRate::SF6 => wrapper::DR_LORA_SF6,
@@ -134,10 +133,10 @@ impl DataRate {
             DataRate::SF10 => wrapper::DR_LORA_SF10,
             DataRate::SF11 => wrapper::DR_LORA_SF11,
             DataRate::SF12 => wrapper::DR_LORA_SF12,
-            DataRate::FSK(v) => *v,
+            DataRate::FSK(v) => v,
             DataRate::FSKMin => wrapper::DR_FSK_MIN,
             DataRate::FSKMax => wrapper::DR_FSK_MAX,
-        } as u32;
+        }
     }
 
     fn from_hal(datarate: u32) -> Self {
@@ -166,14 +165,14 @@ pub enum CodeRate {
 }
 
 impl CodeRate {
-    fn to_hal(&self) -> u8 {
-        return match self {
+    fn to_hal(self) -> u8 {
+        (match self {
             CodeRate::Undefined => wrapper::CR_UNDEFINED,
             CodeRate::LoRa4_5 => wrapper::CR_LORA_4_5,
             CodeRate::LoRa4_6 => wrapper::CR_LORA_4_6,
             CodeRate::LoRa4_7 => wrapper::CR_LORA_4_7,
             CodeRate::LoRa4_8 => wrapper::CR_LORA_4_8,
-        } as u8;
+        }) as u8
     }
 
     fn from_hal(coderate: u8) -> Self {
@@ -195,27 +194,27 @@ pub enum TxMode {
 }
 
 impl TxMode {
-    fn to_hal(&self) -> u8 {
-        return match self {
+    fn to_hal(self) -> u8 {
+        (match self {
             TxMode::Immediate => wrapper::IMMEDIATE,
             TxMode::Timestamped => wrapper::TIMESTAMPED,
             TxMode::OnGPS => wrapper::ON_GPS,
-        } as u8;
+        }) as u8
     }
 }
 
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq, Eq, Clone, Copy)]
 pub enum StatusSelect {
     Tx,
     Rx,
 }
 
 impl StatusSelect {
-    fn to_hal(&self) -> u8 {
-        return match self {
+    fn to_hal(self) -> u8 {
+        (match self {
             StatusSelect::Tx => wrapper::TX_STATUS,
             StatusSelect::Rx => wrapper::RX_STATUS,
-        } as u8;
+        }) as u8
     }
 }
 
@@ -274,12 +273,12 @@ pub enum FineTimestampMode {
 
 impl FineTimestampMode {
     fn to_hal(&self) -> wrapper::lgw_ftime_mode_t {
-        return match self {
+        match self {
             FineTimestampMode::HighCapacity => {
                 wrapper::lgw_ftime_mode_t_LGW_FTIME_MODE_HIGH_CAPACITY
             }
             FineTimestampMode::AllSF => wrapper::lgw_ftime_mode_t_LGW_FTIME_MODE_ALL_SF,
-        };
+        }
     }
 }
 
@@ -293,10 +292,10 @@ pub enum LBTScanTime {
 
 impl LBTScanTime {
     fn to_hal(&self) -> wrapper::lgw_lbt_scan_time_t {
-        return match self {
+        match self {
             LBTScanTime::Scan128US => wrapper::lgw_lbt_scan_time_t_LGW_LBT_SCAN_TIME_128_US,
             LBTScanTime::Scan5000US => wrapper::lgw_lbt_scan_time_t_LGW_LBT_SCAN_TIME_5000_US,
-        };
+        }
     }
 }
 
@@ -425,7 +424,6 @@ impl RxIfConfig {
             implicit_payload_length: self.implicit_payload_length,
             implicit_crc_en: self.implicit_crc_enable,
             implicit_coderate: self.implicit_coderate.to_hal(),
-            ..Default::default()
         }
     }
 }
@@ -638,7 +636,7 @@ impl Default for TxPacket {
 }
 
 impl TxPacket {
-    fn to_hal(&self) -> wrapper::lgw_pkt_tx_s {
+    fn to_hal(self) -> wrapper::lgw_pkt_tx_s {
         wrapper::lgw_pkt_tx_s {
             freq_hz: self.freq_hz,
             tx_mode: self.tx_mode.to_hal(),
@@ -920,7 +918,8 @@ pub fn get_eui() -> Result<[u8; 8]> {
         return Err(anyhow!("lgw_get_eui failed"));
     }
 
-    let eui = unsafe { transmute(eui.to_be()) };
+    let eui = eui.to_be().to_ne_bytes();
+
     Ok(eui)
 }
 
@@ -1045,8 +1044,8 @@ pub fn get_temperature() -> Result<f32> {
 /// Return time on air of given packet, in milliseconds.
 pub fn time_on_air(pkt: &TxPacket) -> Result<Duration> {
     let _guard = mutex::CONCENTATOR.lock().unwrap();
-    let mut pkt = pkt.to_hal();
-    let ms = unsafe { wrapper::lgw_time_on_air(&mut pkt) };
+    let pkt = pkt.to_hal();
+    let ms = unsafe { wrapper::lgw_time_on_air(&pkt) };
     Ok(Duration::from_millis(ms as u64))
 }
 

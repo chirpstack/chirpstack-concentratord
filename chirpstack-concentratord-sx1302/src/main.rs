@@ -58,7 +58,7 @@ fn main() {
             facility: Facility::LOG_USER,
             hostname: None,
             process: "chirpstack-concentratord-sx1302".into(),
-            pid: process::id().into(),
+            pid: process::id(),
         };
         let logger = syslog::unix(formatter).expect("could not connect to syslog");
         log::set_boxed_logger(Box::new(BasicLogger::new(logger)))
@@ -82,7 +82,7 @@ fn main() {
             .unwrap();
     }
 
-    let mut signals = Signals::new(&[SIGINT]).expect("error registering channels");
+    let mut signals = Signals::new([SIGINT]).expect("error registering channels");
     let (stop_send, stop_receive) = channel();
     let stop_receive = Arc::new(stop_receive);
 

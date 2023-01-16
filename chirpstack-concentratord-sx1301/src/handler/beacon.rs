@@ -25,13 +25,10 @@ pub fn beacon_loop(
     loop {
         // Instead of a MARGIN sleep, we receive from the stop channel with a
         // timeout of MARGIN seconds.
-        match stop_receive.recv_timeout(MARGIN) {
-            Ok(v) => {
-                debug!("Received stop signal, signal: {}", v);
-                break;
-            }
-            _ => {}
-        };
+        if let Ok(v) = stop_receive.recv_timeout(MARGIN) {
+            debug!("Received stop signal, signal: {}", v);
+            break;
+        }
 
         let gps_epoch = match gps::get_gps_epoch() {
             Ok(v) => v,
@@ -51,13 +48,10 @@ pub fn beacon_loop(
 
         // Instead of a sleep_time sleep, we receive from the stop channel with a
         // timeout of sleep_time.
-        match stop_receive.recv_timeout(sleep_time) {
-            Ok(v) => {
-                debug!("Received stop signal, signal: {}", v);
-                break;
-            }
-            _ => {}
-        };
+        if let Ok(v) = stop_receive.recv_timeout(sleep_time) {
+            debug!("Received stop signal, signal: {}", v);
+            break;
+        }
 
         match send_beacon(conf, next_beacon_time, &queue) {
             Ok(_) => info!(
@@ -139,13 +133,13 @@ fn get_beacon(rfu_size: usize, beacon_time: Duration) -> Vec<u8> {
     let poly: u16 = 0x1021;
     let mut x: u16 = 0;
 
-    for i in 0..b.len() - 2 {
-        x ^= (b[i] as u16) << 8;
+    for i in b.iter().take(b.len() - 2) {
+        x ^= (*i as u16) << 8;
         for _j in 0..8 {
             if x & 0x8000 != 0 {
                 x = (x << 1) ^ poly;
             } else {
-                x = x << 1;
+                x <<= 1;
             }
         }
     }
@@ -153,7 +147,7 @@ fn get_beacon(rfu_size: usize, beacon_time: Duration) -> Vec<u8> {
     let crc_bytes = x.to_le_bytes();
     b[rfu_size + 4..rfu_size + 6].copy_from_slice(&crc_bytes);
 
-    return b;
+    b
 }
 
 #[cfg(test)]

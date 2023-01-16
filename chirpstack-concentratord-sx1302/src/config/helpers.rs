@@ -12,7 +12,7 @@ struct ChannelConfiguration {
 impl ChannelConfiguration {
     fn min_radio_freq(&self) -> u32 {
         let radio_bw = get_radio_bandwidth(self.bandwidth);
-        return self.freq_hz - (self.bandwidth / 2) + (radio_bw / 2);
+        self.freq_hz - (self.bandwidth / 2) + (radio_bw / 2)
     }
 }
 
@@ -56,7 +56,7 @@ pub fn get_radio_frequencies(config: &Configuration) -> Result<Vec<u32>> {
     }
 
     // sort vector by min radio freq
-    channels.sort_by(|a, b| a.min_radio_freq().cmp(&b.min_radio_freq()));
+    channels.sort_by_key(|a| a.min_radio_freq());
 
     for c in channels {
         let channel_max = c.freq_hz + (c.bandwidth / 2);
@@ -84,7 +84,7 @@ pub fn get_radio_frequencies(config: &Configuration) -> Result<Vec<u32>> {
         }
     }
 
-    return Ok(radios);
+    Ok(radios)
 }
 
 pub fn get_radio_for_channel(radios: &[u32], freq_hz: u32, bandwidth: u32) -> Result<usize> {

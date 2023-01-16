@@ -26,9 +26,9 @@ pub fn run(
     reset::reset().expect("concentrator reset failed");
 
     // setup concentrator
-    concentrator::board_setconf(&config)?;
-    concentrator::rx_setconf(&config)?;
-    concentrator::tx_setconf(&config)?;
+    concentrator::board_setconf(config)?;
+    concentrator::rx_setconf(config)?;
+    concentrator::tx_setconf(config)?;
     concentrator::start()?;
 
     // setup static location
@@ -56,12 +56,12 @@ pub fn run(
         .expect("bind command socket error");
 
     // setup threads
-    let mut signal_pool = signals::SignalPool::new();
+    let mut signal_pool = signals::SignalPool::default();
     let mut threads: Vec<thread::JoinHandle<()>> = vec![];
 
     // uplink thread
     threads.push(thread::spawn({
-        let gateway_id = gateway_id.clone();
+        let gateway_id = gateway_id;
         let stop_receive = signal_pool.new_receiver();
 
         move || {
@@ -83,9 +83,9 @@ pub fn run(
     // command thread
     threads.push(thread::spawn({
         let vendor_config = config.gateway.model_config.clone();
-        let gateway_id = gateway_id.clone();
+        let gateway_id = gateway_id;
         let stop_receive = signal_pool.new_receiver();
-        let stop_send = stop_send.clone();
+        let stop_send = stop_send;
         let lorawan_public = config.gateway.lorawan_public;
 
         move || {
@@ -103,7 +103,7 @@ pub fn run(
 
     // stats thead
     threads.push(thread::spawn({
-        let gateway_id = gateway_id.clone();
+        let gateway_id = gateway_id;
         let stats_interval = config.concentratord.stats_interval;
         let stop_receive = signal_pool.new_receiver();
         let mut metadata = HashMap::new();

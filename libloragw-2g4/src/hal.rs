@@ -1,5 +1,4 @@
 use std::ffi::{CStr, CString};
-use std::mem::transmute;
 use std::os::raw::c_char;
 use std::time::Duration;
 
@@ -89,7 +88,7 @@ pub enum DataRate {
 }
 
 impl DataRate {
-    fn to_hal(&self) -> u32 {
+    fn to_hal(self) -> u32 {
         match self {
             DataRate::SF5 => wrapper::e_spreading_factor_DR_LORA_SF5,
             DataRate::SF6 => wrapper::e_spreading_factor_DR_LORA_SF6,
@@ -129,7 +128,7 @@ pub enum CodeRate {
 }
 
 impl CodeRate {
-    fn to_hal(&self) -> u32 {
+    fn to_hal(self) -> u32 {
         match self {
             CodeRate::LoRa4_5 => wrapper::e_coding_rate_CR_LORA_4_5,
             CodeRate::LoRa4_6 => wrapper::e_coding_rate_CR_LORA_4_6,
@@ -165,7 +164,7 @@ pub enum TxMode {
 }
 
 impl TxMode {
-    fn to_hal(&self) -> u32 {
+    fn to_hal(self) -> u32 {
         match self {
             TxMode::Timestamped => wrapper::e_tx_mode_TIMESTAMPED,
             TxMode::Immediate => wrapper::e_tx_mode_IMMEDIATE,
@@ -247,7 +246,7 @@ pub enum TemperatureSource {
 }
 
 impl TemperatureSource {
-    fn to_hal(&self) -> u32 {
+    fn to_hal(self) -> u32 {
         match self {
             TemperatureSource::Ext => wrapper::e_temperature_src_TEMP_SRC_EXT,
             TemperatureSource::Mcu => wrapper::e_temperature_src_TEMP_SRC_MCU,
@@ -427,7 +426,7 @@ impl Default for TxPacket {
 }
 
 impl TxPacket {
-    fn to_hal(&self) -> wrapper::lgw_pkt_tx_s {
+    fn to_hal(self) -> wrapper::lgw_pkt_tx_s {
         wrapper::lgw_pkt_tx_s {
             freq_hz: self.freq_hz,
             tx_mode: self.tx_mode.to_hal(),
@@ -449,10 +448,10 @@ impl TxPacket {
 
 /// Configure the gateway board.
 pub fn board_setconf(conf: &BoardConfig) -> Result<()> {
-    let mut conf = conf.to_hal()?;
+    let conf = conf.to_hal()?;
 
     let _guard = mutex::CONCENTATOR.lock().unwrap();
-    let ret = unsafe { wrapper::lgw_board_setconf(&mut conf) };
+    let ret = unsafe { wrapper::lgw_board_setconf(&conf) };
     if ret != 0 {
         return Err(anyhow!("lgw_board_setconf failed"));
     }
@@ -462,10 +461,10 @@ pub fn board_setconf(conf: &BoardConfig) -> Result<()> {
 
 /// Configure a RX channel.
 pub fn channel_rx_setconf(chan: u8, conf: &ChannelRxConfig) -> Result<()> {
-    let mut conf = conf.to_hal()?;
+    let conf = conf.to_hal()?;
 
     let _guard = mutex::CONCENTATOR.lock().unwrap();
-    let ret = unsafe { wrapper::lgw_channel_rx_setconf(chan, &mut conf) };
+    let ret = unsafe { wrapper::lgw_channel_rx_setconf(chan, &conf) };
     if ret != 0 {
         return Err(anyhow!("lgw_channel_rx_setconf failed"));
     }
@@ -475,10 +474,10 @@ pub fn channel_rx_setconf(chan: u8, conf: &ChannelRxConfig) -> Result<()> {
 
 /// Configure TX.
 pub fn channel_tx_setconf(conf: &ChannelTxConfig) -> Result<()> {
-    let mut conf = conf.to_hal()?;
+    let conf = conf.to_hal()?;
 
     let _guard = mutex::CONCENTATOR.lock().unwrap();
-    let ret = unsafe { wrapper::lgw_channel_tx_setconf(&mut conf) };
+    let ret = unsafe { wrapper::lgw_channel_tx_setconf(&conf) };
     if ret != 0 {
         return Err(anyhow!("lgw_channel_tx_setconf failed"));
     }
@@ -616,7 +615,8 @@ pub fn get_eui() -> Result<[u8; 8]> {
         return Err(anyhow!("lgw_get_eui failed"));
     }
 
-    let eui = unsafe { transmute(eui.to_be()) };
+    let eui = eui.to_be().to_ne_bytes();
+
     Ok(eui)
 }
 
@@ -636,9 +636,9 @@ pub fn get_temperature(source: TemperatureSource) -> Result<f32> {
 /// Return time on air of given packet, in milliseconds.
 pub fn time_on_air(pkt: &TxPacket) -> Result<Duration> {
     let _guard = mutex::CONCENTATOR.lock().unwrap();
-    let mut pkt = pkt.to_hal();
+    let pkt = pkt.to_hal();
     let mut result: f64 = 0.0;
 
-    let ms = unsafe { wrapper::lgw_time_on_air(&mut pkt, &mut result) };
+    let ms = unsafe { wrapper::lgw_time_on_air(&pkt, &mut result) };
     Ok(Duration::from_millis(ms as u64))
 }

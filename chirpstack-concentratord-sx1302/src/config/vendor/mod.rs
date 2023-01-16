@@ -21,13 +21,13 @@ impl Default for Gps {
 
 #[derive(Clone)]
 pub enum ComType {
-    SPI,
-    USB,
+    Spi,
+    Usb,
 }
 
 impl Default for ComType {
     fn default() -> Self {
-        ComType::SPI
+        ComType::Spi
     }
 }
 

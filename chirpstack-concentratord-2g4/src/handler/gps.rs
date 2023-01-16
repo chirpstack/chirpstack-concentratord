@@ -22,5 +22,5 @@ pub fn set_static_gps_coords(lat: f64, lon: f64, alt: i16) {
 
 pub fn get_coords() -> Option<gps::Coordinates> {
     let static_gps_coords = STATIC_GPS_COORDS.lock().unwrap();
-    return *static_gps_coords;
+    *static_gps_coords
 }

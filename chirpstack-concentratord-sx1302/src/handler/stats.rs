@@ -19,29 +19,19 @@ pub fn stats_loop(
     loop {
         // Instead of a 'stats interval' sleep, we receive from the stop channel with a
         // timeout equal to the 'stats interval'.
-        match stop_receive.recv_timeout(*stats_interval) {
-            Ok(v) => {
-                debug!("Received stop signal, signal: {}", v);
-                break;
-            }
-            _ => {}
-        };
+        if let Ok(v) = stop_receive.recv_timeout(*stats_interval) {
+            debug!("Received stop signal, signal: {}", v);
+            break;
+        }
 
         // fetch the current gps coordinates
-        let loc = match gps::get_coords() {
-            Some(v) => Some({
-                let mut loc = chirpstack_api::common::Location {
-                    latitude: v.latitude,
-                    longitude: v.longitude,
-                    altitude: v.altitude as f64,
-                    ..Default::default()
-                };
-
-                loc.set_source(chirpstack_api::common::LocationSource::Gps);
-                loc
-            }),
-            None => None,
-        };
+        let loc = gps::get_coords().map(|v| chirpstack_api::common::Location {
+            latitude: v.latitude,
+            longitude: v.longitude,
+            altitude: v.altitude as f64,
+            source: chirpstack_api::common::LocationSource::Gps.into(),
+            ..Default::default()
+        });
 
         // fetch the concentrator temperature.
         match hal::get_temperature() {

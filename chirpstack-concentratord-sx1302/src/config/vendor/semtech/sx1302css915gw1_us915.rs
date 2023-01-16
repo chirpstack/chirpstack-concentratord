@@ -165,7 +165,7 @@ pub fn new(conf: &config::Configuration) -> Configuration {
             true => Gps::TtyPath("/dev/ttyAMA0".to_string()),
             false => Gps::None,
         },
-        com_type: ComType::USB,
+        com_type: ComType::Usb,
         com_path: "/dev/ttyACM0".to_string(),
         ..Default::default()
     }

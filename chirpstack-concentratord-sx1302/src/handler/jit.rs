@@ -19,13 +19,10 @@ pub fn jit_loop(
     loop {
         // Instead of a 10ms sleep, we receive from the stop channel with a
         // timeout of 10ms.
-        match stop_receive.recv_timeout(Duration::from_millis(10)) {
-            Ok(v) => {
-                debug!("Received stop signal, signal: {}", v);
-                break;
-            }
-            _ => {}
-        };
+        if let Ok(v) = stop_receive.recv_timeout(Duration::from_millis(10)) {
+            debug!("Received stop signal, signal: {}", v);
+            break;
+        }
 
         let tx_packet = match get_tx_packet(&queue) {
             Some(v) => v,
@@ -34,7 +31,7 @@ pub fn jit_loop(
 
         let downlink_id = tx_packet.get_id();
         let mut tx_packet = tx_packet.tx_packet();
-        tx_packet.rf_power = tx_packet.rf_power - antenna_gain;
+        tx_packet.rf_power -= antenna_gain;
 
         match hal::send(&tx_packet) {
             Ok(_) => {
@@ -66,5 +63,5 @@ fn get_tx_packet(
 ) -> Option<wrapper::TxPacket> {
     let mut queue = queue.lock().unwrap();
     let concentrator_count = hal::get_instcnt().expect("get concentrator count error");
-    return queue.pop(concentrator_count);
+    queue.pop(concentrator_count)
 }

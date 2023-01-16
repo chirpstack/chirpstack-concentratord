@@ -7,17 +7,17 @@ use super::{mutex, wrapper};
 /// Communication type.
 #[derive(Debug, PartialEq)]
 pub enum ComType {
-    SPI,
-    USB,
-    UNKNOWN,
+    Spi,
+    Usb,
+    Unknown,
 }
 
 impl ComType {
     pub fn to_hal(&self) -> u32 {
         match self {
-            ComType::SPI => wrapper::com_type_e_LGW_COM_SPI,
-            ComType::USB => wrapper::com_type_e_LGW_COM_USB,
-            ComType::UNKNOWN => wrapper::com_type_e_LGW_COM_UNKNOWN,
+            ComType::Spi => wrapper::com_type_e_LGW_COM_SPI,
+            ComType::Usb => wrapper::com_type_e_LGW_COM_USB,
+            ComType::Unknown => wrapper::com_type_e_LGW_COM_UNKNOWN,
         }
     }
 }

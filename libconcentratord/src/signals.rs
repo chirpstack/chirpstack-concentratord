@@ -16,19 +16,16 @@ impl fmt::Display for Signal {
     }
 }
 
+#[derive(Default)]
 pub struct SignalPool {
     senders: Vec<Sender<Signal>>,
 }
 
 impl SignalPool {
-    pub fn new() -> Self {
-        SignalPool { senders: vec![] }
-    }
-
     pub fn new_receiver(&mut self) -> Receiver<Signal> {
         let (sender, receiver) = channel();
         self.senders.push(sender);
-        return receiver;
+        receiver
     }
 
     pub fn send_signal(&self, signal: Signal) {

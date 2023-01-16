@@ -26,12 +26,12 @@ pub fn run(
     reset::reset().expect("concentrator reset failed");
 
     // setup concentrator
-    concentrator::set_spidev_path(&config)?;
-    concentrator::board_setconf(&config)?;
-    concentrator::txgain_setconf(&config)?;
-    concentrator::rxrf_setconf(&config)?;
-    concentrator::rxif_setconf(&config)?;
-    concentrator::start(&config)?;
+    concentrator::set_spidev_path(config)?;
+    concentrator::board_setconf(config)?;
+    concentrator::txgain_setconf(config)?;
+    concentrator::rxrf_setconf(config)?;
+    concentrator::rxif_setconf(config)?;
+    concentrator::start(config)?;
 
     // setup static location
     handler::gps::set_static_gps_coords(
@@ -50,7 +50,7 @@ pub fn run(
     let queue = Arc::new(Mutex::new(queue));
 
     // setup threads
-    let mut signal_pool = signals::SignalPool::new();
+    let mut signal_pool = signals::SignalPool::default();
     let mut threads: Vec<thread::JoinHandle<()>> = vec![];
 
     // uplink thread
@@ -89,7 +89,7 @@ pub fn run(
         let gateway_id = config.gateway.gateway_id_bytes.clone();
         let queue = Arc::clone(&queue);
         let stop_receive = signal_pool.new_receiver();
-        let stop_send = stop_send.clone();
+        let stop_send = stop_send;
 
         move || {
             handler::command::handle_loop(
@@ -146,7 +146,7 @@ pub fn run(
         }));
 
         // beacon thread
-        if config.gateway.beacon.frequencies.len() != 0 {
+        if !config.gateway.beacon.frequencies.is_empty() {
             threads.push(thread::spawn({
                 let beacon_config = config.gateway.beacon.clone();
                 let queue = Arc::clone(&queue);
@@ -166,7 +166,7 @@ pub fn run(
         t.join().unwrap();
     }
 
-    concentrator::stop(&config)?;
+    concentrator::stop(config)?;
 
     Ok(stop_signal)
 }

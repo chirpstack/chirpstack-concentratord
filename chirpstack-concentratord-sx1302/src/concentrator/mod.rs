@@ -11,7 +11,7 @@ pub fn set_i2c_device_path(config: &Configuration) -> Result<()> {
         .i2c_path
         .as_ref()
         .cloned()
-        .unwrap_or("/dev/i2c-1".to_string());
+        .unwrap_or_else(|| "/dev/i2c-1".to_string());
 
     info!("Setting i2c device path, path: {}", path);
 
@@ -33,8 +33,8 @@ pub fn board_setconf(config: &Configuration) -> Result<()> {
         clock_source: config.gateway.model_config.clock_source,
         full_duplex: config.gateway.model_config.full_duplex,
         com_type: match config.gateway.model_config.com_type {
-            ComType::SPI => com::ComType::SPI,
-            ComType::USB => com::ComType::USB,
+            ComType::Spi => com::ComType::Spi,
+            ComType::Usb => com::ComType::Usb,
         },
         com_path: config.gateway.model_config.com_path.clone(),
     };
@@ -68,7 +68,7 @@ pub fn timestamp_setconf(config: &Configuration) -> Result<()> {
 
 pub fn txgain_setconf(config: &Configuration) -> Result<()> {
     for (i, radio_config) in config.gateway.model_config.radio_config.iter().enumerate() {
-        if radio_config.tx_gain_table.len() == 0 {
+        if radio_config.tx_gain_table.is_empty() {
             continue;
         }
 
@@ -84,7 +84,7 @@ pub fn txgain_setconf(config: &Configuration) -> Result<()> {
 
 pub fn rxrf_setconf(config: &Configuration) -> Result<()> {
     info!("Setting up concentrator channels");
-    let radio_freqs = helpers::get_radio_frequencies(&config)?;
+    let radio_freqs = helpers::get_radio_frequencies(config)?;
     for (i, radio_freq) in radio_freqs.iter().enumerate() {
         let rx_rf_config = hal::RxRfConfig {
             enable: *radio_freq > 0,
@@ -110,7 +110,7 @@ pub fn rxrf_setconf(config: &Configuration) -> Result<()> {
 
 pub fn rxif_setconf(config: &Configuration) -> Result<()> {
     info!("Setting up concentrator channels");
-    let radio_freqs = helpers::get_radio_frequencies(&config)?;
+    let radio_freqs = helpers::get_radio_frequencies(config)?;
 
     // LoRa mult-SF
     for (i, chan_freq) in config
@@ -120,8 +120,10 @@ pub fn rxif_setconf(config: &Configuration) -> Result<()> {
         .iter()
         .enumerate()
     {
-        let mut rx_if_config: hal::RxIfConfig = Default::default();
-        rx_if_config.enable = *chan_freq > 0;
+        let mut rx_if_config = hal::RxIfConfig {
+            enable: *chan_freq > 0,
+            ..Default::default()
+        };
 
         if rx_if_config.enable {
             let chan_radio = helpers::get_radio_for_channel(
