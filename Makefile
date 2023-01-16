@@ -44,7 +44,7 @@ dist:
 
 docker-release-armv7hf:
 	BINDGEN_EXTRA_CLANG_ARGS="--sysroot=/usr/arm-linux-gnueabihf" \
-		cargo build --target arm-unknown-linux-gnueabihf --release
+		cargo build --target armv7-unknown-linux-gnueabihf --release
 
 docker-release-armv5:
 	BINDGEN_EXTRA_CLANG_ARGS="--sysroot=/usr/arm-linux-gnueabi" \
