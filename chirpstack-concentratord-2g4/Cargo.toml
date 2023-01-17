@@ -14,7 +14,7 @@ libconcentratord = {path = "../libconcentratord"}
 chirpstack_api = { version = "4.2.0-test.1", default-features = false }
 serde = { version = "1.0", features = ["derive"] }
 toml = "0.5"
-clap = { version = "4.0", features = ["derive"] }
+clap = { version = "4.1", features = ["derive"] }
 log = "0.4"
 simple_logger = "4.0"
 zmq = "0.10"
