@@ -112,7 +112,7 @@ pub fn send_and_reset(
     let now_since_unix = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
 
     stats.gateway_id = hex::encode(gateway_id);
-    stats.time = Some(pbjson_types::Timestamp {
+    stats.time = Some(prost_types::Timestamp {
         seconds: now_since_unix.as_secs() as i64,
         nanos: now_since_unix.subsec_nanos() as i32,
     });

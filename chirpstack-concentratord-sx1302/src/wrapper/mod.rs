@@ -111,7 +111,7 @@ pub fn uplink_to_proto(gateway_id: &[u8], packet: &hal::RxPacket) -> Result<gw::
             time: match gps::cnt2time(packet.count_us) {
                 Ok(v) => {
                     let v = v.duration_since(UNIX_EPOCH).unwrap();
-                    Some(pbjson_types::Timestamp {
+                    Some(prost_types::Timestamp {
                         seconds: v.as_secs() as i64,
                         nanos: v.subsec_nanos() as i32,
                     })
@@ -125,7 +125,7 @@ pub fn uplink_to_proto(gateway_id: &[u8], packet: &hal::RxPacket) -> Result<gw::
                 }
             },
             time_since_gps_epoch: match gps::cnt2epoch(packet.count_us) {
-                Ok(v) => Some(pbjson_types::Duration {
+                Ok(v) => Some(prost_types::Duration {
                     seconds: v.as_secs() as i64,
                     nanos: v.subsec_nanos() as i32,
                 }),

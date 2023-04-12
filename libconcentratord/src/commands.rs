@@ -1,4 +1,3 @@
-use std::io::Cursor;
 use std::time::Duration;
 
 use anyhow::Result;
@@ -75,11 +74,11 @@ fn handle_message(msg: Vec<Vec<u8>>) -> Result<Command> {
     let command = String::from_utf8(msg[0].clone())?;
 
     Ok(match command.as_str() {
-        "down" => match gw::DownlinkFrame::decode(&mut Cursor::new(&msg[1])) {
+        "down" => match gw::DownlinkFrame::decode(&*msg[1]) {
             Ok(v) => Command::Downlink(v),
             Err(err) => Command::Error(err.to_string()),
         },
-        "config" => match gw::GatewayConfiguration::decode(&mut Cursor::new(&msg[1])) {
+        "config" => match gw::GatewayConfiguration::decode(&*msg[1]) {
             Ok(v) => Command::Configuration(v),
             Err(err) => Command::Error(err.to_string()),
         },
