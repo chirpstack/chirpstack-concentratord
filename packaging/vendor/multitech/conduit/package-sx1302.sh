@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -e
 
@@ -7,7 +7,7 @@ REV="r1"
 PACKAGE_NAME="chirpstack-concentratord-sx1302"
 PACKAGE_VERSION=`cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "chirpstack-concentratord-sx1302").version'`
 PACKAGE_DESCRIPTION=`cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "chirpstack-concentratord-sx1302").description'`
-BIN_PATH="../../../../target/armv5te-unknown-linux-gnueabi/release/${PACKAGE_NAME}"
+BIN_PATH="../../../../target/armv5te-unknown-linux-musleabi/release/${PACKAGE_NAME}"
 DIR=`dirname $0`
 PACKAGE_DIR="${DIR}/package-sx1302"
 

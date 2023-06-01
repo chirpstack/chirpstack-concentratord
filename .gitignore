@@ -1,6 +1,8 @@
 # hidden files
 .*
 !.cargo
+!.github
+!.vscode
 
 # rust builds / cache
 target
