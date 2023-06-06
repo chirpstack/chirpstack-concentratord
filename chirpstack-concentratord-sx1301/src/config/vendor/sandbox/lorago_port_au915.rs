@@ -1,7 +1,7 @@
 use libloragw_sx1301::hal;
 
 use super::super::super::super::config;
-use super::super::Configuration;
+use super::super::{Configuration, Gps};
 
 // source:
 // http://sandboxelectronics.com/?p=2669
@@ -146,11 +146,11 @@ pub fn new(conf: &config::Configuration) -> Configuration {
                 dac_gain: 3,
             },
         ],
-        gps_tty_path: None,
+        gps: Gps::None,
         spidev_path: "/dev/spidev0.0".to_string(),
         reset_pin: match conf.gateway.reset_pin {
-            0 => Some((0, 25)),
-            _ => Some((0, conf.gateway.reset_pin)),
+            0 => Some(("/dev/gpiochip0".to_string(), 25)),
+            _ => Some(("/dev/gpiochip0".to_string(), conf.gateway.reset_pin)),
         },
     }
 }
