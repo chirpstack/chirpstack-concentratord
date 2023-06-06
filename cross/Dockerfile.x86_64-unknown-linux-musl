@@ -22,6 +22,7 @@ RUN echo "Building sx1301 HAL" && \
     cd /hal && \
     git clone https://github.com/brocaar/lora_gateway.git -b $SX1301_VERSION && \
     cd /hal/lora_gateway && \
+    sed -i "s/CFLAGS\(.*\)/CFLAGS\1\ -fPIE/" libloragw/Makefile && \
     ARCH=$ARCH CROSS_COMPILE=$MUSL_PREFIX- make && \
     ln -s /hal/lora_gateway/libloragw/inc /usr/local/$MUSL_PREFIX/include/libloragw-sx1301 && \
     ln -s /hal/lora_gateway/libloragw/libloragw.a /usr/local/$MUSL_PREFIX/lib/libloragw-sx1301.a
@@ -30,6 +31,7 @@ RUN echo "Building sx1302 HAL" && \
     cd /hal && \
     git clone https://github.com/brocaar/sx1302_hal.git -b $SX1302_VERSION && \
     cd /hal/sx1302_hal && \
+    sed -i "s/CFLAGS\(.*\)/CFLAGS\1\ -fPIE/" libloragw/Makefile && \
     ARCH=$ARCH CROSS_COMPILE=$MUSL_PREFIX- make libloragw && \
     ln -s /hal/sx1302_hal/libloragw/inc /usr/local/$MUSL_PREFIX/include/libloragw-sx1302 && \
     ln -s /hal/sx1302_hal/libloragw/libloragw.a /usr/local/$MUSL_PREFIX/lib/libloragw-sx1302.a && \
@@ -40,6 +42,7 @@ RUN echo "Building 2g4 HAL" && \
     cd /hal && \
     git clone https://github.com/Lora-net/gateway_2g4_hal.git -b $SX2G4_VERSION && \
     cd /hal/gateway_2g4_hal && \
+    sed -i "s/CFLAGS\(.*\)/CFLAGS\1\ -fPIE/" libloragw/Makefile && \
     ARCH=$ARCH CROSS_COMPILE=$MUSL_PREFIX- make libloragw && \
     ln -s /hal/gateway_2g4_hal/libloragw/inc /usr/local/$MUSL_PREFIX/include/libloragw-2g4 && \
     ln -s /hal/gateway_2g4_hal/libloragw/libloragw.a /usr/local/$MUSL_PREFIX/lib/libloragw-2g4.a
