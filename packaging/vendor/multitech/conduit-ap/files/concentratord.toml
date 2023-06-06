@@ -47,3 +47,6 @@ model_flags=[]
 
 # Gateway ID.
 gateway_id=""
+
+# Time fallback.
+time_fallback_enabled=true

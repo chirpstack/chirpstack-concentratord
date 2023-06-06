@@ -66,6 +66,12 @@ pub fn run(config: &config::Configuration) {
   #     USB  - Use USB for concentrator communication (default is SPI)
   model_flags=[{{#each gateway.model_flags}}"{{ this }},{{/each}}]
 
+  # Time fallback.
+  #
+  # In case the gateway does not have a GNSS module or is unable to aquire a
+  # GNSS fix, use the system-time for setting the 'time' field on RX.
+  time_fallback_enabled={{ gateway.time_fallback_enabled }}
+
 
   # LoRa concentrator configuration.
   [gateway.concentrator]

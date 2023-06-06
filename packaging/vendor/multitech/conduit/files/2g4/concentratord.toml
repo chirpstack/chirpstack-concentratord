@@ -44,3 +44,6 @@ lorawan_public=true
 # This configures various vendor and model specific settings like the min / max
 # frequency, TX gain table.
 model="multitech_mtac_lora_2g4"
+
+# Time fallback.
+time_fallback_enabled=true

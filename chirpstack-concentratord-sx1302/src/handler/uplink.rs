@@ -8,7 +8,12 @@ use libloragw_sx1302::hal;
 
 use super::super::wrapper;
 
-pub fn handle_loop(gateway_id: &[u8], stop_receive: Receiver<Signal>, disable_crc_filter: bool) {
+pub fn handle_loop(
+    gateway_id: &[u8],
+    stop_receive: Receiver<Signal>,
+    disable_crc_filter: bool,
+    time_fallback: bool,
+) {
     debug!("Starting uplink handle loop");
 
     loop {
@@ -27,7 +32,7 @@ pub fn handle_loop(gateway_id: &[u8], stop_receive: Receiver<Signal>, disable_cr
                         continue;
                     }
 
-                    let proto = match wrapper::uplink_to_proto(gateway_id, &frame) {
+                    let proto = match wrapper::uplink_to_proto(gateway_id, &frame, time_fallback) {
                         Ok(v) => v,
                         Err(err) => {
                             error!("Convert uplink frame to protobuf error, error: {}", err);

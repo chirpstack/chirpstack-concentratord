@@ -1,4 +1,4 @@
-use std::time::{Duration, UNIX_EPOCH};
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use anyhow::Result;
 use chirpstack_api::gw;
@@ -52,7 +52,11 @@ impl jitqueue::TxPacket for TxPacket {
     }
 }
 
-pub fn uplink_to_proto(gateway_id: &[u8], packet: &hal::RxPacket) -> Result<gw::UplinkFrame> {
+pub fn uplink_to_proto(
+    gateway_id: &[u8],
+    packet: &hal::RxPacket,
+    time_fallback: bool,
+) -> Result<gw::UplinkFrame> {
     let mut rng = rand::thread_rng();
 
     // tx info
@@ -135,6 +139,10 @@ pub fn uplink_to_proto(gateway_id: &[u8], packet: &hal::RxPacket) -> Result<gw::
                 "Could not get GPS time, uplink_id: {}, error: {}",
                 rx_info.uplink_id, err
             );
+
+            if time_fallback {
+                rx_info.time = Some(prost_types::Timestamp::from(SystemTime::now()));
+            }
         }
     };
     match gps::cnt2epoch(packet.count_us) {

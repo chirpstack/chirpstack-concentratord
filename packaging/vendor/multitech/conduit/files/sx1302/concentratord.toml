@@ -47,3 +47,6 @@ model=""
 
 # Gateway vendor / model flags.
 model_flags=[]
+
+# Time fallback.
+time_fallback_enabled=true

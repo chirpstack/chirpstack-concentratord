@@ -1,4 +1,4 @@
-use std::time::Duration;
+use std::time::{Duration, SystemTime};
 
 use anyhow::Result;
 use chirpstack_api::gw;
@@ -55,7 +55,11 @@ impl jitqueue::TxPacket for TxPacket {
     }
 }
 
-pub fn uplink_to_proto(gateway_id: &[u8], packet: &hal::RxPacket) -> Result<gw::UplinkFrame> {
+pub fn uplink_to_proto(
+    gateway_id: &[u8],
+    packet: &hal::RxPacket,
+    time_fallback: bool,
+) -> Result<gw::UplinkFrame> {
     let mut rng = rand::thread_rng();
 
     Ok(gw::UplinkFrame {
@@ -105,6 +109,11 @@ pub fn uplink_to_proto(gateway_id: &[u8], packet: &hal::RxPacket) -> Result<gw::
                 hal::CRC::NoCRC | hal::CRC::Undefined => gw::CrcStatus::NoCrc,
             }
             .into(),
+            time: if time_fallback {
+                Some(prost_types::Timestamp::from(SystemTime::now()))
+            } else {
+                None
+            },
             ..Default::default()
         }),
         ..Default::default()

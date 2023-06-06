@@ -55,6 +55,12 @@ pub fn run(config: &config::Configuration) {
   # frequency and TX gain table.
   model="{{ gateway.model }}"
 
+  # Time fallback.
+  #
+  # In case the gateway does not have a GNSS module or is unable to aquire a
+  # GNSS fix, use the system-time for setting the 'time' field on RX.
+  time_fallback_enabled={{ gateway.time_fallback_enabled }}
+
 
   # LoRa concentrator configuration.
   [gateway.concentrator]

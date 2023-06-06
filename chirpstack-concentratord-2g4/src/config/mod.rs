@@ -41,6 +41,7 @@ pub struct Gateway {
     pub model: String,
     #[serde(default)]
     pub model_flags: Vec<String>,
+    pub time_fallback_enabled: bool,
     pub concentrator: Concentrator,
     #[serde(default)]
     pub location: Location,
