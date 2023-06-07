@@ -59,6 +59,7 @@ pub struct Gateway {
     #[serde(default)]
     pub reset_pin: u32,
     pub gateway_id: String,
+    #[serde(default)]
     pub time_fallback_enabled: bool,
     pub concentrator: Concentrator,
     #[serde(default)]

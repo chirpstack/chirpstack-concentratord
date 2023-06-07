@@ -49,6 +49,7 @@ pub struct Gateway {
     pub sx1302_power_en_pin: u32,
     #[serde(default)]
     pub sx1261_reset_pin: u32,
+    #[serde(default)]
     pub time_fallback_enabled: bool,
     pub concentrator: Concentrator,
     #[serde(default)]
