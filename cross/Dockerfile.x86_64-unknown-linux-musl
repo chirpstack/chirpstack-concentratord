@@ -46,3 +46,7 @@ RUN echo "Building 2g4 HAL" && \
     ARCH=$ARCH CROSS_COMPILE=$MUSL_PREFIX- make libloragw && \
     ln -s /hal/gateway_2g4_hal/libloragw/inc /usr/local/$MUSL_PREFIX/include/libloragw-2g4 && \
     ln -s /hal/gateway_2g4_hal/libloragw/libloragw.a /usr/local/$MUSL_PREFIX/lib/libloragw-2g4.a
+
+RUN echo "Copy libstdc++" && \
+    mkdir -p /usr/local/$MUSL_PREFIX-target/lib && \
+    cp /usr/local/$MUSL_PREFIX/lib/libstdc++* /usr/local/$MUSL_PREFIX-target/lib
