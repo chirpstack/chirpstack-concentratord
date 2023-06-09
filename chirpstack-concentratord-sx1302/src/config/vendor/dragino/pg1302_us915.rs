@@ -1,4 +1,5 @@
 use libloragw_sx1302::hal;
+use log::warn;
 
 use super::super::super::super::config;
 use super::super::{ComType, Configuration, Gps, RadioConfig};
@@ -6,6 +7,8 @@ use super::super::{ComType, Configuration, Gps, RadioConfig};
 // source:
 // wget https://www.dragino.com/downloads/downloads/LoRa_Gateway/PG1302/software/draginofwd-32bit.deb
 pub fn new(conf: &config::Configuration) -> Configuration {
+    warn!("Deprecation warning: please use model dragino_pg1302 and specify region US915");
+
     Configuration {
         radio_count: 2,
         clock_source: 0,

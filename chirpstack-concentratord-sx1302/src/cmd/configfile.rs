@@ -50,6 +50,15 @@ pub fn run(config: &config::Configuration) {
   # Public LoRaWAN network.
   lorawan_public={{ gateway.lorawan_public }}
 
+  # Region.
+  #
+  # The region of the gateway. Options:
+  #  EU868, US915, CN779, EU433, AU915, CN470, AS923, AS923_2, AS923_3, AS923_4,
+  #  KR923, IN865, RU864
+  #
+  # Not not all the gateway models implement all regions.
+  region="{{ gateway.region }}"
+
   # Gateway vendor / model.
   #
   # This configures various vendor and model specific settings like the min / max

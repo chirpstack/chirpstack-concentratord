@@ -1,6 +1,7 @@
+use anyhow::Result;
 use libloragw_sx1302::hal;
 
-use super::super::super::super::config;
+use super::super::super::super::config::{self, Region};
 use super::super::{ComType, Configuration, Gps, RadioConfig};
 
 pub enum Port {
@@ -10,7 +11,14 @@ pub enum Port {
 
 // source:
 // mPower FW (/opt/lora/global_conf.json.MTAC_003_0_0.EU868)
-pub fn new(conf: &config::Configuration) -> Configuration {
+pub fn new(conf: &config::Configuration) -> Result<Configuration> {
+    let region = conf.gateway.region.unwrap_or(Region::EU868);
+
+    let (tx_freq_min, tx_freq_max) = match region {
+        Region::EU868 => (863_000_000, 870_000_000),
+        _ => return Err(anyhow!("Unsupported region: {}", region)),
+    };
+
     let gps = conf.gateway.model_flags.contains(&"GNSS".to_string());
     let port = if conf.gateway.model_flags.contains(&"AP2".to_string()) {
         Port::AP2
@@ -18,13 +26,15 @@ pub fn new(conf: &config::Configuration) -> Configuration {
         Port::AP1
     };
 
-    Configuration {
+    Ok(Configuration {
         radio_count: 2,
         clock_source: 0,
         full_duplex: false,
         lora_multi_sf_bandwidth: 125000,
         radio_config: vec![
             RadioConfig {
+                tx_freq_min,
+                tx_freq_max,
                 enable: true,
                 radio_type: hal::RadioType::SX1250,
                 single_input_mode: true,
@@ -37,8 +47,6 @@ pub fn new(conf: &config::Configuration) -> Configuration {
                     coeff_e: 0.0,
                 },
                 tx_enable: true,
-                tx_freq_min: 863000000,
-                tx_freq_max: 870000000,
                 tx_gain_table: vec![
                     // 0
                     hal::TxGainConfig {
@@ -289,5 +297,5 @@ pub fn new(conf: &config::Configuration) -> Configuration {
             ],
         }),
         ..Default::default()
-    }
+    })
 }

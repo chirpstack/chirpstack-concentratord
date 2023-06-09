@@ -1,4 +1,4 @@
-use std::fs;
+use std::{fmt, fs};
 
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -7,6 +7,29 @@ pub mod helpers;
 pub mod vendor;
 
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
+
+#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
+pub enum Region {
+    EU868,
+    US915,
+    CN779,
+    EU433,
+    AU915,
+    CN470,
+    AS923,
+    AS923_2,
+    AS923_3,
+    AS923_4,
+    KR920,
+    IN865,
+    RU864,
+}
+
+impl fmt::Display for Region {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
 
 #[derive(Default, Serialize, Deserialize)]
 pub struct Concentratord {
@@ -40,6 +63,7 @@ pub struct Gateway {
     #[serde(default)]
     pub lorawan_public: bool,
 
+    pub region: Option<Region>,
     pub model: String,
     #[serde(default)]
     pub model_flags: Vec<String>,
@@ -182,8 +206,12 @@ pub fn get(filenames: Vec<String>) -> Configuration {
     config.gateway.model_config = match config.gateway.model.as_ref() {
         "dragino_pg1302_eu868" => vendor::dragino::pg1302_eu868::new(&config),
         "dragino_pg1302_us915" => vendor::dragino::pg1302_us915::new(&config),
-        "multitech_mtac_003e00_eu868" => vendor::multitech::mtac_003e00::new(&config),
-        "multitech_mtac_003u00_us915" => vendor::multitech::mtac_003u00::new(&config),
+        "dragino_pg1302" => vendor::dragino::pg1302::new(&config).unwrap(),
+        "multitech_mtac_003e00" => vendor::multitech::mtac_003e00::new(&config).unwrap(),
+        "multitech_mtac_003u00" => vendor::multitech::mtac_003u00::new(&config).unwrap(),
+        "multitech_mtac_003e00_eu868" => vendor::multitech::mtac_003e00::new(&config).unwrap(),
+        "multitech_mtac_003u00_us915" => vendor::multitech::mtac_003u00::new(&config).unwrap(),
+        "rak_2287" => vendor::rak::rak2287::new(&config).unwrap(),
         "rak_2287_as923" => vendor::rak::rak2287_as923::new(&config),
         "rak_2287_au915" => vendor::rak::rak2287_au915::new(&config),
         "rak_2287_cn470" => vendor::rak::rak2287_cn470::new(&config),
@@ -193,6 +221,7 @@ pub fn get(filenames: Vec<String>) -> Configuration {
         "rak_2287_kr920" => vendor::rak::rak2287_kr920::new(&config),
         "rak_2287_ru864" => vendor::rak::rak2287_ru864::new(&config),
         "rak_2287_us915" => vendor::rak::rak2287_us915::new(&config),
+        "rak_5146" => vendor::rak::rak5146::new(&config).unwrap(),
         "rak_5146_as923" => vendor::rak::rak5146_as923::new(&config),
         "rak_5146_au915" => vendor::rak::rak5146_au915::new(&config),
         "rak_5146_cn470" => vendor::rak::rak5146_cn470::new(&config),
@@ -202,13 +231,22 @@ pub fn get(filenames: Vec<String>) -> Configuration {
         "rak_5146_kr920" => vendor::rak::rak5146_kr920::new(&config),
         "rak_5146_ru864" => vendor::rak::rak5146_ru864::new(&config),
         "rak_5146_us915" => vendor::rak::rak5146_us915::new(&config),
+        "seeed_wm1302" => vendor::seeed::wm1302::new(&config).unwrap(),
         "seeed_wm1302_spi_eu868" => vendor::seeed::wm1302_spi_eu868::new(&config),
-        "semtech_sx1302c490gw1_cn490" => vendor::semtech::sx1302c490gw1_cn490::new(&config),
+        "semtech_sx1302c490gw1" => vendor::semtech::sx1302c490gw1::new(&config).unwrap(),
+        "semtech_sx1302c868gw1" => vendor::semtech::sx1302c868gw1::new(&config).unwrap(),
         "semtech_sx1302c868gw1_eu868" => vendor::semtech::sx1302c868gw1_eu868::new(&config),
+        "semtech_sx1302c915gw1" => vendor::semtech::sx1302c915gw1::new(&config).unwrap(),
         "semtech_sx1302c915gw1_us915" => vendor::semtech::sx1302c915gw1_us915::new(&config),
+        "semtech_sx1302css868gw1" => vendor::semtech::sx1302css868gw1::new(&config).unwrap(),
         "semtech_sx1302css868gw1_eu868" => vendor::semtech::sx1302css868gw1_eu868::new(&config),
+        "semtech_sx1302css915gw1" => vendor::semtech::sx1302css915gw1::new(&config).unwrap(),
         "semtech_sx1302css915gw1_us915" => vendor::semtech::sx1302css915gw1_us915::new(&config),
+        "semtech_sx1302css923gw1" => vendor::semtech::sx1302css923gw1::new(&config).unwrap(),
         "semtech_sx1302css923gw1_as923" => vendor::semtech::sx1302css923gw1_as923::new(&config),
+        "waveshare_sx1302_lorawan_gateway_hat" => {
+            vendor::waveshare::sx1302_lorawan_gateway_hat::new(&config).unwrap()
+        }
         "waveshare_sx1302_lorawan_gateway_hat_eu868" => {
             vendor::waveshare::sx1302_lorawan_gateway_hat_eu868::new(&config)
         }

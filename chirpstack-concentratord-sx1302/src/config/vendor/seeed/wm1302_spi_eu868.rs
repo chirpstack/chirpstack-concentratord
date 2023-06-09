@@ -1,4 +1,5 @@
 use libloragw_sx1302::hal;
+use log::warn;
 
 use super::super::super::super::config;
 use super::super::{ComType, Configuration, Gps, RadioConfig};
@@ -6,6 +7,8 @@ use super::super::{ComType, Configuration, Gps, RadioConfig};
 // The Seeed wiki for the WM1302 points to the Semtech source:
 // https://wiki.seeedstudio.com/WM1302_module/#step3-get-and-compile-sx1302-source-code
 pub fn new(conf: &config::Configuration) -> Configuration {
+    warn!("Deprecation warning: please use model seeed_wm1302 and specify region");
+
     Configuration {
         radio_count: 2,
         clock_source: 0,

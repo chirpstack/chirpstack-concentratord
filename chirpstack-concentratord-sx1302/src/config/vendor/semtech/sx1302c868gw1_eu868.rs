@@ -1,10 +1,13 @@
 use libloragw_sx1302::hal;
+use log::warn;
 
 use super::super::super::super::config;
 use super::super::{ComType, Configuration, Gps, RadioConfig};
 
 // source: https://github.com/Lora-net/sx1302_hal/blob/master/packet_forwarder/global_conf.json.sx1250.EU868
 pub fn new(conf: &config::Configuration) -> Configuration {
+    warn!("Deprecation warning: please use model semtech_sx1302c868gw1 and specify region");
+
     let gps = conf.gateway.model_flags.contains(&"GNSS".to_string());
 
     Configuration {

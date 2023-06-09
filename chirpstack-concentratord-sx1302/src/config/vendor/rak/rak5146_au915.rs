@@ -1,4 +1,5 @@
 use libloragw_sx1302::hal;
+use log::warn;
 
 use super::super::super::super::config;
 use super::super::{ComType, Configuration, Gps, RadioConfig};
@@ -6,6 +7,8 @@ use super::super::{ComType, Configuration, Gps, RadioConfig};
 // source:
 // https://github.com/RAKWireless/rak_common_for_gateway/blob/45c93c07f7/lora/rak5146/global_conf_i2c/global_conf.au_915_928.json
 pub fn new(conf: &config::Configuration) -> Configuration {
+    warn!("Deprecation warning: please use model rak_5146 and specify region");
+
     let gps = conf.gateway.model_flags.contains(&"GNSS".to_string());
     let usb = conf.gateway.model_flags.contains(&"USB".to_string());
 

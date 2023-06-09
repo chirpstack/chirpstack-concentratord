@@ -1,4 +1,5 @@
 use libloragw_sx1302::hal;
+use log::warn;
 
 use super::super::super::super::config;
 use super::super::{ComType, Configuration, Gps, RadioConfig};
@@ -7,6 +8,8 @@ use super::super::{ComType, Configuration, Gps, RadioConfig};
 // https://github.com/RAKWireless/rak_common_for_gateway/blob/55fd13c12b/lora/rak2287/global_conf_uart/global_conf.kr_920_923.json
 
 pub fn new(conf: &config::Configuration) -> Configuration {
+    warn!("Deprecation warning: please use model rak_2287 and specify region");
+
     let gps = conf.gateway.model_flags.contains(&"GNSS".to_string());
     let usb = conf.gateway.model_flags.contains(&"USB".to_string());
 
