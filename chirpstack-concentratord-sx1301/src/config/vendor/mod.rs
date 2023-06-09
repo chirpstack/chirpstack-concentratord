@@ -10,17 +10,12 @@ pub mod risinghf;
 pub mod sandbox;
 pub mod wifx;
 
-#[derive(Clone, PartialEq)]
+#[derive(Default, Clone, PartialEq)]
 pub enum Gps {
+    #[default]
     None,
     TtyPath(String),
     Gpsd,
-}
-
-impl Default for Gps {
-    fn default() -> Self {
-        Gps::None
-    }
 }
 
 #[derive(Default, Clone)]

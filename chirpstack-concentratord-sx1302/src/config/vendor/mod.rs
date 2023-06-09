@@ -7,29 +7,19 @@ pub mod seeed;
 pub mod semtech;
 pub mod waveshare;
 
-#[derive(Clone, PartialEq)]
+#[derive(Default, Clone, PartialEq)]
 pub enum Gps {
+    #[default]
     None,
     TtyPath(String),
     Gpsd,
 }
 
-impl Default for Gps {
-    fn default() -> Self {
-        Gps::None
-    }
-}
-
-#[derive(Clone)]
+#[derive(Default, Clone)]
 pub enum ComType {
+    #[default]
     Spi,
     Usb,
-}
-
-impl Default for ComType {
-    fn default() -> Self {
-        ComType::Spi
-    }
 }
 
 #[derive(Default, Clone)]
