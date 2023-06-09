@@ -1,22 +1,27 @@
+use anyhow::Result;
 use libloragw_sx1301::hal;
-use log::warn;
 
-use super::super::super::super::config;
+use super::super::super::super::config::{self, Region};
 use super::super::{Configuration, Gps};
 
 // source:
 // https://github.com/Wifx/meta-wifx/blob/krogoth/recipes-connectivity/packet-forwarder/files/configs/global_conf_EU868_2dBi_indoor.json
 // https://github.com/Wifx/meta-wifx/blob/krogoth/recipes-connectivity/packet-forwarder/files/configs/global_conf_EU868_4dBi_outdoor.json
-pub fn new(conf: &config::Configuration) -> Configuration {
-    warn!("Deprecation warning: please use model wifx_lorix_one and specify region");
+pub fn new(conf: &config::Configuration) -> Result<Configuration> {
+    let region = conf.gateway.region.unwrap_or(Region::EU868);
 
-    Configuration {
+    let radio_min_max_tx_freq = match region {
+        Region::EU868 => vec![(863000000, 870000000), (863000000, 870000000)],
+        _ => return Err(anyhow!("Region is not supported: {}", region)),
+    };
+
+    Ok(Configuration {
+        radio_min_max_tx_freq,
         radio_count: 2,
         clock_source: 1,
         radio_rssi_offset: vec![-164.0, -164.0],
         radio_tx_enabled: vec![true, false],
         radio_type: vec![hal::RadioType::SX1257, hal::RadioType::SX1257],
-        radio_min_max_tx_freq: vec![(863000000, 870000000), (863000000, 870000000)],
         radio_tx_notch_freq: vec![129000, 0],
         lora_multi_sf_bandwidth: 125000,
         tx_gain_table: if conf.gateway.antenna_gain == 2 {
@@ -287,5 +292,5 @@ pub fn new(conf: &config::Configuration) -> Configuration {
         gps: Gps::None,
         spidev_path: "/dev/spidev0.0".to_string(),
         reset_pin: Some(("/dev/gpiochip0".to_string(), 1)),
-    }
+    })
 }

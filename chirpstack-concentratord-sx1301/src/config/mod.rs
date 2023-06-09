@@ -1,4 +1,4 @@
-use std::fs;
+use std::{fmt, fs};
 
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -7,6 +7,29 @@ pub mod helpers;
 pub mod vendor;
 
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
+
+#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
+pub enum Region {
+    EU868,
+    US915,
+    CN779,
+    EU433,
+    AU915,
+    CN470,
+    AS923,
+    AS923_2,
+    AS923_3,
+    AS923_4,
+    KR920,
+    IN865,
+    RU864,
+}
+
+impl fmt::Display for Region {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
 
 #[derive(Default, Serialize, Deserialize, Debug, PartialEq)]
 pub struct Concentrator {
@@ -53,6 +76,7 @@ pub struct Gateway {
     pub antenna_gain: i8,
     #[serde(default)]
     pub lorawan_public: bool,
+    pub region: Option<Region>,
     pub model: String,
     #[serde(default)]
     pub model_flags: Vec<String>,
@@ -170,14 +194,21 @@ pub fn get(filenames: Vec<String>) -> Configuration {
         "generic_kr920" => vendor::generic::kr920::new(&config),
         "generic_ru864" => vendor::generic::ru864::new(&config),
         "generic_us915" => vendor::generic::us915::new(&config),
+        "imst_ic880a" => vendor::imst::ic880a::new(&config).unwrap(),
         "imst_ic880a_eu868" => vendor::imst::ic880a_eu868::new(&config),
         "imst_ic880a_in865" => vendor::imst::ic880a_in865::new(&config),
         "imst_ic880a_ru864" => vendor::imst::ic880a_ru864::new(&config),
+        "kerlink_ifemtocell" => vendor::kerlink::ifemtocell::new(&config).unwrap(),
         "kerlink_ifemtocell_eu868" => vendor::kerlink::ifemtocell_eu868::new(),
+        "multitech_mtac_lora_h_868" => vendor::multitech::mtac_lora_h_868::new(&config).unwrap(),
         "multitech_mtac_lora_h_868_eu868" => vendor::multitech::mtac_lora_h_868_eu868::new(&config),
+        "multitech_mtac_lora_h_915" => vendor::multitech::mtac_lora_h_915::new(&config).unwrap(),
         "multitech_mtac_lora_h_915_us915" => vendor::multitech::mtac_lora_h_915_us915::new(&config),
+        "multitech_mtcap_lora_868" => vendor::multitech::mtcap_lora_868::new(&config).unwrap(),
         "multitech_mtcap_lora_868_eu868" => vendor::multitech::mtcap_lora_868_eu868::new(),
+        "multitech_mtcap_lora_915" => vendor::multitech::mtcap_lora_915::new(&config).unwrap(),
         "multitech_mtcap_lora_915_us915" => vendor::multitech::mtcap_lora_915_us915::new(),
+        "pi_supply_lora_gateway_hat" => vendor::pi_supply::lora_gateway_hat::new(&config).unwrap(),
         "pi_supply_lora_gateway_hat_as923" => {
             vendor::pi_supply::lora_gateway_hat_as923::new(&config)
         }
@@ -199,6 +230,7 @@ pub fn get(filenames: Vec<String>) -> Configuration {
         "pi_supply_lora_gateway_hat_us915" => {
             vendor::pi_supply::lora_gateway_hat_us915::new(&config)
         }
+        "rak_2245" => vendor::rak::rak2245::new(&config).unwrap(),
         "rak_2245_as923" => vendor::rak::rak2245_as923::new(&config),
         "rak_2245_au915" => vendor::rak::rak2245_au915::new(&config),
         "rak_2245_cn470" => vendor::rak::rak2245_cn470::new(&config),
@@ -208,6 +240,7 @@ pub fn get(filenames: Vec<String>) -> Configuration {
         "rak_2245_kr920" => vendor::rak::rak2245_kr920::new(&config),
         "rak_2245_ru864" => vendor::rak::rak2245_ru864::new(&config),
         "rak_2245_us915" => vendor::rak::rak2245_us915::new(&config),
+        "rak_2246" => vendor::rak::rak2246::new(&config).unwrap(),
         "rak_2246_as923" => vendor::rak::rak2246_as923::new(&config),
         "rak_2246_au915" => vendor::rak::rak2246_au915::new(&config),
         "rak_2246_cn470" => vendor::rak::rak2246_cn470::new(&config),
@@ -217,6 +250,7 @@ pub fn get(filenames: Vec<String>) -> Configuration {
         "rak_2246_kr920" => vendor::rak::rak2246_kr920::new(&config),
         "rak_2246_ru864" => vendor::rak::rak2246_ru864::new(&config),
         "rak_2246_us915" => vendor::rak::rak2246_us915::new(&config),
+        "rak_2247" => vendor::rak::rak2247::new(&config).unwrap(),
         "rak_2247_as923" => vendor::rak::rak2247_as923::new(&config),
         "rak_2247_au915" => vendor::rak::rak2247_au915::new(&config),
         "rak_2247_cn470" => vendor::rak::rak2247_cn470::new(&config),
@@ -226,11 +260,14 @@ pub fn get(filenames: Vec<String>) -> Configuration {
         "rak_2247_kr920" => vendor::rak::rak2247_kr920::new(&config),
         "rak_2247_ru864" => vendor::rak::rak2247_ru864::new(&config),
         "rak_2247_us915" => vendor::rak::rak2247_us915::new(&config),
+        "risinghf_rhf0m301" => vendor::risinghf::rhf0m301::new(&config).unwrap(),
         "risinghf_rhf0m301_eu868" => vendor::risinghf::rhf0m301_eu868::new(&config),
         "risinghf_rhf0m301_us915" => vendor::risinghf::rhf0m301_us915::new(&config),
+        "sandbox_lorago_port" => vendor::sandbox::lorago_port::new(&config).unwrap(),
         "sandbox_lorago_port_eu868" => vendor::sandbox::lorago_port_eu868::new(&config),
         "sandbox_lorago_port_us915" => vendor::sandbox::lorago_port_us915::new(&config),
         "sandbox_lorago_port_au915" => vendor::sandbox::lorago_port_au915::new(&config),
+        "wifx_lorix_one" => vendor::wifx::lorix_one::new(&config).unwrap(),
         "wifx_lorix_one_eu868" => vendor::wifx::lorix_one_eu868::new(&config),
         _ => panic!("unexpected gateway model: {}", config.gateway.model),
     };

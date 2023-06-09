@@ -61,8 +61,7 @@ pub fn run(config: &config::Configuration) {
 
   # Gateway vendor / model.
   #
-  # This configures various vendor and model specific settings like the min / max
-  # frequency and TX gain table.
+  # This configures various vendor and model specific settings.
   model="{{ gateway.model }}"
 
   # Gateway vendor / model flags.

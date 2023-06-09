@@ -1,10 +1,13 @@
 use libloragw_sx1301::hal;
+use log::warn;
 
 use super::super::super::super::config;
 use super::super::{Configuration, Gps};
 
 // https://github.com/RAKWireless/rak_common_for_gateway/blob/40b162733756f4e3f31f617dad7a737f0126efab/lora/rak2245/global_conf/global_conf.au_915_928.json
 pub fn new(conf: &config::Configuration) -> Configuration {
+    warn!("Deprecation warning: please use model rak_2245 and specify region");
+
     let gps = conf.gateway.model_flags.contains(&"GNSS".to_string());
 
     Configuration {

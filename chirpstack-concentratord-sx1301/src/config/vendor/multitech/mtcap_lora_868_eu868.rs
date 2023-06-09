@@ -1,9 +1,12 @@
 use libloragw_sx1301::hal;
+use log::warn;
 
 use super::super::{Configuration, Gps};
 
 // source: http://git.multitech.net/cgi-bin/cgit.cgi/meta-mlinux.git/tree/recipes-connectivity/lora/lora-packet-forwarder/global_conf.json.3.1.0.MTCAP-LORA-1-5.US915.basic
 pub fn new() -> Configuration {
+    warn!("Deprecation warning: please use model multitech_mtcap_lora_868 and specify region");
+
     Configuration {
         radio_count: 2,
         clock_source: 0,

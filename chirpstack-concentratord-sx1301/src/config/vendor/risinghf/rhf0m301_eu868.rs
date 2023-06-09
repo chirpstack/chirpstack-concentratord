@@ -1,4 +1,5 @@
 use libloragw_sx1301::hal;
+use log::warn;
 
 use super::super::super::super::config;
 use super::super::{Configuration, Gps};
@@ -6,6 +7,8 @@ use super::super::{Configuration, Gps};
 // Taken from the "generic" eu868 configuration as no actual calibration values
 // are known. TODO: replace with actual calibration values if known.
 pub fn new(conf: &config::Configuration) -> Configuration {
+    warn!("Deprecation warning: please use model risinghf_rhf0m301 and specify region");
+
     Configuration {
         radio_count: 2,
         clock_source: 1,

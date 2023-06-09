@@ -1,4 +1,5 @@
 use libloragw_sx1301::hal;
+use log::warn;
 
 use super::super::super::super::config;
 use super::super::{Configuration, Gps};
@@ -6,6 +7,8 @@ use super::super::{Configuration, Gps};
 // source:
 // https://shop.imst.de/media/pdf/f5/68/7f/WiMOD_LiteGateway_QuickStartGuide_V1_5.pdf
 pub fn new(conf: &config::Configuration) -> Configuration {
+    warn!("Deprecation warning: please use model imst_ic880a and specify region");
+
     Configuration {
         radio_count: 2,
         clock_source: 1,

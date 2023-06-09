@@ -1,25 +1,27 @@
+use anyhow::Result;
 use libloragw_sx1301::hal;
-use log::warn;
 
-use super::super::super::super::config;
+use super::super::super::super::config::{self, Region};
 use super::super::{Configuration, Gps};
 
 // source:
 // http://sandboxelectronics.com/?p=2669
 // (RF Performance Data)
-pub fn new(conf: &config::Configuration) -> Configuration {
-    warn!("Deprecation warning: please use model sandbox_lorago_port and specify region");
+pub fn new(conf: &config::Configuration) -> Result<Configuration> {
+    let region = conf
+        .gateway
+        .region
+        .ok_or_else(|| anyhow!("You must specify a region"))?;
 
-    Configuration {
-        radio_count: 2,
-        clock_source: 1,
-        radio_rssi_offset: vec![-166.0, -166.0],
-        radio_tx_enabled: vec![true, false],
-        radio_type: vec![hal::RadioType::SX1257, hal::RadioType::SX1257],
-        radio_min_max_tx_freq: vec![(915000000, 928000000), (915000000, 928000000)],
-        radio_tx_notch_freq: vec![0, 0],
-        lora_multi_sf_bandwidth: 125000,
-        tx_gain_table: vec![
+    let radio_min_max_tx_freq = match region {
+        Region::AU915 => vec![(915000000, 928000000), (915000000, 928000000)],
+        Region::EU868 => vec![(863000000, 870000000), (863000000, 870000000)],
+        Region::US915 => vec![(923000000, 928000000), (923000000, 928000000)],
+        _ => return Err(anyhow!("Region is not supported: {}", region)),
+    };
+
+    let tx_gain_table = match region {
+        Region::AU915 => vec![
             // 0
             hal::TxGainConfig {
                 pa_gain: 0,
@@ -149,11 +151,90 @@ pub fn new(conf: &config::Configuration) -> Configuration {
                 dac_gain: 3,
             },
         ],
+        Region::EU868 | Region::US915 => vec![
+            // 0
+            hal::TxGainConfig {
+                pa_gain: 0,
+                mix_gain: 8,
+                rf_power: -10,
+                dig_gain: 3,
+                dac_gain: 3,
+            },
+            // 1
+            hal::TxGainConfig {
+                pa_gain: 0,
+                mix_gain: 8,
+                rf_power: -4,
+                dig_gain: 0,
+                dac_gain: 3,
+            },
+            // 2
+            hal::TxGainConfig {
+                pa_gain: 0,
+                mix_gain: 15,
+                rf_power: 1,
+                dig_gain: 3,
+                dac_gain: 3,
+            },
+            // 3
+            hal::TxGainConfig {
+                pa_gain: 0,
+                mix_gain: 15,
+                rf_power: 3,
+                dig_gain: 0,
+                dac_gain: 3,
+            },
+            // 4
+            hal::TxGainConfig {
+                pa_gain: 1,
+                mix_gain: 8,
+                rf_power: 6,
+                dig_gain: 0,
+                dac_gain: 3,
+            },
+            // 5
+            hal::TxGainConfig {
+                pa_gain: 1,
+                mix_gain: 15,
+                rf_power: 14,
+                dig_gain: 0,
+                dac_gain: 3,
+            },
+            // 6
+            hal::TxGainConfig {
+                pa_gain: 3,
+                mix_gain: 8,
+                rf_power: 21,
+                dig_gain: 0,
+                dac_gain: 3,
+            },
+            // 7
+            hal::TxGainConfig {
+                pa_gain: 3,
+                mix_gain: 15,
+                rf_power: 26,
+                dig_gain: 0,
+                dac_gain: 3,
+            },
+        ],
+        _ => return Err(anyhow!("Region is not supported: {}", region)),
+    };
+
+    Ok(Configuration {
+        radio_min_max_tx_freq,
+        tx_gain_table,
+        radio_count: 2,
+        clock_source: 1,
+        radio_rssi_offset: vec![-166.0, -166.0],
+        radio_tx_enabled: vec![true, false],
+        radio_type: vec![hal::RadioType::SX1257, hal::RadioType::SX1257],
+        radio_tx_notch_freq: vec![0, 0],
+        lora_multi_sf_bandwidth: 125000,
         gps: Gps::None,
         spidev_path: "/dev/spidev0.0".to_string(),
         reset_pin: match conf.gateway.reset_pin {
             0 => Some(("/dev/gpiochip0".to_string(), 25)),
             _ => Some(("/dev/gpiochip0".to_string(), conf.gateway.reset_pin)),
         },
-    }
+    })
 }

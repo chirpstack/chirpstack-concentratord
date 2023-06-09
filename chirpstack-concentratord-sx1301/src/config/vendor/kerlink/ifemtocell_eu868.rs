@@ -1,9 +1,12 @@
 use libloragw_sx1301::hal;
+use log::warn;
 
 use super::super::{Configuration, Gps};
 
 // source: /tmp/calib_rf.json on gateway
 pub fn new() -> Configuration {
+    warn!("Deprecation warning: please use model kerlink_ifemtocell and specify region");
+
     Configuration {
         radio_count: 2,
         clock_source: 1,

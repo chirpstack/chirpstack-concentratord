@@ -1,4 +1,5 @@
 use libloragw_sx1301::hal;
+use log::warn;
 
 use super::super::super::super::config;
 use super::super::{Configuration, Gps};
@@ -10,6 +11,8 @@ pub enum Port {
 
 // source: http://git.multitech.net/cgi-bin/cgit.cgi/meta-mlinux.git/tree/recipes-connectivity/lora/lora-packet-forwarder/global_conf.json.3.0.0.MTAC_LORA_1_5.US915.basic.clksrc0
 pub fn new(conf: &config::Configuration) -> Configuration {
+    warn!("Deprecation warning: please use model multitech_mtac_lora_h_915 and specify region");
+
     let gps = conf.gateway.model_flags.contains(&"GNSS".to_string());
     let port = if conf.gateway.model_flags.contains(&"AP2".to_string()) {
         Port::AP2

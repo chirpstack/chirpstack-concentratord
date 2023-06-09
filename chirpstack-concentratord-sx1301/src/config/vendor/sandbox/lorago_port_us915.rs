@@ -1,4 +1,5 @@
 use libloragw_sx1301::hal;
+use log::warn;
 
 use super::super::super::super::config;
 use super::super::{Configuration, Gps};
@@ -7,6 +8,8 @@ use super::super::{Configuration, Gps};
 // http://sandboxelectronics.com/?p=2669
 // (RF Performance Data)
 pub fn new(conf: &config::Configuration) -> Configuration {
+    warn!("Deprecation warning: please use model sandbox_lorago_port and specify region");
+
     Configuration {
         radio_count: 2,
         clock_source: 1,

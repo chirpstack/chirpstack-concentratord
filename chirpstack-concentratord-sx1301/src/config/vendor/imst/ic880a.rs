@@ -1,21 +1,28 @@
+use anyhow::Result;
 use libloragw_sx1301::hal;
-use log::warn;
 
-use super::super::super::super::config;
+use super::super::super::super::config::{self, Region};
 use super::super::{Configuration, Gps};
 
 // source:
 // https://shop.imst.de/media/pdf/f5/68/7f/WiMOD_LiteGateway_QuickStartGuide_V1_5.pdf
-pub fn new(conf: &config::Configuration) -> Configuration {
-    warn!("Deprecation warning: please use model imst_ic880a and specify region");
+pub fn new(conf: &config::Configuration) -> Result<Configuration> {
+    let region = conf.gateway.region.unwrap_or(Region::EU868);
 
-    Configuration {
+    let radio_min_max_tx_freq = match region {
+        Region::EU868 => vec![(863000000, 870000000), (863000000, 870000000)],
+        Region::IN865 => vec![(865000000, 867000000), (865000000, 867000000)],
+        Region::RU864 => vec![(864000000, 870000000), (864000000, 870000000)],
+        _ => return Err(anyhow!("Region is not supported: {}", region)),
+    };
+
+    Ok(Configuration {
+        radio_min_max_tx_freq,
         radio_count: 2,
         clock_source: 1,
         radio_rssi_offset: vec![-166.0, -166.0],
         radio_tx_enabled: vec![true, false],
         radio_type: vec![hal::RadioType::SX1257, hal::RadioType::SX1257],
-        radio_min_max_tx_freq: vec![(863000000, 870000000), (863000000, 870000000)],
         radio_tx_notch_freq: vec![0, 0],
         lora_multi_sf_bandwidth: 125000,
         tx_gain_table: vec![
@@ -154,5 +161,5 @@ pub fn new(conf: &config::Configuration) -> Configuration {
             0 => Some(("/dev/gpiochip0".to_string(), 5)),
             _ => Some(("/dev/gpiochip0".to_string(), conf.gateway.reset_pin)),
         },
-    }
+    })
 }

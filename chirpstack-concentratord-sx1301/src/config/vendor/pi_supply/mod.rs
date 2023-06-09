@@ -1,3 +1,4 @@
+pub mod lora_gateway_hat;
 pub mod lora_gateway_hat_as923;
 pub mod lora_gateway_hat_au915;
 pub mod lora_gateway_hat_eu868;
