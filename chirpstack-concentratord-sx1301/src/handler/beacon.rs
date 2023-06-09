@@ -80,7 +80,8 @@ fn send_beacon(
     data.copy_from_slice(&beacon_pl);
 
     let tx_freq = conf.frequencies
-        [((beacon_time.as_secs() % (1 << 32)) % conf.frequencies.len() as u64) as usize];
+        [(((beacon_time.as_secs() % (1 << 32)) / 128) % conf.frequencies.len() as u64) as usize];
+
     let tx_packet = hal::TxPacket {
         freq_hz: tx_freq,
         tx_mode: hal::TxMode::OnGPS,
