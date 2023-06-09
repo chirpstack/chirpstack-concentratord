@@ -39,8 +39,11 @@ antenna_gain=0
 # Public LoRaWAN network.
 lorawan_public=true
 
+# Region.
+region="EU868"
+
 # Gateway vendor / model.
-model="kerlink_ifemtocell_eu868"
+model="kerlink_ifemtocell"
 
 # Gateway vendor / model flags.
 model_flags=[]

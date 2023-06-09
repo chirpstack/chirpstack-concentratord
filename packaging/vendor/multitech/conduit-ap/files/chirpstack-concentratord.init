@@ -27,7 +27,7 @@ copy_config() {
 	if [ $lora_id == "MTCAP-LORA-868" ]; then
 		model="${lora_id,,}"
 		model="${model//-/_}"
-		model="${model}_eu868"
+		region="EU868"
 		band_config="eu868"
 		channel_config="channels_eu868_0"
 	fi
@@ -35,7 +35,7 @@ copy_config() {
 	if [ $lora_id == "MTCAP-LORA-915" ]; then
 		model="${lora_id,,}"
 		model="${model//-/_}"
-		model="${model}_us915"
+		region="US915"
 		band_config="us915"
 		channel_config="channels_us915_0"
 	fi
@@ -45,6 +45,7 @@ copy_config() {
 	cp $DAEMON_CONF_DIR/examples/$channel_config.toml $DAEMON_CONF_DIR/channels.toml
 
 	sed -i "s/gateway_id=.*/gateway_id=\"${lora_eui_raw}\"/" $DAEMON_CONF_DIR/concentratord.toml
+	sed -i "s/region=.*/region=\"${region}\"/" $DAEMON_CONF_DIR/concentratord.toml
 	sed -i "s/model=.*/model=\"multitech_${model}\"/" $DAEMON_CONF_DIR/concentratord.toml
 }
 

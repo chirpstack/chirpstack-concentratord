@@ -39,6 +39,9 @@ antenna_gain=0
 # Public LoRaWAN network.
 lorawan_public=true
 
+# Region.
+region=""
+
 # Gateway vendor / model.
 model=""
 

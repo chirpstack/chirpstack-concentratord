@@ -31,7 +31,7 @@ copy_config() {
 	if [ $lora_id == "MTAC-LORA-H-868" ]; then
 		model="${lora_id,,}"
 		model="${model//-/_}"
-		model="${model}_eu868"
+		region="EU868"
 		band_config="eu868"
 		channel_config="eu868_0"
 	fi
@@ -39,7 +39,7 @@ copy_config() {
 	if [ $lora_id == "MTAC-LORA-H-915" ]; then
 		model="${lora_id,,}"
 		model="${model//-/_}"
-		model="${model}_us915"
+		region="US915"
 		band_config="us915"
 		channel_config="us915_0"
 	fi
@@ -56,6 +56,7 @@ copy_config() {
 	cp $CONF_DIR/examples/channels_$channel_config.toml $CONF_DIR/$AP/channels.toml
 
 	sed -i "s/gateway_id=.*/gateway_id=\"${lora_eui_raw}\"/" $CONF_DIR/$AP/concentratord.toml
+	sed -i "s/region=.*/region=\"${region}\"/" $CONF_DIR/$AP/concentratord.toml
 	sed -i "s/model=.*/model=\"multitech_${model}\"/" $CONF_DIR/$AP/concentratord.toml
 	sed -i "s/model_flags=.*/model_flags=[${model_flags}]/" $CONF_DIR/$AP/concentratord.toml
 	sed -i "s/event_bind=.*/event_bind=\"ipc:\/\/\/tmp\/concentratord_event_$AP\"/" $CONF_DIR/$AP/concentratord.toml

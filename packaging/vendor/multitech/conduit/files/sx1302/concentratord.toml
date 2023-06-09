@@ -39,10 +39,10 @@ antenna_gain=0
 # Public LoRaWAN network.
 lorawan_public=true
 
+# Region.
+region=""
+
 # Gateway vendor / model.
-#
-# This configures various vendor and model specific settings like the min / max
-# frequency, TX gain table.
 model=""
 
 # Gateway vendor / model flags.
