@@ -203,6 +203,7 @@ pub fn get(filenames: Vec<String>) -> Configuration {
         "rak_5146_ru864" => vendor::rak::rak5146_ru864::new(&config),
         "rak_5146_us915" => vendor::rak::rak5146_us915::new(&config),
         "seeed_wm1302_spi_eu868" => vendor::seeed::wm1302_spi_eu868::new(&config),
+        "semtech_sx1302c490gw1_cn490" => vendor::semtech::sx1302c490gw1_cn490::new(&config),
         "semtech_sx1302c868gw1_eu868" => vendor::semtech::sx1302c868gw1_eu868::new(&config),
         "semtech_sx1302c915gw1_us915" => vendor::semtech::sx1302c915gw1_us915::new(&config),
         "semtech_sx1302css868gw1_eu868" => vendor::semtech::sx1302css868gw1_eu868::new(&config),
