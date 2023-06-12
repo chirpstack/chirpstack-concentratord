@@ -15,7 +15,7 @@ pub enum Gps {
     Gpsd,
 }
 
-#[derive(Default, Clone)]
+#[derive(Default, Clone, PartialEq)]
 pub enum ComType {
     #[default]
     Spi,

@@ -9,7 +9,8 @@ use libconcentratord::signals::Signal;
 use libconcentratord::{commands, events, jitqueue, reset};
 use libloragw_sx1302::hal;
 
-use super::super::{concentrator, config, handler, wrapper};
+use crate::config::vendor::ComType;
+use crate::{concentrator, config, handler, wrapper};
 
 pub fn run(
     config: &config::Configuration,
@@ -115,6 +116,12 @@ pub fn run(
     threads.push(thread::spawn({
         let gateway_id = gateway_id;
         let stats_interval = config.concentratord.stats_interval;
+
+        // In case of USB, there is no I2C configuration.
+        let get_temperature = config.gateway.model_config.com_type == ComType::Usb
+            || (config.gateway.model_config.com_type == ComType::Spi
+                && config.gateway.model_config.i2c_temp_sensor_addr.is_some());
+
         let stop_receive = signal_pool.new_receiver();
         let mut metadata = HashMap::new();
         metadata.insert(
@@ -129,7 +136,13 @@ pub fn run(
         metadata.insert("hal_version".to_string(), hal::version_info());
 
         move || {
-            handler::stats::stats_loop(&gateway_id, &stats_interval, stop_receive, metadata);
+            handler::stats::stats_loop(
+                &gateway_id,
+                get_temperature,
+                &stats_interval,
+                stop_receive,
+                metadata,
+            );
         }
     }));
 

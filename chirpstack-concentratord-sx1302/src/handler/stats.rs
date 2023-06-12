@@ -10,6 +10,7 @@ use super::gps;
 
 pub fn stats_loop(
     gateway_id: &[u8],
+    get_temperature: bool,
     stats_interval: &Duration,
     stop_receive: Receiver<Signal>,
     mut metadata: HashMap<String, String>,
@@ -34,13 +35,15 @@ pub fn stats_loop(
         });
 
         // fetch the concentrator temperature.
-        match hal::get_temperature() {
-            Ok(v) => {
-                metadata.insert("concentrator_temp".to_string(), format!("{}", v));
-            }
-            Err(err) => {
-                metadata.remove(&"concentrator_temp".to_string());
-                error!("Get concentrator temperature error, error: {}", err);
+        if get_temperature {
+            match hal::get_temperature() {
+                Ok(v) => {
+                    metadata.insert("concentrator_temp".to_string(), format!("{}", v));
+                }
+                Err(err) => {
+                    metadata.remove(&"concentrator_temp".to_string());
+                    error!("Get concentrator temperature error, error: {}", err);
+                }
             }
         }
 
