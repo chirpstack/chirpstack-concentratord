@@ -60,6 +60,20 @@ pub fn uplink_to_proto(
     let mut rng = rand::thread_rng();
     let uplink_id: u32 = rng.gen();
 
+    let gps_cnt2epoch = match gps::cnt2epoch(packet.count_us) {
+        Ok(v) => Some(prost_types::Duration {
+            seconds: v.as_secs() as i64,
+            nanos: v.subsec_nanos() as i32,
+        }),
+        Err(err) => {
+            debug!(
+                "Could not get GPS epoch, uplink_id: {}, error: {}",
+                uplink_id, err
+            );
+            None
+        }
+    };    
+
     Ok(gw::UplinkFrame {
         phy_payload: packet.payload[..packet.size as usize].to_vec(),
         tx_info: Some(gw::UplinkTxInfo {
@@ -133,19 +147,22 @@ pub fn uplink_to_proto(
                     }
                 }
             },
-            time_since_gps_epoch: match gps::cnt2epoch(packet.count_us) {
-                Ok(v) => Some(prost_types::Duration {
-                    seconds: v.as_secs() as i64,
-                    nanos: v.subsec_nanos() as i32,
-                }),
-                Err(err) => {
-                    debug!(
-                        "Could not get GPS epoch, uplink_id: {}, error: {}",
-                        uplink_id, err
-                    );
-                    None
-                }
+            fine_time_since_gps_epoch: match packet.ftime_received {
+                true => {
+                    match &gps_cnt2epoch {
+                        Some(v) => Some( prost_types::Duration {
+                                seconds: v.seconds,
+                                nanos: packet.ftime as i32
+                        }),
+                        None => Some(prost_types::Duration {
+                                seconds: 0i64,
+                                nanos: packet.ftime as i32
+                        })
+                    }
+                },
+                false => None
             },
+            time_since_gps_epoch: gps_cnt2epoch,
             crc_status: match packet.status {
                 hal::CRC::CRCOk => gw::CrcStatus::CrcOk,
                 hal::CRC::BadCRC => gw::CrcStatus::BadCrc,
