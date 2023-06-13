@@ -60,7 +60,7 @@ pub fn uplink_to_proto(
     let mut rng = rand::thread_rng();
     let uplink_id: u32 = rng.gen();
 
-    let gps_cnt2epoch = match gps::cnt2epoch(packet.count_us) {
+    let time_since_gps_epoch = match gps::cnt2epoch(packet.count_us) {
         Ok(v) => Some(prost_types::Duration {
             seconds: v.as_secs() as i64,
             nanos: v.subsec_nanos() as i32,
@@ -72,7 +72,7 @@ pub fn uplink_to_proto(
             );
             None
         }
-    };    
+    };
 
     Ok(gw::UplinkFrame {
         phy_payload: packet.payload[..packet.size as usize].to_vec(),
@@ -148,21 +148,16 @@ pub fn uplink_to_proto(
                 }
             },
             fine_time_since_gps_epoch: match packet.ftime_received {
-                true => {
-                    match &gps_cnt2epoch {
-                        Some(v) => Some( prost_types::Duration {
-                                seconds: v.seconds,
-                                nanos: packet.ftime as i32
-                        }),
-                        None => Some(prost_types::Duration {
-                                seconds: 0i64,
-                                nanos: packet.ftime as i32
-                        })
-                    }
-                },
-                false => None
+                true => Some(prost_types::Duration {
+                    nanos: packet.ftime as i32,
+                    seconds: time_since_gps_epoch
+                        .as_ref()
+                        .map(|v| v.seconds)
+                        .unwrap_or_default(),
+                }),
+                false => None,
             },
-            time_since_gps_epoch: gps_cnt2epoch,
+            time_since_gps_epoch,
             crc_status: match packet.status {
                 hal::CRC::CRCOk => gw::CrcStatus::CrcOk,
                 hal::CRC::BadCRC => gw::CrcStatus::BadCrc,
