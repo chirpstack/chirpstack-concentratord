@@ -42,20 +42,16 @@ pub fn handle_loop(
 
                     let rx_info = proto.rx_info.as_ref().unwrap();
 
-                    let fts = match frame.ftime_received {
-                        true => format!("{:0>9} ns", frame.ftime),
-                        false => "n/a".to_string()
-                    };
-
                     info!(
-                        "Frame received, uplink_id: {}, count_us: {}, freq: {}, bw: {}, mod: {:?}, dr: {:?}, fts: {}",
+                        "Frame received, uplink_id: {}, count_us: {}, freq: {}, bw: {}, mod: {:?}, dr: {:?}, ftime_received: {}, ftime_ns: {}",
                         rx_info.uplink_id,
                         frame.count_us,
                         frame.freq_hz,
                         frame.bandwidth,
                         frame.modulation,
                         frame.datarate,
-                        fts,
+                        frame.ftime_received,
+                        frame.ftime,
                     );
 
                     if frame.status == hal::CRC::CRCOk {
