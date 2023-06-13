@@ -160,10 +160,9 @@ pub fn run(
         // gps validate thread
         threads.push(thread::spawn({
             let stop_receive = signal_pool.new_receiver();
-            let time_fallback = config.gateway.time_fallback_enabled;
 
             move || {
-                handler::gps::gps_validate_loop(stop_receive,time_fallback);
+                handler::gps::gps_validate_loop(stop_receive);
             }
         }));
 

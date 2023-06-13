@@ -136,13 +136,11 @@ pub fn gps_loop(gps_device: config::vendor::Gps, stop_receive: Receiver<Signal>)
     debug!("GPS loop ended");
 }
 
-pub fn gps_validate_loop(stop_receive: Receiver<Signal>, time_fallback: bool) {
+pub fn gps_validate_loop(stop_receive: Receiver<Signal>) {
     info!("Starting GPS validation loop");
 
     let mut init_cpt: isize = 0;
     let mut init_acc: f64 = 0.0;
-
-    let mut last_fallback_msg = Duration::new(0, 0);
 
     loop {
         // Instead of a 1s sleep, we receive from the stop channel with a
@@ -173,16 +171,7 @@ pub fn gps_validate_loop(stop_receive: Receiver<Signal>, time_fallback: bool) {
             if systime_diff > Duration::from_secs(30) {
                 *gps_ref_valid = false;
 
-                if time_fallback {
-                    if systime_diff > last_fallback_msg {
-                         // Show this warning only once every 10 minutes (600s)
-                        warn!("Time fallback enabled. GPS time reference is not valid, age: {:?}", systime_diff);
-                        last_fallback_msg = systime_diff.clone() + Duration::new(600, 0);
-                    }
-
-                } else {
-                    warn!("GPS time reference is not valid, age: {:?}", systime_diff);
-                }
+                warn!("GPS time reference is not valid, age: {:?}", systime_diff);
             } else {
                 *gps_ref_valid = true;
                 trace!("GPS time reference is valid");
