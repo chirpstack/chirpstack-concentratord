@@ -43,13 +43,15 @@ pub fn handle_loop(
                     let rx_info = proto.rx_info.as_ref().unwrap();
 
                     info!(
-                        "Frame received, uplink_id: {}, count_us: {}, freq: {}, bw: {}, mod: {:?}, dr: {:?}",
+                        "Frame received, uplink_id: {}, count_us: {}, freq: {}, bw: {}, mod: {:?}, dr: {:?}, ftime_received: {}, ftime_ns: {}",
                         rx_info.uplink_id,
                         frame.count_us,
                         frame.freq_hz,
                         frame.bandwidth,
                         frame.modulation,
                         frame.datarate,
+                        frame.ftime_received,
+                        frame.ftime,
                     );
 
                     if frame.status == hal::CRC::CRCOk {
