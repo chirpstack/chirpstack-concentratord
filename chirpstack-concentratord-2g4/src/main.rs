@@ -57,7 +57,7 @@ fn main() {
         let formatter = Formatter3164 {
             facility: Facility::LOG_USER,
             hostname: None,
-            process: "chirpstack-concentratord-sx1301".into(),
+            process: "chirpstack-concentratord-2g4".into(),
             pid: process::id(),
         };
         let logger = syslog::unix(formatter).expect("could not connect to syslog");
