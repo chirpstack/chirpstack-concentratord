@@ -238,10 +238,12 @@ pub fn get(filenames: Vec<String>) -> Configuration {
         "semtech_sx1302c868gw1_eu868" => vendor::semtech::sx1302c868gw1_eu868::new(&config),
         "semtech_sx1302c915gw1" => vendor::semtech::sx1302c915gw1::new(&config).unwrap(),
         "semtech_sx1302c915gw1_us915" => vendor::semtech::sx1302c915gw1_us915::new(&config),
+        "semtech_sx1302c915gw1_au915" => vendor::semtech::sx1302c915gw1_au915::new(&config),
         "semtech_sx1302css868gw1" => vendor::semtech::sx1302css868gw1::new(&config).unwrap(),
         "semtech_sx1302css868gw1_eu868" => vendor::semtech::sx1302css868gw1_eu868::new(&config),
         "semtech_sx1302css915gw1" => vendor::semtech::sx1302css915gw1::new(&config).unwrap(),
         "semtech_sx1302css915gw1_us915" => vendor::semtech::sx1302css915gw1_us915::new(&config),
+        "semtech_sx1302css915gw1_au915" => vendor::semtech::sx1302css915gw1_au915::new(&config),
         "semtech_sx1302css923gw1" => vendor::semtech::sx1302css923gw1::new(&config).unwrap(),
         "semtech_sx1302css923gw1_as923" => vendor::semtech::sx1302css923gw1_as923::new(&config),
         "waveshare_sx1302_lorawan_gateway_hat" => {
