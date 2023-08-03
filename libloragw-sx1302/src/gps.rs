@@ -291,6 +291,7 @@ pub fn cnt2time(t_ref: &TimeReference, count_us: u32) -> Result<SystemTime> {
     let mut utc = wrapper::timespec {
         tv_sec: 0,
         tv_nsec: 0,
+        ..Default::default()
     };
 
     let ret = unsafe { wrapper::lgw_cnt2utc(tref, count_us, &mut utc) };
@@ -322,6 +323,7 @@ pub fn cnt2epoch(t_ref: &TimeReference, count_us: u32) -> Result<Duration> {
     let mut gps_time = wrapper::timespec {
         tv_sec: 0,
         tv_nsec: 0,
+        ..Default::default()
     };
 
     let ret = unsafe { wrapper::lgw_cnt2gps(tref, count_us, &mut gps_time) };

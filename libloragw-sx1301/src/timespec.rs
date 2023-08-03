@@ -14,6 +14,7 @@ pub fn system_time_to_timespec(st: &SystemTime) -> wrapper::timespec {
     wrapper::timespec {
         tv_sec: utc_dur.as_secs() as wrapper::time_t,
         tv_nsec: (utc_dur.as_nanos() % 1000000000) as std::os::raw::c_long,
+        ..Default::default()
     }
 }
 
@@ -21,6 +22,7 @@ pub fn duration_to_timespec(d: &Duration) -> wrapper::timespec {
     wrapper::timespec {
         tv_sec: d.as_secs() as wrapper::time_t,
         tv_nsec: (d.as_nanos() % 1000000000) as std::os::raw::c_long,
+        ..Default::default()
     }
 }
 
