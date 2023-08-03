@@ -19,7 +19,7 @@ pub fn run(
     info!(
         "Starting Concentratord 2g4 (version: {}, docs: {})",
         config::VERSION,
-        "https://www.chirpstack.io/concentratord/"
+        "https://www.chirpstack.io/docs/chirpstack-concentratord/"
     );
 
     // reset concentrator
