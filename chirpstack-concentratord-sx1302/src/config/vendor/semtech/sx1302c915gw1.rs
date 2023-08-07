@@ -10,6 +10,7 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
 
     let (tx_freq_min, tx_freq_max) = match region {
         Region::US915 => (923000000, 928000000),
+        Region::AU915 => (915000000, 928000000),
         _ => return Err(anyhow!("Region is not supported: {}", region)),
     };
 
