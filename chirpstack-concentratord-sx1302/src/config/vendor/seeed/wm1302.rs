@@ -182,7 +182,7 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
                 tx_gain_table: vec![],
             },
         ],
-        gps: Gps::TtyPath("/dev/ttyAMA0".to_string()),
+        gps: Gps::None,
         com_type: ComType::Spi,
         com_path: "/dev/spidev0.0".to_string(),
         i2c_path: Some("/dev/i2c-1".to_string()),
