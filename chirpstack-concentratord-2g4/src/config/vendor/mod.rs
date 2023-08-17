@@ -1,4 +1,5 @@
 pub mod multitech;
+pub mod rak;
 pub mod semtech;
 
 #[derive(Default, Clone)]
