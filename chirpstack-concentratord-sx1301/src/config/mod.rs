@@ -186,14 +186,6 @@ pub fn get(filenames: Vec<String>) -> Configuration {
 
     // get model configuration
     config.gateway.model_config = match config.gateway.model.as_ref() {
-        "generic_as923" => vendor::generic::as923::new(&config),
-        "generic_au915" => vendor::generic::au915::new(&config),
-        "generic_cn470" => vendor::generic::cn470::new(&config),
-        "generic_eu868" => vendor::generic::eu868::new(&config),
-        "generic_in865" => vendor::generic::in865::new(&config),
-        "generic_kr920" => vendor::generic::kr920::new(&config),
-        "generic_ru864" => vendor::generic::ru864::new(&config),
-        "generic_us915" => vendor::generic::us915::new(&config),
         "imst_ic880a" => vendor::imst::ic880a::new(&config).unwrap(),
         "kerlink_ifemtocell" => vendor::kerlink::ifemtocell::new(&config).unwrap(),
         "multitech_mtac_lora_h_868" => vendor::multitech::mtac_lora_h_868::new(&config).unwrap(),
