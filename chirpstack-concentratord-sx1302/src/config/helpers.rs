@@ -158,12 +158,13 @@ mod tests {
         {
             let mut config: super::super::Configuration = Default::default();
 
+            config.gateway.region = Some(super::super::Region::EU868);
             config.gateway.concentrator.multi_sf_channels = multi_sf_channels;
             config.gateway.concentrator.lora_std.frequency = lora_std_freq;
             config.gateway.concentrator.lora_std.bandwidth = lora_std_bw;
             config.gateway.concentrator.fsk.frequency = fsk_freq;
             config.gateway.concentrator.fsk.bandwidth = fsk_bw;
-            config.gateway.model_config = semtech::sx1302c868gw1_eu868::new(&config);
+            config.gateway.model_config = semtech::sx1302c868gw1::new(&config).unwrap();
 
             let radios = super::get_radio_frequencies(&config).unwrap();
             assert_eq!(radios, expected);
