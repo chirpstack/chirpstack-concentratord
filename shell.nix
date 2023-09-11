@@ -8,7 +8,6 @@ pkgs.mkShell {
     pkgs.cacert
     pkgs.rustup
     pkgs.cargo-cross
-    pkgs.cargo-bitbake
     pkgs.jq
     pkgs.opkg-utils
   ];
