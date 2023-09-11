@@ -11,6 +11,7 @@ pub fn timespec_to_system_time(ts: &wrapper::timespec) -> SystemTime {
 pub fn system_time_to_timespec(st: &SystemTime) -> wrapper::timespec {
     let utc_dur = st.duration_since(SystemTime::UNIX_EPOCH).unwrap();
 
+    #[allow(clippy::needless_update)]
     wrapper::timespec {
         tv_sec: utc_dur.as_secs() as wrapper::time_t,
         tv_nsec: (utc_dur.as_nanos() % 1000000000) as std::os::raw::c_long,
@@ -19,6 +20,7 @@ pub fn system_time_to_timespec(st: &SystemTime) -> wrapper::timespec {
 }
 
 pub fn duration_to_timespec(d: &Duration) -> wrapper::timespec {
+    #[allow(clippy::needless_update)]
     wrapper::timespec {
         tv_sec: d.as_secs() as wrapper::time_t,
         tv_nsec: (d.as_nanos() % 1000000000) as std::os::raw::c_long,

@@ -5,7 +5,7 @@ repository="https://github.com/chirpstack/chirpstack-concentratord/"
 license="MIT"
 version = "4.2.3"
 authors = ["Orne Brocaar <info@brocaar.com>"]
-edition = "2018"
+edition = "2021"
 publish = false
 
 [dependencies]
@@ -14,7 +14,7 @@ libconcentratord = {path = "../libconcentratord"}
 chirpstack_api = { version = "4.4", default-features = false }
 serde = { version = "1.0", features = ["derive"] }
 toml = "0.7"
-clap = { version = "4.3", features = ["derive"] }
+clap = { version = "4.4", features = ["derive"] }
 log = "0.4"
 simple_logger = "4.2"
 zmq = "0.10"
@@ -22,10 +22,10 @@ hex = "0.4"
 lazy_static = "1.4"
 chrono = "0.4"
 humantime-serde = "1.1"
-syslog = "6.0"
+syslog = "6.1"
 prost = "0.11"
 prost-types = "0.11"
 signal-hook = "0.3"
-handlebars = "4.3"
+handlebars = "4.4"
 rand = "0.8"
 anyhow = "1.0"

@@ -285,6 +285,8 @@ pub fn sync(
 /// Convert concentrator timestamp counter value to GPS time.
 pub fn cnt2time(t_ref: &TimeReference, count_us: u32) -> Result<SystemTime> {
     let tref = t_ref.to_hal();
+
+    #[allow(clippy::needless_update)]
     let mut utc = wrapper::timespec {
         tv_sec: 0,
         tv_nsec: 0,
@@ -317,6 +319,8 @@ pub fn time2cnt(t_ref: &TimeReference, gps_time: &SystemTime) -> Result<u32> {
 /// Convert concentrator timestamp counter value to GPS epoch.
 pub fn cnt2epoch(t_ref: &TimeReference, count_us: u32) -> Result<Duration> {
     let tref = t_ref.to_hal();
+
+    #[allow(clippy::needless_update)]
     let mut gps_time = wrapper::timespec {
         tv_sec: 0,
         tv_nsec: 0,

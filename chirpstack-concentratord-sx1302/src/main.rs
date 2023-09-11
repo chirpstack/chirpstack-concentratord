@@ -10,7 +10,7 @@ extern crate syslog;
 use std::process;
 use std::str::FromStr;
 use std::sync::mpsc::channel;
-use std::sync::Arc;
+use std::rc::Rc;
 use std::thread;
 
 use clap::{Parser, Subcommand};
@@ -84,7 +84,7 @@ fn main() {
 
     let mut signals = Signals::new([SIGINT]).expect("error registering channels");
     let (stop_send, stop_receive) = channel();
-    let stop_receive = Arc::new(stop_receive);
+    let stop_receive = Rc::new(stop_receive);
 
     thread::spawn({
         let stop_send = stop_send.clone();

@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::rc::Rc;
 use std::sync::mpsc::{Receiver, Sender};
 use std::sync::{Arc, Mutex};
 use std::thread;
@@ -15,7 +16,7 @@ use crate::{concentrator, config, handler, wrapper};
 pub fn run(
     config: &config::Configuration,
     stop_send: Sender<Signal>,
-    stop_receive: Arc<Receiver<Signal>>,
+    stop_receive: Rc<Receiver<Signal>>,
 ) -> Result<Signal> {
     info!(
         "Starting Concentratord SX1302 (version: {}, docs: {})",
