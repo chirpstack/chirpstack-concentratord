@@ -103,7 +103,7 @@ pub fn get_radio_for_channel(radios: &[u32], freq_hz: u32, bandwidth: u32) -> Re
 
 #[cfg(test)]
 mod tests {
-    use super::super::vendor::generic;
+    use super::super::vendor::rak::rak2245;
 
     #[test]
     fn test_get_radio_frequencies() {
@@ -165,12 +165,13 @@ mod tests {
         {
             let mut config: super::super::Configuration = Default::default();
 
+            config.gateway.region = Some(super::super::Region::EU868);
             config.gateway.concentrator.multi_sf_channels = multi_sf_channels;
             config.gateway.concentrator.lora_std.frequency = lora_std_freq;
             config.gateway.concentrator.lora_std.bandwidth = lora_std_bw;
             config.gateway.concentrator.fsk.frequency = fsk_freq;
             config.gateway.concentrator.fsk.bandwidth = fsk_bw;
-            config.gateway.model_config = generic::eu868::new(&config);
+            config.gateway.model_config = rak2245::new(&config).unwrap();
 
             let radios = super::get_radio_frequencies(&config).unwrap();
             assert_eq!(radios, expected);
