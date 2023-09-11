@@ -204,51 +204,21 @@ pub fn get(filenames: Vec<String>) -> Configuration {
 
     // get model configuration
     config.gateway.model_config = match config.gateway.model.as_ref() {
-        "dragino_pg1302_eu868" => vendor::dragino::pg1302_eu868::new(&config),
-        "dragino_pg1302_us915" => vendor::dragino::pg1302_us915::new(&config),
+  
         "dragino_pg1302" => vendor::dragino::pg1302::new(&config).unwrap(),
         "multitech_mtac_003e00" => vendor::multitech::mtac_003e00::new(&config).unwrap(),
         "multitech_mtac_003u00" => vendor::multitech::mtac_003u00::new(&config).unwrap(),
-        "multitech_mtac_003e00_eu868" => vendor::multitech::mtac_003e00::new(&config).unwrap(),
-        "multitech_mtac_003u00_us915" => vendor::multitech::mtac_003u00::new(&config).unwrap(),
         "rak_2287" => vendor::rak::rak2287::new(&config).unwrap(),
-        "rak_2287_as923" => vendor::rak::rak2287_as923::new(&config),
-        "rak_2287_au915" => vendor::rak::rak2287_au915::new(&config),
-        "rak_2287_cn470" => vendor::rak::rak2287_cn470::new(&config),
-        "rak_2287_eu433" => vendor::rak::rak2287_eu433::new(&config),
-        "rak_2287_eu868" => vendor::rak::rak2287_eu868::new(&config),
-        "rak_2287_in865" => vendor::rak::rak2287_in865::new(&config),
-        "rak_2287_kr920" => vendor::rak::rak2287_kr920::new(&config),
-        "rak_2287_ru864" => vendor::rak::rak2287_ru864::new(&config),
-        "rak_2287_us915" => vendor::rak::rak2287_us915::new(&config),
         "rak_5146" => vendor::rak::rak5146::new(&config).unwrap(),
-        "rak_5146_as923" => vendor::rak::rak5146_as923::new(&config),
-        "rak_5146_au915" => vendor::rak::rak5146_au915::new(&config),
-        "rak_5146_cn470" => vendor::rak::rak5146_cn470::new(&config),
-        "rak_5146_eu433" => vendor::rak::rak5146_eu433::new(&config),
-        "rak_5146_eu868" => vendor::rak::rak5146_eu868::new(&config),
-        "rak_5146_in865" => vendor::rak::rak5146_in865::new(&config),
-        "rak_5146_kr920" => vendor::rak::rak5146_kr920::new(&config),
-        "rak_5146_ru864" => vendor::rak::rak5146_ru864::new(&config),
-        "rak_5146_us915" => vendor::rak::rak5146_us915::new(&config),
         "seeed_wm1302" => vendor::seeed::wm1302::new(&config).unwrap(),
-        "seeed_wm1302_spi_eu868" => vendor::seeed::wm1302_spi_eu868::new(&config),
         "semtech_sx1302c490gw1" => vendor::semtech::sx1302c490gw1::new(&config).unwrap(),
         "semtech_sx1302c868gw1" => vendor::semtech::sx1302c868gw1::new(&config).unwrap(),
-        "semtech_sx1302c868gw1_eu868" => vendor::semtech::sx1302c868gw1_eu868::new(&config),
         "semtech_sx1302c915gw1" => vendor::semtech::sx1302c915gw1::new(&config).unwrap(),
-        "semtech_sx1302c915gw1_us915" => vendor::semtech::sx1302c915gw1_us915::new(&config),
         "semtech_sx1302css868gw1" => vendor::semtech::sx1302css868gw1::new(&config).unwrap(),
-        "semtech_sx1302css868gw1_eu868" => vendor::semtech::sx1302css868gw1_eu868::new(&config),
         "semtech_sx1302css915gw1" => vendor::semtech::sx1302css915gw1::new(&config).unwrap(),
-        "semtech_sx1302css915gw1_us915" => vendor::semtech::sx1302css915gw1_us915::new(&config),
         "semtech_sx1302css923gw1" => vendor::semtech::sx1302css923gw1::new(&config).unwrap(),
-        "semtech_sx1302css923gw1_as923" => vendor::semtech::sx1302css923gw1_as923::new(&config),
         "waveshare_sx1302_lorawan_gateway_hat" => {
             vendor::waveshare::sx1302_lorawan_gateway_hat::new(&config).unwrap()
-        }
-        "waveshare_sx1302_lorawan_gateway_hat_eu868" => {
-            vendor::waveshare::sx1302_lorawan_gateway_hat_eu868::new(&config)
         }
         _ => panic!("unexpected gateway model: {}", config.gateway.model),
     };
