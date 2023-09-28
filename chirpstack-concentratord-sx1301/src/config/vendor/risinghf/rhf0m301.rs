@@ -15,6 +15,7 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
     let radio_min_max_tx_freq = match region {
         Region::US915 => vec![(923000000, 928000000), (923000000, 928000000)],
         Region::EU868 => vec![(863000000, 870000000), (863000000, 870000000)],
+        Region::AU915 => vec![(915000000, 928000000), (915000000, 928000000)],
         _ => return Err(anyhow!("Region is not supported: {}", region)),
     };
 
