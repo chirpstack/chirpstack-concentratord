@@ -50,6 +50,10 @@ pub struct Gateway {
     pub model_config: vendor::Configuration,
     #[serde(skip)]
     pub config_version: String,
+
+    pub com_dev_path: Option<String>,
+    pub mcu_reset_pin: Option<u32>,
+    pub mcu_boot0_pin: Option<u32>,
 }
 
 #[derive(Default, Serialize, Deserialize, Debug, PartialEq)]
