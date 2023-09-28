@@ -441,7 +441,12 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
             },
         ],
         gps: match gps {
-            true => Gps::TtyPath("/dev/ttyAMA0".to_string()),
+            true => Gps::TtyPath(
+                conf.gateway
+                    .gnss_dev_path
+                    .clone()
+                    .unwrap_or("/dev/ttyAMA0".to_string()),
+            ),
             false => Gps::None,
         },
         com_type: match usb {
@@ -449,20 +454,25 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
             false => ComType::Spi,
         },
         com_path: match usb {
-            true => "/dev/ttyACM0".to_string(),
-            false => "/dev/spidev0.0".to_string(),
+            true => conf
+                .gateway
+                .com_dev_path
+                .clone()
+                .unwrap_or("/dev/ttyACM0".to_string()),
+            false => conf
+                .gateway
+                .com_dev_path
+                .clone()
+                .unwrap_or("/dev/spidev0.0".to_string()),
         },
-        sx1302_reset_pin: match conf.gateway.sx1302_reset_pin {
-            0 => Some(("/dev/gpiochip0".to_string(), 17)),
-            _ => Some(("/dev/gpiochip0".to_string(), conf.gateway.sx1302_reset_pin)),
-        },
-        sx1302_power_en_pin: match conf.gateway.sx1302_power_en_pin {
-            0 => None,
-            _ => Some((
-                "/dev/gpiochip0".to_string(),
-                conf.gateway.sx1302_power_en_pin,
-            )),
-        },
+        sx1302_reset_pin: Some((
+            "/dev/gpiochip0".to_string(),
+            conf.gateway.sx1302_reset_pin.unwrap_or(17),
+        )),
+        sx1302_power_en_pin: conf
+            .gateway
+            .sx1302_power_en_pin
+            .map(|v| ("/dev/gpiochip0".to_string(), v)),
         ..Default::default()
     })
 }

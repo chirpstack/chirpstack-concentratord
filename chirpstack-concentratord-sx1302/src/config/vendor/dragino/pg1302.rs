@@ -179,11 +179,15 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
         ],
         gps: Gps::None,
         com_type: ComType::Spi,
-        com_path: "/dev/spidev0.0".to_string(),
-        sx1302_reset_pin: match conf.gateway.sx1302_reset_pin {
-            0 => Some(("/dev/gpiochip0".to_string(), 23)),
-            _ => Some(("/dev/gpiochip0".to_string(), conf.gateway.sx1302_reset_pin)),
-        },
+        com_path: conf
+            .gateway
+            .com_dev_path
+            .clone()
+            .unwrap_or("/dev/spidev0.0".to_string()),
+        sx1302_reset_pin: Some((
+            "/dev/gpiochip0".to_string(),
+            conf.gateway.sx1302_reset_pin.unwrap_or(23),
+        )),
         ..Default::default()
     })
 }

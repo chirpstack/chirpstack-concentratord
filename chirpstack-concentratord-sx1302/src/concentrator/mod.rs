@@ -40,8 +40,8 @@ pub fn board_setconf(config: &Configuration) -> Result<()> {
     };
 
     info!(
-        "Setting board configuration, lorawan_public: {}, clock_source: {}",
-        board_config.lorawan_public, board_config.clock_source
+        "Setting board configuration, lorawan_public: {}, clock_source: {}, com_type: {:?}, com_path: {}",
+        board_config.lorawan_public, board_config.clock_source, config.gateway.model_config.com_type, config.gateway.model_config.com_path,
     );
     hal::board_setconf(&board_config)
 }

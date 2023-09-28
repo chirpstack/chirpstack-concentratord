@@ -67,12 +67,7 @@ pub struct Gateway {
     pub model: String,
     #[serde(default)]
     pub model_flags: Vec<String>,
-    #[serde(default)]
-    pub sx1302_reset_pin: u32,
-    #[serde(default)]
-    pub sx1302_power_en_pin: u32,
-    #[serde(default)]
-    pub sx1261_reset_pin: u32,
+
     #[serde(default)]
     pub time_fallback_enabled: bool,
     pub concentrator: Concentrator,
@@ -83,6 +78,13 @@ pub struct Gateway {
 
     #[serde(default)]
     pub fine_timestamp: FineTimestamp,
+
+    pub sx1302_reset_pin: Option<u32>,
+    pub sx1302_power_en_pin: Option<u32>,
+    pub sx1261_reset_pin: Option<u32>,
+    pub gnss_dev_path: Option<String>,
+    pub com_dev_path: Option<String>,
+    pub i2c_dev_path: Option<String>,
 
     #[serde(skip)]
     pub model_config: vendor::Configuration,
@@ -204,7 +206,6 @@ pub fn get(filenames: Vec<String>) -> Configuration {
 
     // get model configuration
     config.gateway.model_config = match config.gateway.model.as_ref() {
-  
         "dragino_pg1302" => vendor::dragino::pg1302::new(&config).unwrap(),
         "multitech_mtac_003e00" => vendor::multitech::mtac_003e00::new(&config).unwrap(),
         "multitech_mtac_003u00" => vendor::multitech::mtac_003u00::new(&config).unwrap(),

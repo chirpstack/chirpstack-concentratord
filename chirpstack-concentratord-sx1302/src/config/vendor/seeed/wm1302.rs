@@ -209,24 +209,30 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
         ],
         gps: Gps::None,
         com_type: ComType::Spi,
-        com_path: "/dev/spidev0.0".to_string(),
-        i2c_path: Some("/dev/i2c-1".to_string()),
+        com_path: conf
+            .gateway
+            .com_dev_path
+            .clone()
+            .unwrap_or("/dev/spidev0.0".to_string()),
+        i2c_path: Some(
+            conf.gateway
+                .i2c_dev_path
+                .clone()
+                .unwrap_or("/dev/i2c-1".to_string()),
+        ),
         i2c_temp_sensor_addr: Some(0x39),
-        sx1302_reset_pin: match conf.gateway.sx1302_reset_pin {
-            0 => Some(("/dev/gpiochip0".to_string(), 17)),
-            _ => Some(("/dev/gpiochip0".to_string(), conf.gateway.sx1302_reset_pin)),
-        },
-        sx1302_power_en_pin: match conf.gateway.sx1302_power_en_pin {
-            0 => Some(("/dev/gpiochip0".to_string(), 18)),
-            _ => Some((
-                "/dev/gpiochip0".to_string(),
-                conf.gateway.sx1302_power_en_pin,
-            )),
-        },
-        sx1261_reset_pin: match conf.gateway.sx1261_reset_pin {
-            0 => Some(("/dev/gpiochip0".to_string(), 5)),
-            _ => Some(("/dev/gpiochip0".to_string(), conf.gateway.sx1261_reset_pin)),
-        },
+        sx1302_reset_pin: Some((
+            "/dev/gpiochip0".to_string(),
+            conf.gateway.sx1302_reset_pin.unwrap_or(17),
+        )),
+        sx1302_power_en_pin: Some((
+            "/dev/gpiochip0".to_string(),
+            conf.gateway.sx1302_power_en_pin.unwrap_or(18),
+        )),
+        sx1261_reset_pin: Some((
+            "/dev/gpiochip0".to_string(),
+            conf.gateway.sx1261_reset_pin.unwrap_or(5),
+        )),
         ad5338r_reset_pin: None,
         reset_commands: None,
     })
