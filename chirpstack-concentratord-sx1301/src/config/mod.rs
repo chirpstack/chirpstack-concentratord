@@ -80,8 +80,6 @@ pub struct Gateway {
     pub model: String,
     #[serde(default)]
     pub model_flags: Vec<String>,
-    #[serde(default)]
-    pub reset_pin: u32,
     pub gateway_id: String,
     #[serde(default)]
     pub time_fallback_enabled: bool,
@@ -97,6 +95,10 @@ pub struct Gateway {
     pub model_config: vendor::Configuration,
     #[serde(skip)]
     pub config_version: String,
+
+    pub gnss_dev_path: Option<String>,
+    pub com_dev_path: Option<String>,
+    pub reset_pin: Option<u32>,
 }
 
 #[derive(Default, Serialize, Deserialize)]

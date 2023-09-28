@@ -156,10 +156,14 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
             },
         ],
         gps: Gps::None,
-        spidev_path: "/dev/spidev0.0".to_string(),
-        reset_pin: match conf.gateway.reset_pin {
-            0 => Some(("/dev/gpiochip0".to_string(), 5)),
-            _ => Some(("/dev/gpiochip0".to_string(), conf.gateway.reset_pin)),
-        },
+        spidev_path: conf
+            .gateway
+            .com_dev_path
+            .clone()
+            .unwrap_or("/dev/spidev0.0".to_string()),
+        reset_pin: Some((
+            "/dev/gpiochip0".to_string(),
+            conf.gateway.reset_pin.unwrap_or(5),
+        )),
     })
 }
