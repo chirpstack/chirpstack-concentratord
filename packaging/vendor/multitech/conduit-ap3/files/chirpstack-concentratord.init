@@ -1,0 +1,94 @@
+#!/bin/sh
+
+NAME="chirpstack-concentratord"
+DESC="ChirpStack Concentratord"
+DAEMON_BIN=/opt/$NAME/$NAME
+DAEMON_CONF_DIR=/var/config/$NAME
+DAEMON_PID=/var/run/$NAME.pid
+
+
+read_lora_hw_info() {
+	lora_id=$(mts-io-sysfs show lora/product-id 2> /dev/null)
+	lora_hw=$(mts-io-sysfs show lora/hw-version 2> /dev/null)
+}
+
+hardware_found() {
+	if [[ "$lora_id" =~ "MTCAP3" ]]; then
+		return 0
+	fi
+
+	return 1
+}
+
+copy_config() {
+	if [ $lora_id == "MTCAP3-003E00" ]; then
+		model="${lora_id,,}"
+		model="${model//-/_}"
+		region="EU868"
+		band_config="eu868"
+		channel_config="channels_eu868_0"
+	fi
+
+	if [ $lora_id == "MTCAP3-003U00" ]; then
+		model="${lora_id,,}"
+		model="${model//-/_}"
+		region="US915"
+		band_config="us915"
+		channel_config="channels_us915_0"
+	fi
+
+	mkdir -p $DAEMON_CONF_DIR
+	cp $DAEMON_CONF_DIR/examples/concentratord.toml $DAEMON_CONF_DIR/concentratord.toml
+	cp $DAEMON_CONF_DIR/examples/$channel_config.toml $DAEMON_CONF_DIR/channels.toml
+
+	sed -i "s/region=.*/region=\"${region}\"/" $DAEMON_CONF_DIR/concentratord.toml
+	sed -i "s/model=.*/model=\"multitech_${model}\"/" $DAEMON_CONF_DIR/concentratord.toml
+}
+
+do_start() {
+	read_lora_hw_info
+	if hardware_found; then
+		echo "Found $lora_id with $lora_hw hardware"
+	else
+		echo "$0: LORA card not detected"
+		exit 1
+	fi
+
+	if ! [ -f "$DAEMON_CONF_DIR/concentratord.toml" ]; then
+		copy_config
+	fi
+
+    echo "Starting $NAME"
+	start-stop-daemon \
+        --start \
+        --background \
+        --make-pidfile \
+        --pidfile $DAEMON_PID \
+        --exec $DAEMON_BIN -- -c $DAEMON_CONF_DIR/concentratord.toml -c $DAEMON_CONF_DIR/channels.toml
+}
+
+function do_stop {
+    echo "Stopping $NAME"
+    start-stop-daemon \
+        --stop \
+        --oknodo \
+        --quiet \
+        --pidfile $DAEMON_PID
+}
+
+case "$1" in
+    "start")
+        do_start
+        ;;
+    "stop")
+        do_stop
+        ;;
+    "restart")
+        do_stop
+        do_start
+        ;;
+    *)
+        echo "Usage: $1 {start|stop|restart}"
+        exit 1
+        ;;
+esac

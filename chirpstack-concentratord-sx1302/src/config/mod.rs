@@ -209,6 +209,8 @@ pub fn get(filenames: Vec<String>) -> Configuration {
         "dragino_pg1302" => vendor::dragino::pg1302::new(&config).unwrap(),
         "multitech_mtac_003e00" => vendor::multitech::mtac_003e00::new(&config).unwrap(),
         "multitech_mtac_003u00" => vendor::multitech::mtac_003u00::new(&config).unwrap(),
+        "multitech_mtcap3_003e00" => vendor::multitech::mtcap3_003e00::new(&config).unwrap(),
+        "multitech_mtcap3_003u00" => vendor::multitech::mtcap3_003u00::new(&config).unwrap(),
         "rak_2287" => vendor::rak::rak2287::new(&config).unwrap(),
         "rak_5146" => vendor::rak::rak5146::new(&config).unwrap(),
         "seeed_wm1302" => vendor::seeed::wm1302::new(&config).unwrap(),

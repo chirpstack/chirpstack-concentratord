@@ -45,7 +45,7 @@ package-aarch64-unknown-linux-musl:
 package-armv5te-unknown-linux-musleabi: package-multitech-conduit \
 	package-multitech-conduit-ap
 
-package-armv7-unknown-linux-musleabihf: package-kerlink-ifemtocell
+package-armv7-unknown-linux-musleabihf: package-kerlink-ifemtocell package-multitech-conduit-ap3
 	$(eval PKG_VERSION := $(shell cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].version'))
 	mkdir -p dist
 
@@ -77,6 +77,11 @@ package-multitech-conduit-ap:
 	cd packaging/vendor/multitech/conduit-ap && ./package.sh
 	mkdir -p dist/vendor/multitech/conduit-ap
 	cp packaging/vendor/multitech/conduit-ap/*.ipk dist/vendor/multitech/conduit-ap
+
+package-multitech-conduit-ap3:
+	cd packaging/vendor/multitech/conduit-ap3 && ./package.sh
+	mkdir -p dist/vendor/multitech/conduit-ap3
+	cp packaging/vendor/multitech/conduit-ap3/*.ipk dist/vendor/multitech/conduit-ap3
 
 # Update the version.
 version:
