@@ -44,7 +44,7 @@ pub fn run(config: &config::Configuration) {
 # LoRa gateway configuration.
 [gateway]
 
-  # Antenna gain (dB).
+  # Antenna gain (dBi).
   antenna_gain={{ gateway.antenna_gain }}
 
   # Public LoRaWAN network.

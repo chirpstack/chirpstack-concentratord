@@ -226,7 +226,7 @@ pub fn get(filenames: Vec<String>) -> Configuration {
         _ => panic!("unexpected gateway model: {}", config.gateway.model),
     };
 
-    debug!("Antenna gain {} dB", config.gateway.antenna_gain);
+    debug!("Antenna gain {} dBi", config.gateway.antenna_gain);
 
     config
 }

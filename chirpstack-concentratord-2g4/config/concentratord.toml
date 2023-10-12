@@ -33,7 +33,7 @@ stats_interval="30s"
 # LoRa gateway configuration.
 [gateway]
 
-# Antenna gain (dB).
+# Antenna gain (dBi).
 antenna_gain=0
 
 # Public LoRaWAN network.
