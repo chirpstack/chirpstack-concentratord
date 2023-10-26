@@ -126,7 +126,7 @@ pub fn uplink_to_proto(
             snr: packet.snr,
             channel: packet.if_chain as u32,
             rf_chain: packet.rf_chain as u32,
-            time: match gps::cnt2time(packet.count_us) {
+            gw_time: match gps::cnt2time(packet.count_us) {
                 Ok(v) => {
                     let v = v.duration_since(UNIX_EPOCH).unwrap();
                     Some(prost_types::Timestamp {
@@ -272,6 +272,8 @@ pub fn downlink_from_proto(df: &gw::DownlinkFrameItem) -> Result<hal::TxPacket> 
                         _ => hal::CodeRate::Undefined,
                     };
                     packet.invert_pol = v.polarization_inversion;
+                    packet.preamble = v.preamble as u16;
+                    packet.no_crc = v.no_crc;
                 }
                 gw::modulation::Parameters::Fsk(v) => {
                     packet.modulation = hal::Modulation::FSK;

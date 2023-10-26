@@ -129,7 +129,7 @@ pub fn uplink_to_proto(
         Ok(v) => {
             let v = v.duration_since(UNIX_EPOCH).unwrap();
 
-            rx_info.time = Some(prost_types::Timestamp {
+            rx_info.gw_time = Some(prost_types::Timestamp {
                 seconds: v.as_secs() as i64,
                 nanos: v.subsec_nanos() as i32,
             });
@@ -141,7 +141,7 @@ pub fn uplink_to_proto(
             );
 
             if time_fallback {
-                rx_info.time = Some(prost_types::Timestamp::from(SystemTime::now()));
+                rx_info.gw_time = Some(prost_types::Timestamp::from(SystemTime::now()));
             }
         }
     };
@@ -281,6 +281,8 @@ pub fn downlink_from_proto(df: &gw::DownlinkFrameItem) -> Result<hal::TxPacket> 
                     };
 
                     packet.invert_pol = v.polarization_inversion;
+                    packet.preamble = v.preamble as u16;
+                    packet.no_crc = v.no_crc;
                 }
                 gw::modulation::Parameters::Fsk(v) => {
                     packet.modulation = hal::Modulation::FSK;

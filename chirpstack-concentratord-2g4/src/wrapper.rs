@@ -109,7 +109,7 @@ pub fn uplink_to_proto(
                 hal::CRC::NoCRC | hal::CRC::Undefined => gw::CrcStatus::NoCrc,
             }
             .into(),
-            time: if time_fallback {
+            gw_time: if time_fallback {
                 Some(prost_types::Timestamp::from(SystemTime::now()))
             } else {
                 None
@@ -210,17 +210,22 @@ pub fn downlink_from_proto(
                         gw::CodeRate::CrLi48 => hal::CodeRate::LoRaLi4_8,
                         _ => return Err(anyhow!("unexpected coderate")),
                     };
-                    packet.preamble = match v.spreading_factor {
-                        5 => 12,
-                        6 => 12,
-                        7 => 8,
-                        8 => 8,
-                        9 => 8,
-                        10 => 8,
-                        11 => 8,
-                        12 => 8,
-                        _ => return Err(anyhow!("unexpected spreading-factor")),
+                    packet.preamble = if v.preamble > 0 {
+                        v.preamble as u16
+                    } else {
+                        match v.spreading_factor {
+                            5 => 12,
+                            6 => 12,
+                            7 => 8,
+                            8 => 8,
+                            9 => 8,
+                            10 => 8,
+                            11 => 8,
+                            12 => 8,
+                            _ => return Err(anyhow!("unexpected spreading-factor")),
+                        }
                     };
+                    packet.no_crc = v.no_crc;
                     packet.invert_pol = v.polarization_inversion;
                 }
                 _ => {
