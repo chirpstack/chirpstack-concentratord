@@ -6,6 +6,7 @@ pub mod rak;
 pub mod seeed;
 pub mod semtech;
 pub mod waveshare;
+pub mod embit;
 
 #[derive(Default, Clone, PartialEq)]
 pub enum Gps {
