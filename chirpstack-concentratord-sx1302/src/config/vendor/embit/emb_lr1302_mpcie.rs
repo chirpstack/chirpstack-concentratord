@@ -6,7 +6,10 @@ use super::super::{ComType, Configuration, Gps, RadioConfig};
 
 // source: https://github.com/Lora-net/sx1302_hal/blob/master/packet_forwarder/global_conf.json.sx1250.EU868
 pub fn new(conf: &config::Configuration) -> Result<Configuration> {
-    let region = conf.gateway.region.unwrap_or(Region::EU868);
+    let region = conf
+        .gateway
+        .region
+        .ok_or_else(|| anyhow!("You must specify a region"))?;
 
     let (tx_freq_min, tx_freq_max) = match region {
         Region::EU868 => (863_000_000, 870_000_000),
