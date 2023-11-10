@@ -34,121 +34,12 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
     };
 
     let tx_gain_table = match region {
-        Region::EU868 | Region::IN865 | Region::RU864 => vec![
-            // 0
-            hal::TxGainConfig {
-                rf_power: 12,
-                pa_gain: 0,
-                pwr_idx: 15,
-                ..Default::default()
-            },
-            // 1
-            hal::TxGainConfig {
-                rf_power: 13,
-                pa_gain: 0,
-                pwr_idx: 16,
-                ..Default::default()
-            },
-            // 2
-            hal::TxGainConfig {
-                rf_power: 14,
-                pa_gain: 0,
-                pwr_idx: 17,
-                ..Default::default()
-            },
-            // 3
-            hal::TxGainConfig {
-                rf_power: 15,
-                pa_gain: 0,
-                pwr_idx: 19,
-                ..Default::default()
-            },
-            // 4
-            hal::TxGainConfig {
-                rf_power: 16,
-                pa_gain: 0,
-                pwr_idx: 20,
-                ..Default::default()
-            },
-            // 5
-            hal::TxGainConfig {
-                rf_power: 17,
-                pa_gain: 0,
-                pwr_idx: 22,
-                ..Default::default()
-            },
-            // 6
-            hal::TxGainConfig {
-                rf_power: 18,
-                pa_gain: 1,
-                pwr_idx: 1,
-                ..Default::default()
-            },
-            // 7
-            hal::TxGainConfig {
-                rf_power: 19,
-                pa_gain: 1,
-                pwr_idx: 2,
-                ..Default::default()
-            },
-            // 8
-            hal::TxGainConfig {
-                rf_power: 20,
-                pa_gain: 1,
-                pwr_idx: 3,
-                ..Default::default()
-            },
-            // 9
-            hal::TxGainConfig {
-                rf_power: 21,
-                pa_gain: 1,
-                pwr_idx: 4,
-                ..Default::default()
-            },
-            // 10
-            hal::TxGainConfig {
-                rf_power: 22,
-                pa_gain: 1,
-                pwr_idx: 5,
-                ..Default::default()
-            },
-            // 11
-            hal::TxGainConfig {
-                rf_power: 23,
-                pa_gain: 1,
-                pwr_idx: 6,
-                ..Default::default()
-            },
-            // 12
-            hal::TxGainConfig {
-                rf_power: 24,
-                pa_gain: 1,
-                pwr_idx: 7,
-                ..Default::default()
-            },
-            // 13
-            hal::TxGainConfig {
-                rf_power: 25,
-                pa_gain: 1,
-                pwr_idx: 9,
-                ..Default::default()
-            },
-            // 14
-            hal::TxGainConfig {
-                rf_power: 26,
-                pa_gain: 1,
-                pwr_idx: 11,
-                ..Default::default()
-            },
-            // 15
-            hal::TxGainConfig {
-                rf_power: 27,
-                pa_gain: 1,
-                pwr_idx: 14,
-                ..Default::default()
-            },
-        ],
-        Region::AU915 | Region::KR920 | Region::US915 => vec![
+        Region::EU868
+        | Region::IN865
+        | Region::RU864
+        | Region::AU915
+        | Region::KR920
+        | Region::US915 => vec![
             // 0
             hal::TxGainConfig {
                 rf_power: 12,
