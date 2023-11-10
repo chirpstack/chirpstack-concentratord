@@ -1,12 +1,12 @@
 use libloragw_sx1302::hal;
 
 pub mod dragino;
+pub mod embit;
 pub mod multitech;
 pub mod rak;
 pub mod seeed;
 pub mod semtech;
 pub mod waveshare;
-pub mod embit;
 
 #[derive(Default, Clone, PartialEq)]
 pub enum Gps {
