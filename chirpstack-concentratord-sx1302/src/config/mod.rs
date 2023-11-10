@@ -222,8 +222,8 @@ pub fn get(filenames: Vec<String>) -> Configuration {
         "semtech_sx1302css923gw1" => vendor::semtech::sx1302css923gw1::new(&config).unwrap(),
         "waveshare_sx1302_lorawan_gateway_hat" => {
             vendor::waveshare::sx1302_lorawan_gateway_hat::new(&config).unwrap()
-        },
-        "emb_raspi_130x_cape_lr1302" => vendor::embit::raspi_130x_cape::new(&config).unwrap(),
+        }
+        "embit_emb_lr1302_mpcie" => vendor::embit::emb_lr1302_mpcie::new(&config).unwrap(),
         _ => panic!("unexpected gateway model: {}", config.gateway.model),
     };
 
@@ -231,4 +231,3 @@ pub fn get(filenames: Vec<String>) -> Configuration {
 
     config
 }
-
