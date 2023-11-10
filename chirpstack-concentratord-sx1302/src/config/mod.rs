@@ -207,6 +207,7 @@ pub fn get(filenames: Vec<String>) -> Configuration {
     // get model configuration
     config.gateway.model_config = match config.gateway.model.as_ref() {
         "dragino_pg1302" => vendor::dragino::pg1302::new(&config).unwrap(),
+        "embit_emb_lr1302_mpcie" => vendor::embit::emb_lr1302_mpcie::new(&config).unwrap(),
         "multitech_mtac_003e00" => vendor::multitech::mtac_003e00::new(&config).unwrap(),
         "multitech_mtac_003u00" => vendor::multitech::mtac_003u00::new(&config).unwrap(),
         "multitech_mtcap3_003e00" => vendor::multitech::mtcap3_003e00::new(&config).unwrap(),
