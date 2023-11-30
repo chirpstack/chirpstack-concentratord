@@ -7,6 +7,7 @@ pub mod commands;
 pub mod events;
 pub mod gpsd;
 pub mod jitqueue;
+pub mod regulation;
 pub mod reset;
 pub mod signals;
 mod socket;
