@@ -20,10 +20,8 @@ impl Item {
     ///   - partial item duration: if there is a partial overlap
     ///   - full item duration: if there is a full overlap
     fn overlapping_duration(&self, start_time: Duration, end_time: Duration) -> Duration {
-        if start_time >= self.end_time {
+        if start_time >= self.end_time || end_time <= self.start_time {
             // start_time is after the item ended
-            Duration::ZERO
-        } else if end_time <= self.start_time {
             // end time is before the item will start
             Duration::ZERO
         } else if start_time > self.start_time {
@@ -68,9 +66,7 @@ impl Tracker {
             .iter()
             .map(|i| {
                 i.overlapping_duration(
-                    cur_time
-                        .checked_sub(self.window)
-                        .unwrap_or_else(|| Duration::ZERO),
+                    cur_time.checked_sub(self.window).unwrap_or(Duration::ZERO),
                     cur_time,
                 )
             })
