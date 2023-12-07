@@ -8,9 +8,9 @@ extern crate simple_logger;
 extern crate syslog;
 
 use std::process;
+use std::rc::Rc;
 use std::str::FromStr;
 use std::sync::mpsc::channel;
-use std::rc::Rc;
 use std::thread;
 
 use clap::{Parser, Subcommand};
@@ -19,6 +19,7 @@ use signal_hook::iterator::Signals;
 use simple_logger::SimpleLogger;
 use syslog::{BasicLogger, Facility, Formatter3164};
 
+use crate::config::vendor::ComType;
 use libconcentratord::reset;
 use libconcentratord::signals::Signal;
 
@@ -101,14 +102,16 @@ fn main() {
     });
 
     // configure concentrator reset pin
-    reset::setup_pins(reset::Configuration {
-        sx130x_reset: config.gateway.model_config.sx1302_reset_pin.clone(),
-        sx1302_power_en: config.gateway.model_config.sx1302_power_en_pin.clone(),
-        sx1261_reset: config.gateway.model_config.sx1261_reset_pin.clone(),
-        ad5338r_reset: config.gateway.model_config.ad5338r_reset_pin.clone(),
-        reset_commands: config.gateway.model_config.reset_commands.clone(),
-    })
-    .expect("setup reset pins error");
+    if config.gateway.model_config.com_type == ComType::Spi {
+        reset::setup_pins(reset::Configuration {
+            sx130x_reset: config.gateway.model_config.sx1302_reset_pin.clone(),
+            sx1302_power_en: config.gateway.model_config.sx1302_power_en_pin.clone(),
+            sx1261_reset: config.gateway.model_config.sx1261_reset_pin.clone(),
+            ad5338r_reset: config.gateway.model_config.ad5338r_reset_pin.clone(),
+            reset_commands: config.gateway.model_config.reset_commands.clone(),
+        })
+        .expect("setup reset pins error");
+    }
 
     loop {
         match cmd::root::run(&config, stop_send.clone(), stop_receive.clone()).unwrap() {
