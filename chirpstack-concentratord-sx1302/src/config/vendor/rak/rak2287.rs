@@ -571,14 +571,8 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
                 .clone()
                 .unwrap_or("/dev/spidev0.0".to_string()),
         },
-        sx1302_reset_pin: Some((
-            "/dev/gpiochip0".to_string(),
-            conf.gateway.sx1302_reset_pin.unwrap_or(17),
-        )),
-        sx1302_power_en_pin: conf
-            .gateway
-            .sx1302_power_en_pin
-            .map(|v| ("/dev/gpiochip0".to_string(), v)),
+        sx1302_reset_pin: conf.gateway.get_sx1302_reset_pins("/dev/gpiochip0", 17),
+        sx1302_power_en_pin: conf.gateway.get_sx1302_power_en_pins("/dev/gpiochip0", 18),
         ..Default::default()
     })
 }

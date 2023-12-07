@@ -46,7 +46,7 @@ lorawan_public=true
 #  KR923, IN865, RU864
 #
 # Not not all the gateway models implement all regions.
-region=""
+region="US915"
 
 # Gateway vendor / model.
 #
