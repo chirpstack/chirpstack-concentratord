@@ -23,7 +23,6 @@ pub enum ComType {
     Usb,
 }
 
-// TODO: Change the String to &str
 #[derive(Default, Clone)]
 pub struct Configuration {
     pub radio_count: usize,
