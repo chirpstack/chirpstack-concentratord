@@ -291,6 +291,6 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
         },
         gps: Gps::None,
         spidev_path: "/dev/spidev0.0".to_string(),
-        reset_pin: Some(("/dev/gpiochip0".to_string(), 1)),
+        reset_pin: conf.gateway.get_sx1301_reset_pin("/dev/gpiochip0", 1),
     })
 }

@@ -572,6 +572,8 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
                 .unwrap_or("/dev/spidev0.0".to_string()),
         },
         sx1302_reset_pin: conf.gateway.get_sx1302_reset_pins("/dev/gpiochip0", 17),
+
+        // TODO: What should the default pin be? It was not specified in the original code
         sx1302_power_en_pin: conf.gateway.get_sx1302_power_en_pins("/dev/gpiochip0", 18),
         ..Default::default()
     })
