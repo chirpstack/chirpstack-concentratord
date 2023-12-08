@@ -103,21 +103,18 @@ impl Gateway {
     pub fn get_sx1302_reset_pins(&self, default_chip: &str, default_pin: u32) -> Option<(String, u32)> {
         let chip = self.sx1302_reset_chip.clone().unwrap_or(default_chip.to_string());
         let pin = self.sx1302_reset_pin.unwrap_or(default_pin);
-        info!("SX1302 Set Reset Chip={} and Reset Pin={:?}", chip, pin);
         Some((chip, pin))
     }
 
     pub fn get_sx1302_power_en_pins(&self, default_chip: &str, default_pin: u32) -> Option<(String, u32)> {
         let chip = self.sx1302_power_en_chip.clone().unwrap_or(default_chip.to_string());
         let pin = self.sx1302_power_en_pin.unwrap_or(default_pin);
-        info!("SX1302 Set Power Enable Chip={} and Power Enable Pin={:?}", chip, pin);
         Some((chip, pin))
     }
 
     pub fn get_sx1261_reset_pins(&self, default_chip: &str, default_pin: u32) -> Option<(String, u32)> {
         let chip = self.sx1261_reset_chip.clone().unwrap_or(default_chip.to_string());
         let pin = self.sx1261_reset_pin.unwrap_or(default_pin);
-        info!("SX1261 Set Reset Chip={} and Reset Pin={:?}", chip, pin);
         Some((chip, pin))
     }
 }
