@@ -61,14 +61,14 @@ pub struct Gateway {
 }
 
 impl Gateway {
-    pub fn get_mcu_reset_pins(&self, default_chip: &str, default_pin: u32) -> Option<(String, u32)> {
+    pub fn get_mcu_reset_pin(&self, default_chip: &str, default_pin: u32) -> Option<(String, u32)> {
         let chip = self.mcu_reset_chip.clone().unwrap_or(default_chip.to_string());
         let pin = self.mcu_reset_pin.unwrap_or(default_pin);
         Some((chip, pin))
     }
 
 
-    pub fn get_mcu_boot_pins(&self, default_chip: &str, default_pin: u32) -> Option<(String, u32)> {
+    pub fn get_mcu_boot_pin(&self, default_chip: &str, default_pin: u32) -> Option<(String, u32)> {
         let chip = self.mcu_boot0_chip.clone().unwrap_or(default_chip.to_string());
         let pin = self.mcu_boot0_pin.unwrap_or(default_pin);
         Some((chip, pin))

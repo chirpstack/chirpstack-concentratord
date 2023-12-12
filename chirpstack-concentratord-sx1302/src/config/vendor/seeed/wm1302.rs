@@ -221,9 +221,9 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
                 .unwrap_or("/dev/i2c-1".to_string()),
         ),
         i2c_temp_sensor_addr: Some(0x39),
-        sx1302_reset_pin: conf.gateway.get_sx1302_reset_pins("/dev/gpiochip0", 17),
-        sx1302_power_en_pin: conf.gateway.get_sx1302_power_en_pins("/dev/gpiochip0", 18),
-        sx1261_reset_pin: conf.gateway.get_sx1261_reset_pins("/dev/gpiochip0", 5),
+        sx1302_reset_pin: conf.gateway.get_sx1302_reset_pin("/dev/gpiochip0", 17),
+        sx1302_power_en_pin: conf.gateway.get_sx1302_power_en_pin("/dev/gpiochip0", 18),
+        sx1261_reset_pin: conf.gateway.get_sx1261_reset_pin("/dev/gpiochip0", 5),
         ad5338r_reset_pin: None,
         reset_commands: None,
     })
