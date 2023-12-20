@@ -52,8 +52,27 @@ pub struct Gateway {
     pub config_version: String,
 
     pub com_dev_path: Option<String>,
+
+    pub mcu_reset_chip: Option<String>,
     pub mcu_reset_pin: Option<u32>,
+
+    pub mcu_boot0_chip: Option<String>,
     pub mcu_boot0_pin: Option<u32>,
+}
+
+impl Gateway {
+    pub fn get_mcu_reset_pin(&self, default_chip: &str, default_pin: u32) -> Option<(String, u32)> {
+        let chip = self.mcu_reset_chip.clone().unwrap_or(default_chip.to_string());
+        let pin = self.mcu_reset_pin.unwrap_or(default_pin);
+        Some((chip, pin))
+    }
+
+
+    pub fn get_mcu_boot_pin(&self, default_chip: &str, default_pin: u32) -> Option<(String, u32)> {
+        let chip = self.mcu_boot0_chip.clone().unwrap_or(default_chip.to_string());
+        let pin = self.mcu_boot0_pin.unwrap_or(default_pin);
+        Some((chip, pin))
+    }
 }
 
 #[derive(Default, Serialize, Deserialize, Debug, PartialEq)]
