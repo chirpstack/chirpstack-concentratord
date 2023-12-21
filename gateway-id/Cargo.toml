@@ -1,14 +1,14 @@
 [package]
-name = "gateway-id"
-repository="https://github.com/brocaar/chirpstack-concentratord/"
-description="Print the Gateway ID"
-license="MIT"
-version = "4.3.4"
-authors = ["Orne Brocaar <info@brocaar.com>"]
-edition = "2021"
-publish = false
+  name = "gateway-id"
+  repository = "https://github.com/brocaar/chirpstack-concentratord/"
+  description = "Print the Gateway ID"
+  license = "MIT"
+  version = "4.3.5"
+  authors = ["Orne Brocaar <info@brocaar.com>"]
+  edition = "2021"
+  publish = false
 
 [dependencies]
-zmq = "0.10"
-clap = { version = "4.4", features = ["derive"] }
-hex = "0.4"
+  zmq = "0.10"
+  clap = { version = "4.4", features = ["derive"] }
+  hex = "0.4"

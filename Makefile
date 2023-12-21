@@ -86,11 +86,11 @@ package-multitech-conduit-ap3:
 # Update the version.
 version:
 	test -n "$(VERSION)"
-	sed -i 's/^version.*/version = "$(VERSION)"/g' ./chirpstack-concentratord-2g4/Cargo.toml
-	sed -i 's/^version.*/version = "$(VERSION)"/g' ./chirpstack-concentratord-sx1301/Cargo.toml
-	sed -i 's/^version.*/version = "$(VERSION)"/g' ./chirpstack-concentratord-sx1302/Cargo.toml
-	sed -i 's/^version.*/version = "$(VERSION)"/g' ./gateway-id/Cargo.toml
-	sed -i 's/^version.*/version = "$(VERSION)"/g' ./libconcentratord/Cargo.toml
+	sed -i 's/^  version.*/  version = "$(VERSION)"/g' ./chirpstack-concentratord-2g4/Cargo.toml
+	sed -i 's/^  version.*/  version = "$(VERSION)"/g' ./chirpstack-concentratord-sx1301/Cargo.toml
+	sed -i 's/^  version.*/  version = "$(VERSION)"/g' ./chirpstack-concentratord-sx1302/Cargo.toml
+	sed -i 's/^  version.*/  version = "$(VERSION)"/g' ./gateway-id/Cargo.toml
+	sed -i 's/^  version.*/  version = "$(VERSION)"/g' ./libconcentratord/Cargo.toml
 	make test
 	git add .
 	git commit -v -m "Bump version to $(VERSION)"

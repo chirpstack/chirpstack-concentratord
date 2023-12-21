@@ -1,17 +1,17 @@
 [package]
-name = "libconcentratord"
-version = "4.3.4"
-authors = ["Orne Brocaar <@brocaar.com>"]
-edition = "2021"
-publish = false
+  name = "libconcentratord"
+  version = "4.3.5"
+  authors = ["Orne Brocaar <@brocaar.com>"]
+  edition = "2021"
+  publish = false
 
 [dependencies]
-log = "0.4"
-zmq = "0.10"
-lazy_static = "1.4"
-chirpstack_api = { version = "4.6.0", default-features = false }
-prost = "0.12"
-prost-types = "0.12"
-hex = "0.4"
-gpio-cdev = "0.6"
-anyhow = "1.0"
+  log = "0.4"
+  zmq = "0.10"
+  lazy_static = "1.4"
+  chirpstack_api = { version = "4.6.0", default-features = false }
+  prost = "0.12"
+  prost-types = "0.12"
+  hex = "0.4"
+  gpio-cdev = "0.6"
+  anyhow = "1.0"
