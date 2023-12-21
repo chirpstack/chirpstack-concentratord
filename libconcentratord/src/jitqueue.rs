@@ -3,6 +3,8 @@ use std::time::Duration;
 use anyhow::Result;
 use log::{debug, error, info};
 
+use crate::helpers::ToConcentratorCount;
+
 #[derive(PartialEq, Eq, Copy, Clone, Debug)]
 pub enum TxMode {
     Immediate,
@@ -196,8 +198,7 @@ impl<T: TxPacket + Copy> Queue<T> {
             }
 
             item.linear_count = asap_count;
-            item.packet
-                .set_count_us(self.linear_count_to_concentrator_count(asap_count));
+            item.packet.set_count_us(asap_count.to_concentrator_count());
         } else {
             item.linear_count = self.concentrator_count_to_linear_count(item.packet.get_count_us());
             if (item.packet.get_tx_mode() == TxMode::Timestamped
@@ -245,12 +246,6 @@ impl<T: TxPacket + Copy> Queue<T> {
     fn concentrator_count_to_linear_count(&self, count_us: u32) -> Duration {
         let diff_us = count_us.wrapping_sub(self.concentrator_count_last);
         self.linear_count_last + Duration::from_micros(diff_us as u64)
-    }
-
-    fn linear_count_to_concentrator_count(&self, count: Duration) -> u32 {
-        let diff_count = count - self.linear_count_last;
-        self.concentrator_count_last
-            .wrapping_add(diff_count.as_micros() as u32)
     }
 
     fn sort(&mut self) {
