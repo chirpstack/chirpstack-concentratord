@@ -740,6 +740,7 @@ dependencies = [
  "log",
  "prost",
  "prost-types",
+ "serde",
  "zmq",
 ]
 
