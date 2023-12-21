@@ -4,13 +4,13 @@ use anyhow::Result;
 
 #[derive(PartialEq, Eq, Debug, Clone)]
 pub struct Item {
-    start_time: Duration,
-    end_time: Duration,
+    pub start_time: Duration,
+    pub end_time: Duration,
 }
 
 impl Item {
     /// This returns the duration of the item.
-    fn duration(&self) -> Duration {
+    pub fn duration(&self) -> Duration {
         self.end_time - self.start_time
     }
 

@@ -23,7 +23,7 @@ pub struct Band {
     pub label: String,
     pub frequency_min: u32,
     pub frequency_max: u32,
-    pub duty_cycle_permille_max: usize,
+    pub duty_cycle_permille_max: u32,
     pub tx_power_max: i8,
 }
 
@@ -56,9 +56,7 @@ impl Configuration {
 
     pub fn get_band(&self, tx_freq: u32, tx_power: i8) -> Result<Band> {
         for b in &self.bands {
-            if b.frequency_min <= tx_freq
-                && tx_freq <= b.frequency_max
-                && tx_power <= b.tx_power_max
+            if b.frequency_min <= tx_freq && tx_freq < b.frequency_max && tx_power <= b.tx_power_max
             {
                 return Ok(b.clone());
             }
