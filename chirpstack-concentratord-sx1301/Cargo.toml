@@ -26,6 +26,6 @@
   prost = "0.12"
   prost-types = "0.12"
   signal-hook = "0.3"
-  handlebars = "4.5"
+  handlebars = "5.1"
   rand = "0.8"
   anyhow = "1.0"
