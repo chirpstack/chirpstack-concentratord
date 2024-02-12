@@ -14,7 +14,7 @@
   chirpstack_api = { version = "4.6.0", default-features = false }
   serde = { version = "1.0", features = ["derive"] }
   toml = "0.8"
-  clap = { version = "4.4", features = ["derive"] }
+  clap = { version = "4.5", features = ["derive"] }
   log = "0.4"
   simple_logger = "4.2"
   zmq = "0.10"
