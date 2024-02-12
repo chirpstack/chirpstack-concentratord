@@ -14,22 +14,43 @@ pub struct Configuration {
     pub gateway: Gateway,
 }
 
-#[derive(Default, Serialize, Deserialize)]
+#[derive(Serialize, Deserialize)]
+#[serde(default)]
 pub struct Concentratord {
     pub log_level: String,
-    #[serde(default)]
     pub log_to_syslog: bool,
     #[serde(with = "humantime_serde")]
     pub stats_interval: Duration,
-    #[serde(default)]
     pub disable_crc_filter: bool,
     pub api: Api,
 }
 
-#[derive(Default, Serialize, Deserialize)]
+impl Default for Concentratord {
+    fn default() -> Self {
+        Concentratord {
+            log_level: "INFO".into(),
+            log_to_syslog: false,
+            stats_interval: Duration::from_secs(30),
+            disable_crc_filter: false,
+            api: Default::default(),
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(default)]
 pub struct Api {
     pub event_bind: String,
     pub command_bind: String,
+}
+
+impl Default for Api {
+    fn default() -> Self {
+        Api {
+            event_bind: "ipc:///tmp/concentratord_event".to_string(),
+            command_bind: "ipc:///tmp/concentratord_command".to_string(),
+        }
+    }
 }
 
 #[derive(Default, Serialize, Deserialize)]
@@ -62,14 +83,19 @@ pub struct Gateway {
 
 impl Gateway {
     pub fn get_mcu_reset_pin(&self, default_chip: &str, default_pin: u32) -> Option<(String, u32)> {
-        let chip = self.mcu_reset_chip.clone().unwrap_or(default_chip.to_string());
+        let chip = self
+            .mcu_reset_chip
+            .clone()
+            .unwrap_or(default_chip.to_string());
         let pin = self.mcu_reset_pin.unwrap_or(default_pin);
         Some((chip, pin))
     }
 
-
     pub fn get_mcu_boot_pin(&self, default_chip: &str, default_pin: u32) -> Option<(String, u32)> {
-        let chip = self.mcu_boot0_chip.clone().unwrap_or(default_chip.to_string());
+        let chip = self
+            .mcu_boot0_chip
+            .clone()
+            .unwrap_or(default_chip.to_string());
         let pin = self.mcu_boot0_pin.unwrap_or(default_pin);
         Some((chip, pin))
     }
@@ -98,15 +124,6 @@ pub struct Location {
 
 fn example_configuration() -> Configuration {
     Configuration {
-        concentratord: Concentratord {
-            log_level: "INFO".to_string(),
-            stats_interval: Duration::from_secs(30),
-            api: Api {
-                event_bind: "ipc:///tmp/concentratord_event".to_string(),
-                command_bind: "ipc:///tmp/concentratord_command".to_string(),
-            },
-            ..Default::default()
-        },
         gateway: Gateway {
             lorawan_public: true,
             model: "semtech_sx1280z3dsfgw1".to_string(),
@@ -134,6 +151,7 @@ fn example_configuration() -> Configuration {
             },
             ..Default::default()
         },
+        ..Default::default()
     }
 }
 
