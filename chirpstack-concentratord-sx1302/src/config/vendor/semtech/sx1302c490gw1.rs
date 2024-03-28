@@ -9,7 +9,8 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
     let region = conf.gateway.region.unwrap_or(Region::CN470);
 
     let (tx_freq_min, tx_freq_max) = match region {
-        Region::CN470 => (500_000_000, 510_000_000),
+        Region::CN470 => (470_000_000, 510_000_000),
+        Region::EU433 => (433_050_000, 434_900_000),
         _ => return Err(anyhow!("Region is not supported: {}", region)),
     };
 
