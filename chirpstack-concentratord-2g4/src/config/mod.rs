@@ -1,4 +1,4 @@
-use std::fs;
+use std::{env, fs};
 
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -160,6 +160,11 @@ pub fn get(filenames: Vec<String>) -> Configuration {
 
     for file_name in &filenames {
         content.push_str(&fs::read_to_string(file_name).expect("Error reading config file"));
+    }
+
+    // Replace environment variables in config.
+    for (k, v) in env::vars() {
+        content = content.replace(&format!("${}", k), &v);
     }
 
     let mut config: Configuration = toml::from_str(&content).expect("Error parsing config file");
