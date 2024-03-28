@@ -167,10 +167,11 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
             RadioConfig {
                 tx_freq_min,
                 tx_freq_max,
+                rssi_offset,
+                tx_gain_table,
                 enable: true,
                 radio_type: hal::RadioType::SX1250,
                 single_input_mode: true,
-                rssi_offset: rssi_offset,
                 rssi_temp_compensation: hal::RssiTempCompensationConfig {
                     coeff_a: 0.0,
                     coeff_b: 0.0,
@@ -179,13 +180,12 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
                     coeff_e: 0.0,
                 },
                 tx_enable: true,
-                tx_gain_table: tx_gain_table,
             },
             RadioConfig {
+                rssi_offset,
                 enable: true,
                 radio_type: hal::RadioType::SX1250,
                 single_input_mode: false,
-                rssi_offset: rssi_offset,
                 rssi_temp_compensation: hal::RssiTempCompensationConfig {
                     coeff_a: 0.0,
                     coeff_b: 0.0,
