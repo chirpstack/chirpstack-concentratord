@@ -2,6 +2,8 @@ use std::time::Duration;
 
 use anyhow::Result;
 
+use crate::error::Error;
+
 #[derive(PartialEq, Eq, Debug, Clone)]
 pub struct Item {
     pub start_time: Duration,
@@ -77,18 +79,16 @@ impl Tracker {
     // - If by inserting the item the max_duration would be exceeded
     // - If by inserting the item, it would make already tracked items exceed
     //   the max_duration.
-    pub fn try_insert(&mut self, item: Item) -> Result<()> {
+    pub fn try_insert(&mut self, item: Item) -> Result<(), Error> {
         let tracked = self.tracked_duration(item.end_time);
         if tracked + item.duration() > self.max_duration {
-            return Err(anyhow!("Inserting item exceeds max configured duration"));
+            return Err(Error::DutyCycle);
         }
 
         for fut_item in self.items.iter().filter(|i| i.start_time > item.start_time) {
             let tracked = self.tracked_duration(fut_item.end_time);
             if tracked + item.duration() > self.max_duration {
-                return Err(anyhow!(
-                    "Inserting would exceed max configured duration for future tracked items"
-                ));
+                return Err(Error::DutyCycleFutureItems);
             }
         }
 

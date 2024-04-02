@@ -4,6 +4,7 @@ extern crate lazy_static;
 extern crate anyhow;
 
 pub mod commands;
+pub mod error;
 pub mod events;
 pub mod gpsd;
 mod helpers;

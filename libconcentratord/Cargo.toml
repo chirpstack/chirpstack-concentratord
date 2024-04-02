@@ -15,4 +15,5 @@
   hex = "0.4"
   gpio-cdev = "0.6"
   anyhow = "1.0"
+  thiserror = "1.0"
   serde = { version = "1.0", features = ["derive"] }

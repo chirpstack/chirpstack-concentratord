@@ -4,6 +4,8 @@ use std::time::Duration;
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
+use crate::error::Error;
+
 mod etsi_en_300_220;
 
 #[allow(non_camel_case_types)]
@@ -54,7 +56,7 @@ impl Configuration {
         }
     }
 
-    pub fn get_band(&self, tx_freq: u32, tx_power: i8) -> Result<Band> {
+    pub fn get_band(&self, tx_freq: u32, tx_power: i8) -> Result<Band, Error> {
         for b in &self.bands {
             if b.frequency_min <= tx_freq && tx_freq < b.frequency_max && tx_power <= b.tx_power_max
             {
@@ -62,11 +64,7 @@ impl Configuration {
             }
         }
 
-        Err(anyhow!(
-            "No band for freq: {}, tx_power_eirp: {}",
-            tx_freq,
-            tx_power,
-        ))
+        Err(Error::BandNotFound(tx_freq, tx_power))
     }
 }
 

@@ -16,7 +16,7 @@ pub struct Tracker {
 impl Tracker {
     pub fn new(config: standard::Configuration) -> Self {
         Tracker {
-            config: config,
+            config,
             trackers: HashMap::new(),
         }
     }
@@ -24,22 +24,20 @@ impl Tracker {
     pub fn try_insert(&mut self, tx_freq: u32, tx_power: i8, item: dutycycle::Item) -> Result<()> {
         let band = self.config.get_band(tx_freq, tx_power)?;
 
-        let res = match self.trackers.get_mut(&band) {
-            Some(tracker) => tracker.try_insert(item.clone()),
+        match self.trackers.get_mut(&band) {
+            Some(tracker) => tracker.try_insert(item.clone())?,
             None => {
                 let mut tracker = dutycycle::Tracker::new(
                     self.config.window_time,
                     self.config.window_time / 1000 * band.duty_cycle_permille_max,
                 );
-                tracker.try_insert(item.clone())
+                tracker.try_insert(item.clone())?;
             }
         };
 
-        if res.is_ok() {
-            info!("Item tracked, band: {}, freq: {}, tx_power: {}, start_counter_us: {}, end_counter_us: {}, duration: {:?}", band.label, tx_freq, tx_power, item.start_time.to_concentrator_count(), item.end_time.to_concentrator_count(), item.duration());
-        }
+        info!("Item tracked, band: {}, freq: {}, tx_power: {}, start_counter_us: {}, end_counter_us: {}, duration: {:?}", band.label, tx_freq, tx_power, item.start_time.to_concentrator_count(), item.end_time.to_concentrator_count(), item.duration());
 
-        res
+        Ok(())
     }
 
     pub fn cleanup(&mut self, cur_time: Duration) {
