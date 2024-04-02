@@ -32,8 +32,9 @@ pub struct Band {
 impl fmt::Display for Band {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         fn freq_u32_to_f32(input: u32) -> f32 {
-            return (input / 1000) as f32 / 1000.0;
+            (input / 1000) as f32 / 1000.0
         }
+
         write!(
             f,
             "{}:{:.2}-{:.2}",
