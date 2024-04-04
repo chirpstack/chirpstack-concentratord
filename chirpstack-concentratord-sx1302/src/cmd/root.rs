@@ -53,7 +53,8 @@ pub fn run(
     );
 
     // setup jit queue
-    let queue: jitqueue::Queue<wrapper::TxPacket> = jitqueue::Queue::new(32, None);
+    let queue: jitqueue::Queue<wrapper::TxPacket> =
+        jitqueue::Queue::new(32, config.get_duty_cycle_tracker());
     let queue = Arc::new(Mutex::new(queue));
 
     // setup zeromq

@@ -40,6 +40,7 @@ pub struct Configuration {
     pub sx1261_reset_pin: Option<(String, u32)>,
     pub ad5338r_reset_pin: Option<(String, u32)>,
     pub reset_commands: Option<Vec<(String, Vec<String>)>>,
+    pub enforce_duty_cycle: bool,
 }
 
 #[derive(Clone)]

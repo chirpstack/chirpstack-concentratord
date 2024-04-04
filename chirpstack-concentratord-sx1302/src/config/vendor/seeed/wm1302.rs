@@ -2,7 +2,7 @@ use anyhow::Result;
 use libloragw_sx1302::hal;
 
 use super::super::super::super::config::{self, Region};
-use super::super::{ComType, Configuration, Gps, RadioConfig};
+use super::super::{ComType, Configuration, RadioConfig};
 
 // The Seeed wiki for the WM1302 points to the Semtech source:
 // https://wiki.seeedstudio.com/WM1302_module/#step3-get-and-compile-sx1302-source-code
@@ -207,7 +207,6 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
                 tx_gain_table: vec![],
             },
         ],
-        gps: Gps::None,
         com_type: ComType::Spi,
         com_path: conf
             .gateway
@@ -224,7 +223,6 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
         sx1302_reset_pin: conf.gateway.get_sx1302_reset_pin("/dev/gpiochip0", 17),
         sx1302_power_en_pin: conf.gateway.get_sx1302_power_en_pin("/dev/gpiochip0", 18),
         sx1261_reset_pin: conf.gateway.get_sx1261_reset_pin("/dev/gpiochip0", 5),
-        ad5338r_reset_pin: None,
-        reset_commands: None,
+        ..Default::default()
     })
 }

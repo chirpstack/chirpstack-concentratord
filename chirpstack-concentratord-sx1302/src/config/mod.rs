@@ -3,6 +3,8 @@ use std::{env, fmt, fs};
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
+use libconcentratord::regulation::{standard, tracker::Tracker};
+
 pub mod helpers;
 pub mod vendor;
 
@@ -77,27 +79,21 @@ pub struct Location {
     pub altitude: i16,
 }
 
-#[derive(Default, Serialize, Deserialize)]
+#[derive(Serialize, Deserialize)]
+#[serde(default)]
 pub struct Gateway {
-    #[serde(default)]
     pub antenna_gain: i8,
-    #[serde(default)]
     pub lorawan_public: bool,
 
     pub region: Option<Region>,
     pub model: String,
-    #[serde(default)]
     pub model_flags: Vec<String>,
 
-    #[serde(default)]
     pub time_fallback_enabled: bool,
     pub concentrator: Concentrator,
-    #[serde(default)]
     pub beacon: Beacon,
-    #[serde(default)]
     pub location: Location,
 
-    #[serde(default)]
     pub fine_timestamp: FineTimestamp,
 
     pub sx1302_reset_chip: Option<String>,
@@ -115,9 +111,36 @@ pub struct Gateway {
 
     #[serde(skip)]
     pub model_config: vendor::Configuration,
-
     #[serde(skip)]
     pub config_version: String,
+}
+
+impl Default for Gateway {
+    fn default() -> Self {
+        Gateway {
+            antenna_gain: 2,
+            lorawan_public: true,
+            region: None,
+            model: "".into(),
+            model_flags: vec![],
+            time_fallback_enabled: false,
+            concentrator: Concentrator::default(),
+            beacon: Beacon::default(),
+            location: Location::default(),
+            fine_timestamp: FineTimestamp::default(),
+            sx1302_reset_chip: None,
+            sx1302_reset_pin: None,
+            sx1302_power_en_chip: None,
+            sx1302_power_en_pin: None,
+            sx1261_reset_chip: None,
+            sx1261_reset_pin: None,
+            gnss_dev_path: None,
+            com_dev_path: None,
+            i2c_dev_path: None,
+            model_config: vendor::Configuration::default(),
+            config_version: "".into(),
+        }
+    }
 }
 
 impl Gateway {
@@ -221,6 +244,18 @@ impl Default for FineTimestamp {
 pub struct Configuration {
     pub concentratord: Concentratord,
     pub gateway: Gateway,
+}
+
+impl Configuration {
+    pub fn get_duty_cycle_tracker(&self) -> Option<Tracker> {
+        match self.gateway.region {
+            Some(Region::EU868) => Some(Tracker::new(
+                standard::get(standard::Standard::ETSI_EN_300_220),
+                self.gateway.model_config.enforce_duty_cycle,
+            )),
+            _ => None,
+        }
+    }
 }
 
 fn example_configuration() -> Configuration {
