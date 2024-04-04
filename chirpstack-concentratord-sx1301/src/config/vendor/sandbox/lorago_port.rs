@@ -2,7 +2,7 @@ use anyhow::Result;
 use libloragw_sx1301::hal;
 
 use super::super::super::super::config::{self, Region};
-use super::super::{Configuration, Gps};
+use super::super::Configuration;
 
 // source:
 // http://sandboxelectronics.com/?p=2669
@@ -230,12 +230,12 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
         radio_type: vec![hal::RadioType::SX1257, hal::RadioType::SX1257],
         radio_tx_notch_freq: vec![0, 0],
         lora_multi_sf_bandwidth: 125000,
-        gps: Gps::None,
         spidev_path: conf
             .gateway
             .com_dev_path
             .clone()
             .unwrap_or("/dev/spidev0.0".to_string()),
         reset_pin: conf.gateway.get_sx1301_reset_pin("/dev/gpiochip0", 25),
+        ..Default::default()
     })
 }

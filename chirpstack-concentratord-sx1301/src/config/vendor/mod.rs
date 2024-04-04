@@ -31,4 +31,5 @@ pub struct Configuration {
     pub gps: Gps,
     pub spidev_path: String,
     pub reset_pin: Option<(String, u32)>,
+    pub enforce_duty_cycle: bool,
 }

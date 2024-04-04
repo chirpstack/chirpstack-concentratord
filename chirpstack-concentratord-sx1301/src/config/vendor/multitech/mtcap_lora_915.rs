@@ -2,7 +2,7 @@ use anyhow::Result;
 use libloragw_sx1301::hal;
 
 use super::super::super::super::config::{self, Region};
-use super::super::{Configuration, Gps};
+use super::super::Configuration;
 
 // source: http://git.multitech.net/cgi-bin/cgit.cgi/meta-mlinux.git/tree/recipes-connectivity/lora/lora-packet-forwarder/global_conf.json.3.1.0.MTCAP-LORA-1-5.EU868.basic
 pub fn new(conf: &config::Configuration) -> Result<Configuration> {
@@ -152,8 +152,7 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
                 dac_gain: 3,
             },
         ],
-        gps: Gps::None,
         spidev_path: "/dev/spidev0.0".to_string(),
-        reset_pin: None,
+        ..Default::default()
     })
 }

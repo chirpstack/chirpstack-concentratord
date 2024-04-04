@@ -3,6 +3,8 @@ use std::{env, fmt, fs};
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
+use libconcentratord::regulation::{standard, tracker::Tracker};
+
 pub mod helpers;
 pub mod vendor;
 
@@ -70,24 +72,24 @@ pub struct Location {
     pub altitude: i16,
 }
 
-#[derive(Default, Serialize, Deserialize)]
+#[derive(Serialize, Deserialize)]
+#[serde(default)]
 pub struct Gateway {
-    #[serde(default)]
     pub antenna_gain: i8,
-    #[serde(default)]
     pub lorawan_public: bool,
     pub region: Option<Region>,
     pub model: String,
-    #[serde(default)]
     pub model_flags: Vec<String>,
     pub gateway_id: String,
-    #[serde(default)]
     pub time_fallback_enabled: bool,
     pub concentrator: Concentrator,
-    #[serde(default)]
     pub beacon: Beacon,
-    #[serde(default)]
     pub location: Location,
+
+    pub gnss_dev_path: Option<String>,
+    pub com_dev_path: Option<String>,
+    pub sx1301_reset_chip: Option<String>,
+    pub sx1301_reset_pin: Option<u32>,
 
     #[serde(skip)]
     pub gateway_id_bytes: Vec<u8>,
@@ -95,11 +97,30 @@ pub struct Gateway {
     pub model_config: vendor::Configuration,
     #[serde(skip)]
     pub config_version: String,
+}
 
-    pub gnss_dev_path: Option<String>,
-    pub com_dev_path: Option<String>,
-    pub sx1301_reset_chip: Option<String>,
-    pub sx1301_reset_pin: Option<u32>,
+impl Default for Gateway {
+    fn default() -> Self {
+        Gateway {
+            antenna_gain: 2,
+            lorawan_public: true,
+            region: None,
+            model: "".into(),
+            model_flags: vec![],
+            gateway_id: "".into(),
+            time_fallback_enabled: false,
+            concentrator: Concentrator::default(),
+            beacon: Beacon::default(),
+            location: Location::default(),
+            gnss_dev_path: None,
+            com_dev_path: None,
+            sx1301_reset_chip: None,
+            sx1301_reset_pin: None,
+            gateway_id_bytes: vec![],
+            model_config: vendor::Configuration::default(),
+            config_version: "".into(),
+        }
+    }
 }
 
 impl Gateway {
@@ -161,6 +182,18 @@ impl Default for Api {
 pub struct Configuration {
     pub concentratord: Concentratord,
     pub gateway: Gateway,
+}
+
+impl Configuration {
+    pub fn get_duty_cycle_tracker(&self) -> Option<Tracker> {
+        match self.gateway.region {
+            Some(Region::EU868) => Some(Tracker::new(
+                standard::get(standard::Standard::ETSI_EN_300_220),
+                self.gateway.model_config.enforce_duty_cycle,
+            )),
+            _ => None,
+        }
+    }
 }
 
 fn example_configuration() -> Configuration {
