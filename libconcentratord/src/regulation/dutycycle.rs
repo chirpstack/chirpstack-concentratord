@@ -39,14 +39,16 @@ impl Item {
 }
 
 pub struct Tracker {
+    enforce: bool,
     window: Duration,
     max_duration: Duration,
     items: Vec<Item>,
 }
 
 impl Tracker {
-    pub fn new(window: Duration, max_duration: Duration) -> Tracker {
+    pub fn new(window: Duration, max_duration: Duration, enforce: bool) -> Tracker {
         Tracker {
+            enforce,
             window,
             max_duration,
             items: Vec::new(),
@@ -57,8 +59,11 @@ impl Tracker {
     /// with the given cur_time +/- the configured window for this tracker.
     pub fn cleanup(&mut self, cur_time: Duration) {
         self.items.retain(|i| {
-            !i.overlapping_duration(cur_time - self.window, cur_time + self.window)
-                .is_zero()
+            !i.overlapping_duration(
+                cur_time.checked_sub(self.window).unwrap_or(Duration::ZERO),
+                cur_time + self.window,
+            )
+            .is_zero()
         })
     }
 
@@ -80,6 +85,11 @@ impl Tracker {
     // - If by inserting the item, it would make already tracked items exceed
     //   the max_duration.
     pub fn try_insert(&mut self, item: Item) -> Result<(), Error> {
+        if !self.enforce {
+            self.items.push(item);
+            return Ok(());
+        }
+
         let tracked = self.tracked_duration(item.end_time);
         if tracked + item.duration() > self.max_duration {
             return Err(Error::DutyCycle);
@@ -91,6 +101,8 @@ impl Tracker {
                 return Err(Error::DutyCycleFutureItems);
             }
         }
+
+        self.items.push(item);
 
         Ok(())
     }
@@ -196,6 +208,7 @@ mod test {
     #[test]
     fn test_tracker_cleanup() {
         let mut t = Tracker {
+            enforce: true,
             window: Duration::from_secs(10),
             max_duration: Duration::ZERO,
             items: vec![
@@ -242,6 +255,7 @@ mod test {
     #[test]
     fn test_tracker_cleanup_overlap() {
         let mut t = Tracker {
+            enforce: true,
             window: Duration::from_secs(10),
             max_duration: Duration::ZERO,
             items: vec![
@@ -318,6 +332,7 @@ mod test {
 
         for tst in &tests {
             let t = Tracker {
+                enforce: true,
                 window: tst.window,
                 max_duration: Duration::ZERO,
                 items: tst.items.clone(),
@@ -537,6 +552,7 @@ mod test {
 
         for tst in &tests {
             let mut t = Tracker {
+                enforce: true,
                 window: tst.window,
                 max_duration: tst.max_duration,
                 items: tst.items.clone(),
@@ -548,6 +564,10 @@ mod test {
                 "test: {}",
                 tst.name
             );
+
+            if tst.can_insert {
+                assert_eq!(&tst.insert_item, t.items.last().unwrap());
+            }
         }
     }
 }

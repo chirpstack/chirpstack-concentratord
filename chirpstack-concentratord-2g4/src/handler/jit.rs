@@ -11,7 +11,6 @@ use super::super::wrapper;
 
 pub fn jit_loop(
     queue: Arc<Mutex<jitqueue::Queue<wrapper::TxPacket>>>,
-    antenna_gain: i8,
     stop_receive: Receiver<Signal>,
 ) {
     debug!("Start JIT queue loop");
@@ -30,8 +29,7 @@ pub fn jit_loop(
         };
 
         let downlink_id = tx_packet.get_id();
-        let mut tx_packet = tx_packet.tx_packet();
-        tx_packet.rf_power -= antenna_gain;
+        let tx_packet = tx_packet.tx_packet();
 
         match hal::send(&tx_packet) {
             Ok(_) => {

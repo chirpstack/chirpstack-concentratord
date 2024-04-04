@@ -50,6 +50,14 @@ impl jitqueue::TxPacket for TxPacket {
     fn get_id(&self) -> u32 {
         self.1
     }
+
+    fn get_frequency(&self) -> u32 {
+        self.0.freq_hz
+    }
+
+    fn get_tx_power(&self) -> i8 {
+        self.0.rf_power
+    }
 }
 
 pub fn uplink_to_proto(

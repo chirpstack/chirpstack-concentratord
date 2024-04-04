@@ -9,14 +9,16 @@ use super::standard;
 use crate::helpers::ToConcentratorCount;
 
 pub struct Tracker {
+    enforce: bool,
     config: standard::Configuration,
     trackers: HashMap<standard::Band, dutycycle::Tracker>,
 }
 
 impl Tracker {
-    pub fn new(config: standard::Configuration) -> Self {
+    pub fn new(config: standard::Configuration, enforce: bool) -> Self {
         Tracker {
             config,
+            enforce,
             trackers: HashMap::new(),
         }
     }
@@ -27,15 +29,22 @@ impl Tracker {
         match self.trackers.get_mut(&band) {
             Some(tracker) => tracker.try_insert(item.clone())?,
             None => {
+                // create new tracker for band
                 let mut tracker = dutycycle::Tracker::new(
                     self.config.window_time,
                     self.config.window_time / 1000 * band.duty_cycle_permille_max,
+                    self.enforce,
                 );
+
+                // insert item im tracker
                 tracker.try_insert(item.clone())?;
+
+                // add tracker
+                self.trackers.insert(band.clone(), tracker);
             }
         };
 
-        info!("Item tracked, band: {}, freq: {}, tx_power: {}, start_counter_us: {}, end_counter_us: {}, duration: {:?}", band.label, tx_freq, tx_power, item.start_time.to_concentrator_count(), item.end_time.to_concentrator_count(), item.duration());
+        info!("Item tracked, band: {}, freq: {}, tx_power: {}, start_counter_us: {}, end_counter_us: {}, duration: {:?}", band, tx_freq, tx_power, item.start_time.to_concentrator_count(), item.end_time.to_concentrator_count(), item.duration());
 
         Ok(())
     }
@@ -44,6 +53,20 @@ impl Tracker {
         for v in self.trackers.values_mut() {
             v.cleanup(cur_time);
         }
+    }
+
+    pub fn get_window(&self) -> Duration {
+        self.config.window_time
+    }
+
+    pub fn get_tracked_durations(
+        &self,
+        linear_count: Duration,
+    ) -> HashMap<standard::Band, Duration> {
+        self.trackers
+            .iter()
+            .map(|(band, tracker)| (band.clone(), tracker.tracked_duration(linear_count)))
+            .collect()
     }
 }
 
@@ -159,7 +182,7 @@ mod test {
 
         for tst in &tests {
             let conf = standard::Configuration::new(standard::Standard::ETSI_EN_300_220);
-            let mut tracker = Tracker::new(conf);
+            let mut tracker = Tracker::new(conf, true);
             for item in &tst.items {
                 assert_eq!(
                     tst.ok,

@@ -31,16 +31,13 @@ pub struct Band {
 
 impl fmt::Display for Band {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        fn freq_u32_to_f32(input: u32) -> f32 {
-            (input / 1000) as f32 / 1000.0
-        }
-
         write!(
             f,
-            "{}:{:.2}-{:.2}",
+            "[label: {}, freq_min: {}, freq_max: {}, dc_max: {:.2}%]",
             self.label,
-            freq_u32_to_f32(self.frequency_min),
-            freq_u32_to_f32(self.frequency_max)
+            self.frequency_min,
+            self.frequency_max,
+            self.duty_cycle_permille_max as f32 / 10.0,
         )
     }
 }
