@@ -11,6 +11,7 @@ use prost::Message;
 use super::super::config::vendor;
 use super::super::wrapper;
 
+#[allow(clippy::too_many_arguments)]
 pub fn handle_loop(
     lorawan_public: bool,
     vendor_config: &vendor::Configuration,
