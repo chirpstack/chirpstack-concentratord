@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::time::Duration;
 
 use anyhow::Result;
+use chirpstack_api::common::Regulation;
 use log::info;
 
 use super::dutycycle;
@@ -67,6 +68,10 @@ impl Tracker {
             .iter()
             .map(|(band, tracker)| (band.clone(), tracker.tracked_duration(linear_count)))
             .collect()
+    }
+
+    pub fn get_regulation(&self) -> Regulation {
+        self.config.get_regulation()
     }
 }
 

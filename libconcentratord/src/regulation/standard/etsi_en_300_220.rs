@@ -4,6 +4,7 @@ use super::{Band, Configuration};
 
 pub fn new() -> Configuration {
     Configuration {
+        regulation: chirpstack_api::common::Regulation::EtsiEn300220,
         bands: vec![
             Band {
                 label: "K".into(),

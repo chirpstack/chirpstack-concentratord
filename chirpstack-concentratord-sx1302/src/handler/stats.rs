@@ -3,6 +3,7 @@ use std::sync::mpsc::Receiver;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
+use chirpstack_api::gw::DutyCycleStats;
 use libconcentratord::signals::Signal;
 use libconcentratord::{jitqueue, stats};
 use libloragw_sx1302::hal;
@@ -50,16 +51,18 @@ pub fn stats_loop(
             }
         }
 
-        get_duty_cycle_stats(&queue);
+        let dc_stats = get_duty_cycle_stats(&queue);
 
-        stats::send_and_reset(gateway_id, loc, &metadata).expect("sending stats failed");
+        stats::send_and_reset(gateway_id, loc, dc_stats, &metadata).expect("sending stats failed");
     }
 
     debug!("Stats loop ended");
 }
 
-fn get_duty_cycle_stats(queue: &Arc<Mutex<jitqueue::Queue<wrapper::TxPacket>>>) {
+fn get_duty_cycle_stats(
+    queue: &Arc<Mutex<jitqueue::Queue<wrapper::TxPacket>>>,
+) -> Option<DutyCycleStats> {
     let mut queue = queue.lock().unwrap();
     let concentrator_count = hal::get_instcnt().expect("get contentrator count");
-    queue.get_duty_cycle_stats(concentrator_count);
+    queue.get_duty_cycle_stats(concentrator_count)
 }

@@ -2,6 +2,7 @@ use std::fmt;
 use std::time::Duration;
 
 use anyhow::Result;
+use chirpstack_api::common::Regulation;
 use serde::{Deserialize, Serialize};
 
 use crate::error::Error;
@@ -45,6 +46,7 @@ impl fmt::Display for Band {
 pub struct Configuration {
     pub bands: Vec<Band>,
     pub window_time: Duration,
+    regulation: Regulation,
 }
 
 impl Configuration {
@@ -63,6 +65,10 @@ impl Configuration {
         }
 
         Err(Error::BandNotFound(tx_freq, tx_power))
+    }
+
+    pub fn get_regulation(&self) -> Regulation {
+        self.regulation
     }
 }
 

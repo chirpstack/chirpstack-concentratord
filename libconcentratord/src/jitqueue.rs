@@ -1,6 +1,7 @@
 use std::time::Duration;
 
 use anyhow::Result;
+use chirpstack_api::gw;
 use log::{debug, error, info, warn};
 
 use crate::error::Error;
@@ -122,26 +123,43 @@ impl<T: TxPacket + Copy> Queue<T> {
         Some(item.packet)
     }
 
-    pub fn get_duty_cycle_stats(&mut self, concentrator_count: u32) {
+    pub fn get_duty_cycle_stats(&mut self, concentrator_count: u32) -> Option<gw::DutyCycleStats> {
         let linear_count = self.get_linear_count(concentrator_count);
 
         if let Some(dc_tracker) = &self.dc_tracker {
             let window = dc_tracker.get_window();
-            for (band, duration) in dc_tracker.get_tracked_durations(linear_count) {
-                info!(
-                    "Duty-cyle stats: {} - current_dc: {:.2}%",
-                    band,
-                    duration.as_nanos() as f64 / window.as_nanos() as f64 * 100.0
-                );
-            }
+            let band_stats = dc_tracker
+                .get_tracked_durations(linear_count)
+                .iter()
+                .map(|(band, duration)| {
+                    info!(
+                        "Duty-cyle stats: {} - current_dc: {:.2}%",
+                        band,
+                        duration.as_nanos() as f64 / window.as_nanos() as f64 * 100.0
+                    );
+
+                    let load_max = window / 1000 * band.duty_cycle_permille_max;
+
+                    gw::DutyCycleBand {
+                        name: band.label.clone(),
+                        frequency_min: band.frequency_min,
+                        frequency_max: band.frequency_max,
+                        load_max: Some(load_max.try_into().unwrap_or_default()),
+                        load_tracked: Some((*duration).try_into().unwrap_or_default()),
+                    }
+                })
+                .collect();
+
+            return Some(gw::DutyCycleStats {
+                regulation: dc_tracker.get_regulation().into(),
+                bands: band_stats,
+            });
         }
+
+        None
     }
 
-    pub fn enqueue(
-        &mut self,
-        concentrator_count: u32,
-        packet: T,
-    ) -> Result<(), chirpstack_api::gw::TxAckStatus> {
+    pub fn enqueue(&mut self, concentrator_count: u32, packet: T) -> Result<(), gw::TxAckStatus> {
         let linear_count = self.get_linear_count(concentrator_count);
 
         match packet.get_tx_mode() {
@@ -171,14 +189,14 @@ impl<T: TxPacket + Copy> Queue<T> {
         }
 
         if self.full() {
-            return Err(chirpstack_api::gw::TxAckStatus::QueueFull);
+            return Err(gw::TxAckStatus::QueueFull);
         }
 
         let time_on_air = match packet.get_time_on_air() {
             Ok(v) => v,
             Err(err) => {
                 error!("Get time on air for tx packet error, error: {}", err);
-                return Err(chirpstack_api::gw::TxAckStatus::InternalError);
+                return Err(gw::TxAckStatus::InternalError);
             }
         };
 
@@ -226,7 +244,7 @@ impl<T: TxPacket + Copy> Queue<T> {
                 || item.packet.get_tx_mode() == TxMode::OnGPS)
                 && self.collision_test(item.linear_count, item.pre_delay, item.post_delay)
             {
-                return Err(chirpstack_api::gw::TxAckStatus::CollisionPacket);
+                return Err(gw::TxAckStatus::CollisionPacket);
             }
         }
 
@@ -235,12 +253,12 @@ impl<T: TxPacket + Copy> Queue<T> {
             || item.linear_count - linear_count
                 < self.tx_start_delay + self.tx_margin_delay + self.tx_jit_delay
         {
-            return Err(chirpstack_api::gw::TxAckStatus::TooLate);
+            return Err(gw::TxAckStatus::TooLate);
         }
 
         // Is it too early to send this packet?
         if item.linear_count - linear_count > self.tx_max_advance_delay {
-            return Err(chirpstack_api::gw::TxAckStatus::TooEarly);
+            return Err(gw::TxAckStatus::TooEarly);
         }
 
         if let Some(dc_tracker) = &mut self.dc_tracker {
@@ -262,20 +280,18 @@ impl<T: TxPacket + Copy> Queue<T> {
                             "Packet rejected because of duty-cycle, downlink_id: {}",
                             item.packet.get_id()
                         );
-                        // TODO: change status code.
-                        return Err(chirpstack_api::gw::TxAckStatus::InternalError);
+                        return Err(gw::TxAckStatus::DutyCycleOverflow);
                     }
                     Some(Error::BandNotFound(f, t)) => {
                         warn!(
                             "No duty-cycle band found for packet, downlink_id: {}, freq: {}, tx_power: {}",
                             item.packet.get_id(), f, t
                         );
-                        // TODO: change status code.
-                        return Err(chirpstack_api::gw::TxAckStatus::InternalError);
+                        return Err(gw::TxAckStatus::DutyCycleOverflow);
                     }
                     None => {
                         warn!("Duty-cycle tracker error, error: {}", e);
-                        return Err(chirpstack_api::gw::TxAckStatus::InternalError);
+                        return Err(gw::TxAckStatus::InternalError);
                     }
                 }
             }

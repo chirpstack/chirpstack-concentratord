@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use std::sync::Mutex;
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::time::SystemTime;
 
 use anyhow::Result;
 
@@ -69,25 +69,10 @@ pub fn inc_tx_counts(tx_info: &chirpstack_api::gw::DownlinkTxInfo) {
 }
 
 pub fn inc_tx_status_count(status: chirpstack_api::gw::TxAckStatus) {
-    let s = match status {
-        chirpstack_api::gw::TxAckStatus::Ignored => "IGNORED",
-        chirpstack_api::gw::TxAckStatus::Ok => "OK",
-        chirpstack_api::gw::TxAckStatus::TooLate => "TOO_LATE",
-        chirpstack_api::gw::TxAckStatus::TooEarly => "TOO_EARLY",
-        chirpstack_api::gw::TxAckStatus::CollisionPacket => "COLLISION_PACKET",
-        chirpstack_api::gw::TxAckStatus::CollisionBeacon => "COLLISION_BEACON",
-        chirpstack_api::gw::TxAckStatus::TxFreq => "TX_FREQ",
-        chirpstack_api::gw::TxAckStatus::TxPower => "TX_POWER",
-        chirpstack_api::gw::TxAckStatus::GpsUnlocked => "GPS_UNLOCKED",
-        chirpstack_api::gw::TxAckStatus::QueueFull => "QUEUE_FULL",
-        chirpstack_api::gw::TxAckStatus::InternalError => "InternalError",
-    }
-    .to_string();
-
     let mut stats = STATS.lock().unwrap();
     stats
         .tx_packets_per_status
-        .entry(s)
+        .entry(status.as_str_name().to_string())
         .and_modify(|v| *v += 1)
         .or_insert(1);
 }
@@ -105,18 +90,15 @@ pub fn inc_tx_packets_received() {
 pub fn send_and_reset(
     gateway_id: &[u8],
     location: Option<chirpstack_api::common::Location>,
+    duty_cycle_stats: Option<chirpstack_api::gw::DutyCycleStats>,
     metadata: &HashMap<String, String>,
 ) -> Result<()> {
     let mut stats = STATS.lock().unwrap();
 
-    let now_since_unix = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
-
     stats.gateway_id = hex::encode(gateway_id);
-    stats.time = Some(prost_types::Timestamp {
-        seconds: now_since_unix.as_secs() as i64,
-        nanos: now_since_unix.subsec_nanos() as i32,
-    });
+    stats.time = Some(prost_types::Timestamp::from(SystemTime::now()));
     stats.location = location;
+    stats.duty_cycle_stats = duty_cycle_stats;
     stats.metadata = metadata.clone();
 
     events::send_stats(&stats).unwrap();
