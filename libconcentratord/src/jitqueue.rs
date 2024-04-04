@@ -1,7 +1,11 @@
 use std::time::Duration;
 
 use anyhow::Result;
-use log::{debug, error, info};
+use log::{debug, error, info, warn};
+
+use crate::error::Error;
+use crate::helpers::ToConcentratorCount;
+use crate::regulation::{dutycycle, tracker};
 
 #[derive(PartialEq, Eq, Copy, Clone, Debug)]
 pub enum TxMode {
@@ -17,6 +21,8 @@ pub trait TxPacket {
     fn set_tx_mode(&mut self, tx_mode: TxMode);
     fn get_count_us(&self) -> u32;
     fn set_count_us(&mut self, count_us: u32);
+    fn get_frequency(&self) -> u32;
+    fn get_tx_power(&self) -> i8;
 }
 
 pub struct Item<T> {
@@ -30,6 +36,7 @@ pub struct Item<T> {
 
 pub struct Queue<T> {
     items: Vec<Item<T>>,
+    dc_tracker: Option<tracker::Tracker>,
 
     tx_start_delay: Duration,
     tx_margin_delay: Duration,
@@ -50,10 +57,11 @@ pub struct Queue<T> {
 }
 
 impl<T: TxPacket + Copy> Queue<T> {
-    pub fn new(capacity: usize) -> Queue<T> {
+    pub fn new(capacity: usize, dc_tracker: Option<tracker::Tracker>) -> Queue<T> {
         info!("Initializing JIT queue, capacity: {}", capacity);
 
         Queue {
+            dc_tracker,
             items: Vec::with_capacity(capacity),
 
             tx_start_delay: Duration::from_micros(1500),
@@ -112,6 +120,21 @@ impl<T: TxPacket + Copy> Queue<T> {
         self.tx_linear_count_finished = item.linear_count + item.post_delay;
 
         Some(item.packet)
+    }
+
+    pub fn get_duty_cycle_stats(&mut self, concentrator_count: u32) {
+        let linear_count = self.get_linear_count(concentrator_count);
+
+        if let Some(dc_tracker) = &self.dc_tracker {
+            let window = dc_tracker.get_window();
+            for (band, duration) in dc_tracker.get_tracked_durations(linear_count) {
+                info!(
+                    "Duty-cyle stats: {} - current_dc: {:.2}%",
+                    band,
+                    duration.as_nanos() as f64 / window.as_nanos() as f64 * 100.0
+                );
+            }
+        }
     }
 
     pub fn enqueue(
@@ -196,8 +219,7 @@ impl<T: TxPacket + Copy> Queue<T> {
             }
 
             item.linear_count = asap_count;
-            item.packet
-                .set_count_us(self.linear_count_to_concentrator_count(asap_count));
+            item.packet.set_count_us(asap_count.to_concentrator_count());
         } else {
             item.linear_count = self.concentrator_count_to_linear_count(item.packet.get_count_us());
             if (item.packet.get_tx_mode() == TxMode::Timestamped
@@ -219,6 +241,44 @@ impl<T: TxPacket + Copy> Queue<T> {
         // Is it too early to send this packet?
         if item.linear_count - linear_count > self.tx_max_advance_delay {
             return Err(chirpstack_api::gw::TxAckStatus::TooEarly);
+        }
+
+        if let Some(dc_tracker) = &mut self.dc_tracker {
+            dc_tracker.cleanup(linear_count);
+
+            let res = dc_tracker.try_insert(
+                item.packet.get_frequency(),
+                item.packet.get_tx_power(),
+                dutycycle::Item {
+                    start_time: item.linear_count,
+                    end_time: item.linear_count + time_on_air,
+                },
+            );
+
+            if let Err(e) = res {
+                match e.downcast_ref::<Error>() {
+                    Some(Error::DutyCycle) | Some(Error::DutyCycleFutureItems) => {
+                        warn!(
+                            "Packet rejected because of duty-cycle, downlink_id: {}",
+                            item.packet.get_id()
+                        );
+                        // TODO: change status code.
+                        return Err(chirpstack_api::gw::TxAckStatus::InternalError);
+                    }
+                    Some(Error::BandNotFound(f, t)) => {
+                        warn!(
+                            "No duty-cycle band found for packet, downlink_id: {}, freq: {}, tx_power: {}",
+                            item.packet.get_id(), f, t
+                        );
+                        // TODO: change status code.
+                        return Err(chirpstack_api::gw::TxAckStatus::InternalError);
+                    }
+                    None => {
+                        warn!("Duty-cycle tracker error, error: {}", e);
+                        return Err(chirpstack_api::gw::TxAckStatus::InternalError);
+                    }
+                }
+            }
         }
 
         debug!(
@@ -245,12 +305,6 @@ impl<T: TxPacket + Copy> Queue<T> {
     fn concentrator_count_to_linear_count(&self, count_us: u32) -> Duration {
         let diff_us = count_us.wrapping_sub(self.concentrator_count_last);
         self.linear_count_last + Duration::from_micros(diff_us as u64)
-    }
-
-    fn linear_count_to_concentrator_count(&self, count: Duration) -> u32 {
-        let diff_count = count - self.linear_count_last;
-        self.concentrator_count_last
-            .wrapping_add(diff_count.as_micros() as u32)
     }
 
     fn sort(&mut self) {
@@ -287,6 +341,8 @@ mod tests {
         time_on_air: Duration,
         tx_mode: TxMode,
         count_us: u32,
+        frequency: u32,
+        tx_power: i8,
     }
 
     impl TxPacket for TxPacketMock {
@@ -307,23 +363,31 @@ mod tests {
         }
 
         fn get_count_us(&self) -> u32 {
-            return self.count_us;
+            self.count_us
         }
 
         fn set_count_us(&mut self, count_us: u32) {
             self.count_us = count_us;
         }
+
+        fn get_frequency(&self) -> u32 {
+            self.frequency
+        }
+
+        fn get_tx_power(&self) -> i8 {
+            self.tx_power
+        }
     }
 
     #[test]
     fn test_size() {
-        let q: Queue<TxPacketMock> = Queue::new(10);
+        let q: Queue<TxPacketMock> = Queue::new(10, None);
         assert_eq!(10, q.size());
     }
 
     #[test]
     fn test_enqueue_full() {
-        let mut q: Queue<TxPacketMock> = Queue::new(2);
+        let mut q: Queue<TxPacketMock> = Queue::new(2, None);
 
         q.enqueue(
             100,
@@ -331,6 +395,8 @@ mod tests {
                 time_on_air: Duration::from_millis(100),
                 tx_mode: TxMode::Immediate,
                 count_us: 0,
+                frequency: 868100000,
+                tx_power: 14,
             },
         )
         .unwrap();
@@ -341,6 +407,8 @@ mod tests {
                 time_on_air: Duration::from_millis(100),
                 tx_mode: TxMode::Immediate,
                 count_us: 0,
+                frequency: 868100000,
+                tx_power: 14,
             },
         )
         .unwrap();
@@ -352,6 +420,8 @@ mod tests {
                     time_on_air: Duration::from_millis(100),
                     tx_mode: TxMode::Immediate,
                     count_us: 0,
+                    frequency: 868100000,
+                    tx_power: 14,
                 },
             )
             .is_err(),
@@ -361,7 +431,7 @@ mod tests {
 
     #[test]
     fn test_enqueue_immediate() {
-        let mut q: Queue<TxPacketMock> = Queue::new(2);
+        let mut q: Queue<TxPacketMock> = Queue::new(2, None);
         let concentrator_count = 100;
 
         q.enqueue(
@@ -370,6 +440,8 @@ mod tests {
                 time_on_air: Duration::from_millis(100),
                 tx_mode: TxMode::Immediate,
                 count_us: 0,
+                frequency: 868100000,
+                tx_power: 14,
             },
         )
         .unwrap();
@@ -380,6 +452,8 @@ mod tests {
                 time_on_air: Duration::from_millis(100),
                 tx_mode: TxMode::Immediate,
                 count_us: 0,
+                frequency: 868100000,
+                tx_power: 14,
             },
         )
         .unwrap();
@@ -409,7 +483,7 @@ mod tests {
 
     #[test]
     fn test_enqueue_immediate_u32_wrapping() {
-        let mut q: Queue<TxPacketMock> = Queue::new(2);
+        let mut q: Queue<TxPacketMock> = Queue::new(2, None);
         let concentrator_count = 0_u32.wrapping_sub(
             (Duration::from_secs(1)
                 + Duration::from_micros(1500 + 40000)
@@ -423,6 +497,8 @@ mod tests {
                 time_on_air: Duration::from_millis(100),
                 tx_mode: TxMode::Immediate,
                 count_us: 0,
+                frequency: 868100000,
+                tx_power: 14,
             },
         )
         .unwrap();
@@ -433,6 +509,8 @@ mod tests {
                 time_on_air: Duration::from_millis(100),
                 tx_mode: TxMode::Immediate,
                 count_us: 0,
+                frequency: 868100000,
+                tx_power: 14,
             },
         )
         .unwrap();
@@ -446,15 +524,15 @@ mod tests {
 
     #[test]
     fn test_pop_empty() {
-        let mut q: Queue<TxPacketMock> = Queue::new(2);
+        let mut q: Queue<TxPacketMock> = Queue::new(2, None);
 
         let item = q.pop(Duration::from_secs(1).as_micros() as u32);
-        assert_eq!(true, item.is_none());
+        assert!(item.is_none());
     }
 
     #[test]
     fn test_pop() {
-        let mut q: Queue<TxPacketMock> = Queue::new(2);
+        let mut q: Queue<TxPacketMock> = Queue::new(2, None);
         let concentrator_count = Duration::from_secs(1).as_micros() as u32;
 
         q.enqueue(
@@ -463,17 +541,19 @@ mod tests {
                 time_on_air: Duration::from_millis(100),
                 tx_mode: TxMode::Timestamped,
                 count_us: Duration::from_secs(2).as_micros() as u32,
+                frequency: 868100000,
+                tx_power: 14,
             },
         )
         .unwrap();
 
         let item = q.pop(Duration::from_secs(2).as_micros() as u32);
-        assert_eq!(false, item.is_none());
+        assert!(item.is_some());
     }
 
     #[test]
     fn test_pop_too_far_in_future() {
-        let mut q: Queue<TxPacketMock> = Queue::new(2);
+        let mut q: Queue<TxPacketMock> = Queue::new(2, None);
         let concentrator_count = Duration::from_secs(1).as_micros() as u32;
 
         q.enqueue(
@@ -482,17 +562,19 @@ mod tests {
                 time_on_air: Duration::from_millis(100),
                 tx_mode: TxMode::Timestamped,
                 count_us: Duration::from_secs(2).as_micros() as u32,
+                frequency: 868100000,
+                tx_power: 14,
             },
         )
         .unwrap();
 
         let item = q.pop(Duration::from_secs(1).as_micros() as u32);
-        assert_eq!(true, item.is_none());
+        assert!(item.is_none());
     }
 
     #[test]
     fn test_pop_u32_wrapping() {
-        let mut q: Queue<TxPacketMock> = Queue::new(2);
+        let mut q: Queue<TxPacketMock> = Queue::new(2, None);
         let concentrator_count = 0_u32.wrapping_sub(Duration::from_secs(1).as_micros() as u32);
 
         q.enqueue(
@@ -501,11 +583,13 @@ mod tests {
                 time_on_air: Duration::from_millis(100),
                 tx_mode: TxMode::Timestamped,
                 count_us: 1,
+                frequency: 868100000,
+                tx_power: 14,
             },
         )
         .unwrap();
 
         let item = q.pop(0_u32.wrapping_sub(100));
-        assert_eq!(true, item.is_some());
+        assert!(item.is_some());
     }
 }

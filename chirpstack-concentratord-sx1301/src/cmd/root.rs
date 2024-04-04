@@ -47,7 +47,7 @@ pub fn run(
         .expect("bind command socket error");
 
     // setup jit queue
-    let queue: jitqueue::Queue<wrapper::TxPacket> = jitqueue::Queue::new(32);
+    let queue: jitqueue::Queue<wrapper::TxPacket> = jitqueue::Queue::new(32, None);
     let queue = Arc::new(Mutex::new(queue));
 
     // setup threads
@@ -84,10 +84,9 @@ pub fn run(
     threads.push(thread::spawn({
         let queue = Arc::clone(&queue);
         let stop_receive = signal_pool.new_receiver();
-        let antenna_gain = config.gateway.antenna_gain;
 
         move || {
-            handler::jit::jit_loop(queue, antenna_gain, stop_receive);
+            handler::jit::jit_loop(queue, stop_receive);
         }
     }));
 
@@ -98,11 +97,13 @@ pub fn run(
         let queue = Arc::clone(&queue);
         let stop_receive = signal_pool.new_receiver();
         let stop_send = stop_send;
+        let antenna_gain = config.gateway.antenna_gain;
 
         move || {
             handler::command::handle_loop(
                 &vendor_config,
                 &gateway_id,
+                antenna_gain,
                 queue,
                 rep_sock,
                 stop_receive,
@@ -114,6 +115,7 @@ pub fn run(
     // stats thread
     threads.push(thread::spawn({
         let gateway_id = config.gateway.gateway_id_bytes.clone();
+        let queue = Arc::clone(&queue);
         let stats_interval = config.concentratord.stats_interval;
         let stop_receive = signal_pool.new_receiver();
         let mut metadata = HashMap::new();
@@ -129,7 +131,13 @@ pub fn run(
         metadata.insert("hal_version".to_string(), hal::version_info());
 
         move || {
-            handler::stats::stats_loop(&gateway_id, &stats_interval, stop_receive, &metadata);
+            handler::stats::stats_loop(
+                &gateway_id,
+                &stats_interval,
+                stop_receive,
+                &metadata,
+                queue,
+            );
         }
     }));
 

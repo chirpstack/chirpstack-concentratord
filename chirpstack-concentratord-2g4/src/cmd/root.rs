@@ -48,7 +48,7 @@ pub fn run(
     );
 
     // setup jit queue
-    let queue: jitqueue::Queue<wrapper::TxPacket> = jitqueue::Queue::new(32);
+    let queue: jitqueue::Queue<wrapper::TxPacket> = jitqueue::Queue::new(32, None);
     let queue = Arc::new(Mutex::new(queue));
 
     // setup zeromq
@@ -79,26 +79,28 @@ pub fn run(
     // jit thread
     threads.push(thread::spawn({
         let queue = Arc::clone(&queue);
-        let antenna_gain = config.gateway.antenna_gain;
         let stop_receive = signal_pool.new_receiver();
 
         move || {
-            handler::jit::jit_loop(queue, antenna_gain, stop_receive);
+            handler::jit::jit_loop(queue, stop_receive);
         }
     }));
 
     // command thread
     threads.push(thread::spawn({
+        let queue = Arc::clone(&queue);
         let vendor_config = config.gateway.model_config.clone();
         let stop_receive = signal_pool.new_receiver();
         let stop_send = stop_send;
         let lorawan_public = config.gateway.lorawan_public;
+        let antenna_gain = config.gateway.antenna_gain;
 
         move || {
             handler::command::handle_loop(
                 lorawan_public,
                 &vendor_config,
                 &gateway_id,
+                antenna_gain,
                 queue,
                 rep_sock,
                 stop_receive,
@@ -110,6 +112,7 @@ pub fn run(
     // stats thead
     threads.push(thread::spawn({
         let stats_interval = config.concentratord.stats_interval;
+        let queue = Arc::clone(&queue);
         let stop_receive = signal_pool.new_receiver();
         let mut metadata = HashMap::new();
         metadata.insert(
@@ -124,7 +127,13 @@ pub fn run(
         metadata.insert("hal_version".to_string(), hal::version_info());
 
         move || {
-            handler::stats::stats_loop(&gateway_id, &stats_interval, stop_receive, &metadata);
+            handler::stats::stats_loop(
+                &gateway_id,
+                &stats_interval,
+                stop_receive,
+                &metadata,
+                queue,
+            );
         }
     }));
 

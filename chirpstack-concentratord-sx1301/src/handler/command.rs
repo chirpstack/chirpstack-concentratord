@@ -14,6 +14,7 @@ use super::timersync;
 pub fn handle_loop(
     vendor_config: &vendor::Configuration,
     gateway_id: &[u8],
+    antenna_gain: i8,
     queue: Arc<Mutex<jitqueue::Queue<wrapper::TxPacket>>>,
     rep_sock: zmq::Socket,
     stop_receive: Receiver<Signal>,
@@ -35,7 +36,7 @@ pub fn handle_loop(
                 continue;
             }
             commands::Command::Downlink(pl) => {
-                match handle_downlink(vendor_config, gateway_id, &queue, &pl) {
+                match handle_downlink(vendor_config, gateway_id, &queue, &pl, antenna_gain) {
                     Ok(v) => v,
                     Err(_) => Vec::new(),
                 }
@@ -68,6 +69,7 @@ fn handle_downlink(
     gateway_id: &[u8],
     queue: &Arc<Mutex<jitqueue::Queue<wrapper::TxPacket>>>,
     pl: &chirpstack_api::gw::DownlinkFrame,
+    antenna_gain: i8,
 ) -> Result<Vec<u8>> {
     stats::inc_tx_packets_received();
 
@@ -81,7 +83,7 @@ fn handle_downlink(
 
     for (i, item) in pl.items.iter().enumerate() {
         // convert protobuf to hal struct
-        let tx_packet = match wrapper::downlink_from_proto(item) {
+        let mut tx_packet = match wrapper::downlink_from_proto(item) {
             Ok(v) => v,
             Err(err) => {
                 error!(
@@ -91,6 +93,7 @@ fn handle_downlink(
                 return Err(err);
             }
         };
+        tx_packet.rf_power -= antenna_gain;
 
         // validate frequency range
         let freqs = vendor_config.radio_min_max_tx_freq[tx_packet.rf_chain as usize];

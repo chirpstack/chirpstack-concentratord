@@ -53,7 +53,7 @@ pub fn run(
     );
 
     // setup jit queue
-    let queue: jitqueue::Queue<wrapper::TxPacket> = jitqueue::Queue::new(32);
+    let queue: jitqueue::Queue<wrapper::TxPacket> = jitqueue::Queue::new(32, None);
     let queue = Arc::new(Mutex::new(queue));
 
     // setup zeromq
@@ -84,11 +84,10 @@ pub fn run(
     // jit thread
     threads.push(thread::spawn({
         let queue = Arc::clone(&queue);
-        let antenna_gain = config.gateway.antenna_gain;
         let stop_receive = signal_pool.new_receiver();
 
         move || {
-            handler::jit::jit_loop(queue, antenna_gain, stop_receive);
+            handler::jit::jit_loop(queue, stop_receive);
         }
     }));
 
@@ -98,11 +97,13 @@ pub fn run(
         let queue = Arc::clone(&queue);
         let stop_receive = signal_pool.new_receiver();
         let stop_send = stop_send;
+        let antenna_gain = config.gateway.antenna_gain;
 
         move || {
             handler::command::handle_loop(
                 &vendor_config,
                 &gateway_id,
+                antenna_gain,
                 queue,
                 rep_sock,
                 stop_receive,
@@ -114,6 +115,7 @@ pub fn run(
     // stats thread
     threads.push(thread::spawn({
         let stats_interval = config.concentratord.stats_interval;
+        let queue = Arc::clone(&queue);
 
         // In case of USB, there is no I2C configuration.
         let get_temperature = config.gateway.model_config.com_type == ComType::Usb
@@ -140,6 +142,7 @@ pub fn run(
                 &stats_interval,
                 stop_receive,
                 metadata,
+                queue,
             );
         }
     }));

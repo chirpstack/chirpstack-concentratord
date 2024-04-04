@@ -1,12 +1,14 @@
 use std::collections::HashMap;
 use std::sync::mpsc::Receiver;
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use libconcentratord::signals::Signal;
-use libconcentratord::stats;
+use libconcentratord::{jitqueue, stats};
 use libloragw_sx1302::hal;
 
 use super::gps;
+use crate::wrapper;
 
 pub fn stats_loop(
     gateway_id: &[u8],
@@ -14,6 +16,7 @@ pub fn stats_loop(
     stats_interval: &Duration,
     stop_receive: Receiver<Signal>,
     mut metadata: HashMap<String, String>,
+    queue: Arc<Mutex<jitqueue::Queue<wrapper::TxPacket>>>,
 ) {
     debug!("Starting stats loop, stats_interval: {:?}", stats_interval);
 
@@ -47,8 +50,16 @@ pub fn stats_loop(
             }
         }
 
+        get_duty_cycle_stats(&queue);
+
         stats::send_and_reset(gateway_id, loc, &metadata).expect("sending stats failed");
     }
 
     debug!("Stats loop ended");
+}
+
+fn get_duty_cycle_stats(queue: &Arc<Mutex<jitqueue::Queue<wrapper::TxPacket>>>) {
+    let mut queue = queue.lock().unwrap();
+    let concentrator_count = hal::get_instcnt().expect("get contentrator count");
+    queue.get_duty_cycle_stats(concentrator_count);
 }
