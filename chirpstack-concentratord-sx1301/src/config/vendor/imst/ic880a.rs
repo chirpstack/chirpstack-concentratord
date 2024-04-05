@@ -16,8 +16,11 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
         _ => return Err(anyhow!("Region is not supported: {}", region)),
     };
 
+    let enforce_duty_cycle = conf.gateway.model_flags.contains(&"ENFORCE_DC".to_string());
+
     Ok(Configuration {
         radio_min_max_tx_freq,
+        enforce_duty_cycle,
         radio_count: 2,
         clock_source: 1,
         radio_rssi_offset: vec![-166.0, -166.0],

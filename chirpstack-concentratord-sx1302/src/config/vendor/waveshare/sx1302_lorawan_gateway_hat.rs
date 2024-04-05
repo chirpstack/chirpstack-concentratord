@@ -162,7 +162,10 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
         _ => return Err(anyhow!("Region not supported: {}", region)),
     };
 
+    let enforce_duty_cycle = conf.gateway.model_flags.contains(&"ENFORCE_DC".to_string());
+
     Ok(Configuration {
+        enforce_duty_cycle,
         radio_count: 2,
         clock_source: 0,
         full_duplex: false,

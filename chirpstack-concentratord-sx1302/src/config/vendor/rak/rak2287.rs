@@ -504,8 +504,10 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
 
     let gps = conf.gateway.model_flags.contains(&"GNSS".to_string());
     let usb = conf.gateway.model_flags.contains(&"USB".to_string());
+    let enforce_duty_cycle = conf.gateway.model_flags.contains(&"ENFORCE_DC".to_string());
 
     Ok(Configuration {
+        enforce_duty_cycle,
         radio_count: 2,
         clock_source: 0,
         full_duplex: false,
