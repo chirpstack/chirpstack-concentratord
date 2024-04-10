@@ -152,6 +152,7 @@ impl<T: TxPacket + Copy> Queue<T> {
 
             return Some(gw::DutyCycleStats {
                 regulation: dc_tracker.get_regulation().into(),
+                window: Some(dc_tracker.get_window().try_into().unwrap_or_default()),
                 bands: band_stats,
             });
         }
