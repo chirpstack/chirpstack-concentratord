@@ -492,6 +492,5 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
             .clone()
             .unwrap_or("/dev/spidev0.0".to_string()),
         reset_pin: conf.gateway.get_sx1301_reset_pin("/dev/gpiochip0", 17),
-        ..Default::default()
     })
 }

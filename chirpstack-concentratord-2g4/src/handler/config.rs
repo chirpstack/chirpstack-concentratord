@@ -41,7 +41,7 @@ pub fn update_configuration(
     }
 
     // set config
-    config.gateway.config_version = new_config.version.clone();
+    config.gateway.config_version.clone_from(&new_config.version);
     config.gateway.concentrator = concentrator;
 
     Ok(())

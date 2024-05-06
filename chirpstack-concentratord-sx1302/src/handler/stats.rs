@@ -47,7 +47,7 @@ pub fn stats_loop(
                     metadata.insert("concentrator_temp".to_string(), format!("{}", v));
                 }
                 Err(err) => {
-                    metadata.remove(&"concentrator_temp".to_string());
+                    metadata.remove("concentrator_temp");
                     error!("Get concentrator temperature error, error: {}", err);
                 }
             }

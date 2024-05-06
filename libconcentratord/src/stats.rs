@@ -99,7 +99,7 @@ pub fn send_and_reset(
     stats.time = Some(prost_types::Timestamp::from(SystemTime::now()));
     stats.location = location;
     stats.duty_cycle_stats = duty_cycle_stats;
-    stats.metadata = metadata.clone();
+    stats.metadata.clone_from(metadata);
 
     events::send_stats(&stats).unwrap();
 
