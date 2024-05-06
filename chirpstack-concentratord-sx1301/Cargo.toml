@@ -16,7 +16,7 @@
   toml = "0.8"
   clap = { version = "4.5", features = ["derive"] }
   log = "0.4"
-  simple_logger = "4.2"
+  simple_logger = "5.0"
   zmq = "0.10"
   hex = "0.4"
   lazy_static = "1.4"
