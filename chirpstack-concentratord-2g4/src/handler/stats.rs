@@ -2,6 +2,8 @@ use std::collections::HashMap;
 use std::sync::{mpsc::Receiver, Arc, Mutex};
 use std::time::Duration;
 
+use anyhow::{Context, Result};
+
 use chirpstack_api::gw::DutyCycleStats;
 use libconcentratord::signals::Signal;
 use libconcentratord::{jitqueue, stats};
@@ -16,7 +18,7 @@ pub fn stats_loop(
     stop_receive: Receiver<Signal>,
     metadata: &HashMap<String, String>,
     queue: Arc<Mutex<jitqueue::Queue<wrapper::TxPacket>>>,
-) {
+) -> Result<()> {
     debug!("Starting stats loop, stats_interval: {:?}", stats_interval);
 
     loop {
@@ -24,7 +26,7 @@ pub fn stats_loop(
         // timeout equal to the 'stats interval'.
         if let Ok(v) = stop_receive.recv_timeout(*stats_interval) {
             debug!("Received stop signal, signal: {}", v);
-            break;
+            return Ok(());
         }
 
         // fetch the current gps coordinates
@@ -36,18 +38,15 @@ pub fn stats_loop(
             ..Default::default()
         });
 
-        let dc_stats = get_duty_cycle_stats(&queue);
-
-        stats::send_and_reset(gateway_id, loc, dc_stats, metadata).expect("sending stats failed");
+        let dc_stats = get_duty_cycle_stats(&queue)?;
+        stats::send_and_reset(gateway_id, loc, dc_stats, metadata).context("Send stats")?;
     }
-
-    debug!("Stats loop ended");
 }
 
 fn get_duty_cycle_stats(
     queue: &Arc<Mutex<jitqueue::Queue<wrapper::TxPacket>>>,
-) -> Option<DutyCycleStats> {
-    let mut queue = queue.lock().unwrap();
-    let concentrator_count = hal::get_instcnt().expect("get contentrator count");
-    queue.get_duty_cycle_stats(concentrator_count)
+) -> Result<Option<DutyCycleStats>> {
+    let mut queue = queue.lock().map_err(|_| anyhow!("Queue lock error"))?;
+    let concentrator_count = hal::get_instcnt()?;
+    Ok(queue.get_duty_cycle_stats(concentrator_count))
 }

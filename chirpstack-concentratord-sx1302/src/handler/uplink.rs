@@ -2,6 +2,8 @@ use std::sync::mpsc::Receiver;
 use std::thread;
 use std::time::Duration;
 
+use anyhow::{Context, Result};
+
 use libconcentratord::signals::Signal;
 use libconcentratord::{events, stats};
 use libloragw_sx1302::hal;
@@ -13,13 +15,13 @@ pub fn handle_loop(
     stop_receive: Receiver<Signal>,
     disable_crc_filter: bool,
     time_fallback: bool,
-) {
+) -> Result<()> {
     debug!("Starting uplink handle loop");
 
     loop {
         if let Ok(v) = stop_receive.recv_timeout(Duration::from_millis(0)) {
             debug!("Received stop signal, signal: {}", v);
-            break;
+            return Ok(());
         }
 
         match hal::receive() {
@@ -40,7 +42,10 @@ pub fn handle_loop(
                         }
                     };
 
-                    let rx_info = proto.rx_info.as_ref().unwrap();
+                    let rx_info = proto
+                        .rx_info
+                        .as_ref()
+                        .ok_or_else(|| anyhow!("rx_info is None"))?;
 
                     info!(
                         "Frame received, uplink_id: {}, count_us: {}, freq: {}, bw: {}, mod: {:?}, dr: {:?}, ftime_received: {}, ftime_ns: {}",
@@ -57,7 +62,7 @@ pub fn handle_loop(
                     if frame.status == hal::CRC::CRCOk {
                         stats::inc_rx_counts(&proto);
                     }
-                    events::send_uplink(&proto).unwrap();
+                    events::send_uplink(&proto).context("Send uplink")?;
                 }
             }
             Err(_) => error!("Receive error"),
@@ -65,6 +70,4 @@ pub fn handle_loop(
 
         thread::sleep(Duration::from_millis(10));
     }
-
-    debug!("Uplink loop ended");
 }

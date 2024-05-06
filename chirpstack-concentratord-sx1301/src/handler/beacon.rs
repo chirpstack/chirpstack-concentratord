@@ -19,7 +19,7 @@ pub fn beacon_loop(
     conf: &config::Beacon,
     queue: Arc<Mutex<jitqueue::Queue<wrapper::TxPacket>>>,
     stop_receive: Receiver<Signal>,
-) {
+) -> Result<()> {
     debug!("Starting beacon loop");
 
     loop {
@@ -27,7 +27,7 @@ pub fn beacon_loop(
         // timeout of MARGIN seconds.
         if let Ok(v) = stop_receive.recv_timeout(MARGIN) {
             debug!("Received stop signal, signal: {}", v);
-            break;
+            return Ok(());
         }
 
         let gps_epoch = match gps::get_gps_epoch() {
@@ -50,7 +50,7 @@ pub fn beacon_loop(
         // timeout of sleep_time.
         if let Ok(v) = stop_receive.recv_timeout(sleep_time) {
             debug!("Received stop signal, signal: {}", v);
-            break;
+            return Ok(());
         }
 
         match send_beacon(conf, next_beacon_time, &queue) {
@@ -61,8 +61,6 @@ pub fn beacon_loop(
             Err(err) => warn!("Enqueue beacon failed, error: {}", err),
         }
     }
-
-    debug!("Beacon loop ended");
 }
 
 fn send_beacon(
@@ -113,14 +111,11 @@ fn send_beacon(
     };
     let tx_packet = wrapper::TxPacket::new(rng.gen(), tx_packet);
 
-    match queue
+    queue
         .lock()
-        .unwrap()
+        .map_err(|_| anyhow!("Queue lock error"))?
         .enqueue(timersync::get_concentrator_count(), tx_packet)
-    {
-        Ok(_) => Ok(()),
-        Err(status) => Err(anyhow!("{:?}", status)),
-    }
+        .map_err(|e| anyhow!("{:?}", e))
 }
 
 fn get_beacon(rfu_size: usize, beacon_time: Duration) -> Vec<u8> {

@@ -4,7 +4,7 @@ use std::sync::mpsc::Receiver;
 use std::sync::Mutex;
 use std::time::{Duration, SystemTime};
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use chrono::offset::Utc;
 use chrono::DateTime;
 
@@ -43,7 +43,7 @@ pub fn set_static_gps_coords(lat: f64, lon: f64, alt: i16) {
     }
 }
 
-pub fn gps_loop(gps_device: config::vendor::Gps, stop_receive: Receiver<Signal>) {
+pub fn gps_loop(gps_device: config::vendor::Gps, stop_receive: Receiver<Signal>) -> Result<()> {
     debug!("Starting GPS loop");
 
     let mut gps_reader: Box<dyn BufRead> = match gps_device {
@@ -60,20 +60,20 @@ pub fn gps_loop(gps_device: config::vendor::Gps, stop_receive: Receiver<Signal>)
         }
         config::vendor::Gps::None => {
             warn!("No GPS device configured");
-            return;
+            return Ok(());
         }
     };
 
     loop {
         if let Ok(v) = stop_receive.recv_timeout(Duration::from_millis(0)) {
             debug!("Received stop signal, signal: {}", v);
-            break;
+            return Ok(());
         }
 
         let mut buffer = vec![0; 1];
         gps_reader
             .read_exact(&mut buffer)
-            .expect("read from gps error");
+            .context("Read from GPS")?;
 
         match buffer[0] {
             // ubx
@@ -82,14 +82,14 @@ pub fn gps_loop(gps_device: config::vendor::Gps, stop_receive: Receiver<Signal>)
                 buffer.resize(6, 0);
                 gps_reader
                     .read_exact(&mut buffer[1..])
-                    .expect("read from gps error");
+                    .context("Read from GPS")?;
 
                 // Parse PL length and read additional payload.
                 let len: usize = u16::from_le_bytes([buffer[4], buffer[5]]).into();
                 buffer.resize(6 + len + 2, 0);
                 gps_reader
                     .read_exact(&mut buffer[6..])
-                    .expect("read from gps error");
+                    .context("Read from GPS")?;
 
                 // Ignore messages other than "B5620120"
                 if !buffer[0..4].eq(&[0xb5, 0x62, 0x01, 0x20]) {
@@ -112,7 +112,7 @@ pub fn gps_loop(gps_device: config::vendor::Gps, stop_receive: Receiver<Signal>)
             0x24 => {
                 gps_reader
                     .read_until(b'\n', &mut buffer)
-                    .expect("read from gps error");
+                    .context("Read from GPS")?;
 
                 match gps::parse_nmea(&buffer[..buffer.len() - 1]) {
                     Ok(m_type) => {
@@ -133,11 +133,9 @@ pub fn gps_loop(gps_device: config::vendor::Gps, stop_receive: Receiver<Signal>)
             }
         }
     }
-
-    debug!("GPS loop ended");
 }
 
-pub fn gps_validate_loop(stop_receive: Receiver<Signal>) {
+pub fn gps_validate_loop(stop_receive: Receiver<Signal>) -> Result<()> {
     info!("Starting GPS validation loop");
 
     let mut init_cpt: isize = 0;
@@ -148,7 +146,7 @@ pub fn gps_validate_loop(stop_receive: Receiver<Signal>) {
         // timeout of 1 second.
         if let Ok(v) = stop_receive.recv_timeout(Duration::from_secs(1)) {
             debug!("Received stop signal, signal: {}", v);
-            break;
+            return Ok(());
         }
 
         // Scope to make sure the mutex guard is dereferenced after validation.
@@ -220,8 +218,6 @@ pub fn gps_validate_loop(stop_receive: Receiver<Signal>) {
             }
         }
     }
-
-    debug!("GPS validation loop ended");
 }
 
 pub fn cnt2time(count_us: u32) -> Result<SystemTime> {

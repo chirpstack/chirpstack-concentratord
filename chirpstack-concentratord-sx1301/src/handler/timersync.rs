@@ -2,6 +2,8 @@ use std::sync::mpsc::Receiver;
 use std::sync::Mutex;
 use std::time::{Duration, SystemTime};
 
+use anyhow::Result;
+
 use libconcentratord::signals::Signal;
 use libloragw_sx1301::{hal, reg, wrapper};
 
@@ -14,23 +16,21 @@ lazy_static! {
     );
 }
 
-pub fn timesync_loop(stop_receive: Receiver<Signal>) {
+pub fn timesync_loop(stop_receive: Receiver<Signal>) -> Result<()> {
     debug!("Starting timesync loop");
 
     loop {
         // The timesync is in a separate function to make sure that the
         // mutex guard is dereferenced as soon as the function returns.
-        timesync();
+        timesync()?;
 
         // Instead of a 60s sleep, we receive from the stop channel with a
         // timeout of 60 seconds.
         if let Ok(v) = stop_receive.recv_timeout(Duration::from_secs(60)) {
             debug!("Received stop signal, signal: {}", v);
-            break;
+            return Ok(());
         }
     }
-
-    debug!("Timesync loop ended");
 }
 
 pub fn get_concentrator_count() -> u32 {
@@ -45,17 +45,15 @@ pub fn get_concentrator_count() -> u32 {
     prev_concentrator_count.wrapping_add(unix_diff.as_micros() as u32)
 }
 
-fn timesync() {
+fn timesync() -> Result<()> {
     debug!("Disabling GPS mode for concentrator counter");
-    reg::reg_w(wrapper::LGW_GPS_EN, 0).unwrap();
+    reg::reg_w(wrapper::LGW_GPS_EN, 0)?;
 
     let mut prev_concentrator_count = PREV_CONCENTRATOR_COUNT.lock().unwrap();
     let mut prev_unix_time = PREV_UNIX_TIME.lock().unwrap();
 
-    let concentrator_count = hal::get_trigcnt().unwrap();
-    let unix_time = SystemTime::now()
-        .duration_since(SystemTime::UNIX_EPOCH)
-        .unwrap();
+    let concentrator_count = hal::get_trigcnt()?;
+    let unix_time = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH)?;
 
     let unix_time_diff = unix_time - *prev_unix_time;
     let concentrator_diff: i64 = if concentrator_count > *prev_concentrator_count {
@@ -73,5 +71,7 @@ fn timesync() {
     debug!("Concentrator drift, drift_us: {}", drift);
 
     debug!("Enabling GPS mode for concentrator counter");
-    reg::reg_w(wrapper::LGW_GPS_EN, 1).unwrap();
+    reg::reg_w(wrapper::LGW_GPS_EN, 1)?;
+
+    Ok(())
 }

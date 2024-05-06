@@ -2,6 +2,8 @@ use std::sync::mpsc::Receiver;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
+use anyhow::Result;
+
 use libconcentratord::jitqueue::TxPacket;
 use libconcentratord::signals::Signal;
 use libconcentratord::{jitqueue, stats};
@@ -13,7 +15,7 @@ use super::timersync;
 pub fn jit_loop(
     queue: Arc<Mutex<jitqueue::Queue<wrapper::TxPacket>>>,
     stop_receive: Receiver<Signal>,
-) {
+) -> Result<()> {
     debug!("Starting JIT queue loop");
 
     loop {
@@ -21,10 +23,10 @@ pub fn jit_loop(
         // timeout of 10ms.
         if let Ok(v) = stop_receive.recv_timeout(Duration::from_millis(10)) {
             debug!("Received stop signal, signal: {}", v);
-            break;
+            return Ok(());
         }
 
-        let tx_packet = match get_tx_packet(&queue) {
+        let tx_packet = match get_tx_packet(&queue)? {
             Some(v) => v,
             None => continue,
         };
@@ -53,14 +55,12 @@ pub fn jit_loop(
             }
         }
     }
-
-    debug!("JIT loop ended");
 }
 
 fn get_tx_packet(
     queue: &Arc<Mutex<jitqueue::Queue<wrapper::TxPacket>>>,
-) -> Option<wrapper::TxPacket> {
-    let mut queue = queue.lock().unwrap();
+) -> Result<Option<wrapper::TxPacket>> {
+    let mut queue = queue.lock().map_err(|_| anyhow!("Lock queue error"))?;
     let concentrator_count = timersync::get_concentrator_count();
-    queue.pop(concentrator_count)
+    Ok(queue.pop(concentrator_count))
 }

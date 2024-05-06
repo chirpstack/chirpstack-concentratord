@@ -63,16 +63,22 @@ pub fn run(
     // uplink thread
     threads.push(thread::spawn({
         let stop_receive = signal_pool.new_receiver();
+        let stop_send = stop_send.clone();
         let disable_crc_filter = config.concentratord.disable_crc_filter;
         let time_fallback = config.gateway.time_fallback_enabled;
 
         move || {
-            handler::uplink::handle_loop(
+            if let Err(e) = handler::uplink::handle_loop(
                 &gateway_id,
                 stop_receive,
                 disable_crc_filter,
                 time_fallback,
-            );
+            ) {
+                error!("Uplink loop error: {}", e);
+                stop_send.send(Signal::Stop).unwrap();
+            }
+
+            debug!("Uplink handle loop ended");
         }
     }));
 
@@ -80,9 +86,15 @@ pub fn run(
     threads.push(thread::spawn({
         let queue = Arc::clone(&queue);
         let stop_receive = signal_pool.new_receiver();
+        let stop_send = stop_send.clone();
 
         move || {
-            handler::jit::jit_loop(queue, stop_receive);
+            if let Err(e) = handler::jit::jit_loop(queue, stop_receive) {
+                error!("JIT loop error: {}", e);
+                stop_send.send(Signal::Stop).unwrap();
+            }
+
+            debug!("JIT loop ended");
         }
     }));
 
@@ -91,12 +103,13 @@ pub fn run(
         let queue = Arc::clone(&queue);
         let vendor_config = config.gateway.model_config.clone();
         let stop_receive = signal_pool.new_receiver();
-        let stop_send = stop_send;
+        let stop_send = stop_send.clone();
+        let stop_send_err = stop_send.clone();
         let lorawan_public = config.gateway.lorawan_public;
         let antenna_gain = config.gateway.antenna_gain;
 
         move || {
-            handler::command::handle_loop(
+            if let Err(e) = handler::command::handle_loop(
                 lorawan_public,
                 &vendor_config,
                 &gateway_id,
@@ -105,7 +118,12 @@ pub fn run(
                 rep_sock,
                 stop_receive,
                 stop_send,
-            );
+            ) {
+                error!("Command loop error: {}", e);
+                stop_send_err.send(Signal::Stop).unwrap();
+            }
+
+            debug!("Command loop ended");
         }
     }));
 
@@ -114,6 +132,7 @@ pub fn run(
         let stats_interval = config.concentratord.stats_interval;
         let queue = Arc::clone(&queue);
         let stop_receive = signal_pool.new_receiver();
+        let stop_send = stop_send.clone();
         let mut metadata = HashMap::new();
         metadata.insert(
             "config_version".to_string(),
@@ -127,13 +146,18 @@ pub fn run(
         metadata.insert("hal_version".to_string(), hal::version_info());
 
         move || {
-            handler::stats::stats_loop(
+            if let Err(e) = handler::stats::stats_loop(
                 &gateway_id,
                 &stats_interval,
                 stop_receive,
                 &metadata,
                 queue,
-            );
+            ) {
+                error!("Stats loop error: {}", e);
+                stop_send.send(Signal::Stop).unwrap();
+            }
+
+            debug!("Stats loop ended");
         }
     }));
 

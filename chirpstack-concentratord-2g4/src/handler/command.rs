@@ -21,7 +21,7 @@ pub fn handle_loop(
     rep_sock: zmq::Socket,
     stop_receive: Receiver<Signal>,
     stop_send: Sender<Signal>,
-) {
+) -> Result<()> {
     debug!("Starting command handler loop");
 
     // A timeout is used so that we can consume from the stop signal.
@@ -30,7 +30,7 @@ pub fn handle_loop(
     for cmd in reader {
         if let Ok(v) = stop_receive.recv_timeout(Duration::from_millis(0)) {
             debug!("Received stop signal, signal: {}", v);
-            break;
+            return Ok(());
         }
 
         let resp = match cmd {
@@ -67,10 +67,10 @@ pub fn handle_loop(
             }
         };
 
-        rep_sock.send(resp, 0).unwrap();
+        rep_sock.send(resp, 0)?;
     }
 
-    debug!("Command loop ended");
+    Ok(())
 }
 
 fn handle_downlink(
@@ -116,10 +116,13 @@ fn handle_downlink(
         }
 
         // try enqueue
-        match queue.lock().unwrap().enqueue(
-            hal::get_instcnt().expect("get concentrator count error"),
-            wrapper::TxPacket::new(pl.downlink_id, tx_packet),
-        ) {
+        match queue
+            .lock()
+            .map_err(|_| anyhow!("Queue lock error"))?
+            .enqueue(
+                hal::get_instcnt()?,
+                wrapper::TxPacket::new(pl.downlink_id, tx_packet),
+            ) {
             Ok(_) => {
                 tx_ack.items[i].set_status(chirpstack_api::gw::TxAckStatus::Ok);
                 stats_tx_status = chirpstack_api::gw::TxAckStatus::Ok;
