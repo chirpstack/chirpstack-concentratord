@@ -10,7 +10,7 @@ use log::info;
 type ResetCommand = (String, Vec<String>);
 
 lazy_static! {
-    static ref SX1302_RESET: Mutex<Option<LineHandle>> = Mutex::new(None);
+    static ref SX130X_RESET: Mutex<Option<LineHandle>> = Mutex::new(None);
     static ref SX1302_POWER_EN: Mutex<Option<LineHandle>> = Mutex::new(None);
     static ref SX1261_RESET: Mutex<Option<LineHandle>> = Mutex::new(None);
     static ref AD5338R_RESET: Mutex<Option<LineHandle>> = Mutex::new(None);
@@ -27,16 +27,16 @@ pub struct Configuration {
 }
 
 pub fn setup_pins(config: Configuration) -> Result<()> {
-    if let Some(sx1302_reset) = config.sx130x_reset {
+    if let Some(sx130x_reset) = config.sx130x_reset {
         info!(
             "Configuring reset pin, dev: {}, pin: {}",
-            sx1302_reset.0, sx1302_reset.1
+            sx130x_reset.0, sx130x_reset.1
         );
 
-        let mut chip = Chip::new(sx1302_reset.0)?;
-        let line = chip.get_line(sx1302_reset.1)?;
-        let mut sx1302_reset = SX1302_RESET.lock().unwrap();
-        *sx1302_reset = Some(line.request(LineRequestFlags::OUTPUT, 0, "sx130x_reset")?);
+        let mut chip = Chip::new(sx130x_reset.0)?;
+        let line = chip.get_line(sx130x_reset.1)?;
+        let mut sx130x_reset = SX130X_RESET.lock().unwrap();
+        *sx130x_reset = Some(line.request(LineRequestFlags::OUTPUT, 0, "sx130x_reset")?);
     }
 
     if let Some(sx1302_power_en) = config.sx1302_power_en {
@@ -96,15 +96,15 @@ pub fn reset() -> Result<()> {
         sleep(Duration::from_millis(100));
     }
 
-    let sx1302 = SX1302_RESET.lock().unwrap();
-    if sx1302.is_some() {
-        let sx1302 = sx1302.as_ref().unwrap();
+    let sx130x = SX130X_RESET.lock().unwrap();
+    if sx130x.is_some() {
+        let sx130x = sx130x.as_ref().unwrap();
 
-        info!("Triggering sx1302 reset");
+        info!("Triggering sx130x reset");
 
-        sx1302.set_value(1)?;
+        sx130x.set_value(1)?;
         sleep(Duration::from_millis(100));
-        sx1302.set_value(0)?;
+        sx130x.set_value(0)?;
         sleep(Duration::from_millis(100));
     }
 
