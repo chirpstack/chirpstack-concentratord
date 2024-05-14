@@ -45,7 +45,7 @@ impl Tracker {
             }
         };
 
-        info!("Item tracked, band: {}, freq: {}, tx_power: {}, start_counter_us: {}, end_counter_us: {}, duration: {:?}", band, tx_freq, tx_power, item.start_time.to_concentrator_count(), item.end_time.to_concentrator_count(), item.duration());
+        info!("Item tracked, band: {}, freq: {}, tx_power_eirp: {}, start_counter_us: {}, end_counter_us: {}, duration: {:?}", band, tx_freq, tx_power, item.start_time.to_concentrator_count(), item.end_time.to_concentrator_count(), item.duration());
 
         Ok(())
     }
