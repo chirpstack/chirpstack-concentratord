@@ -1,4 +1,4 @@
-FROM ghcr.io/cross-rs/aarch64-unknown-linux-musl:latest
+FROM ghcr.io/cross-rs/aarch64-unknown-linux-musl:main
 
 ENV SX1301_VERSION=v5.0.1r2
 ENV SX1302_VERSION=V2.1.0r7
