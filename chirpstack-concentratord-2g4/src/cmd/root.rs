@@ -85,11 +85,12 @@ pub fn run(
     // jit thread
     threads.push(thread::spawn({
         let queue = Arc::clone(&queue);
+        let antenna_gain_dbi = config.gateway.antenna_gain;
         let stop_receive = signal_pool.new_receiver();
         let stop_send = stop_send.clone();
 
         move || {
-            if let Err(e) = handler::jit::jit_loop(queue, stop_receive) {
+            if let Err(e) = handler::jit::jit_loop(queue, antenna_gain_dbi, stop_receive) {
                 error!("JIT loop error: {}", e);
                 stop_send.send(Signal::Stop).unwrap();
             }
@@ -106,14 +107,12 @@ pub fn run(
         let stop_send = stop_send.clone();
         let stop_send_err = stop_send.clone();
         let lorawan_public = config.gateway.lorawan_public;
-        let antenna_gain = config.gateway.antenna_gain;
 
         move || {
             if let Err(e) = handler::command::handle_loop(
                 lorawan_public,
                 &vendor_config,
                 &gateway_id,
-                antenna_gain,
                 queue,
                 rep_sock,
                 stop_receive,

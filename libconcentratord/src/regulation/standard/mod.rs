@@ -27,7 +27,7 @@ pub struct Band {
     pub frequency_min: u32,
     pub frequency_max: u32,
     pub duty_cycle_permille_max: u32,
-    pub tx_power_max: i8,
+    pub tx_power_max_eirp: i8,
 }
 
 impl fmt::Display for Band {
@@ -56,15 +56,17 @@ impl Configuration {
         }
     }
 
-    pub fn get_band(&self, tx_freq: u32, tx_power: i8) -> Result<Band, Error> {
+    pub fn get_band(&self, tx_freq: u32, tx_power_eirp: i8) -> Result<Band, Error> {
         for b in &self.bands {
-            if b.frequency_min <= tx_freq && tx_freq < b.frequency_max && tx_power <= b.tx_power_max
+            if b.frequency_min <= tx_freq
+                && tx_freq < b.frequency_max
+                && tx_power_eirp <= b.tx_power_max_eirp
             {
                 return Ok(b.clone());
             }
         }
 
-        Err(Error::BandNotFound(tx_freq, tx_power))
+        Err(Error::BandNotFound(tx_freq, tx_power_eirp))
     }
 
     pub fn get_regulation(&self) -> Regulation {
@@ -87,20 +89,20 @@ mod test {
         struct Test {
             name: String,
             freq: u32,
-            tx_power: i8,
+            tx_power_eirp: i8,
             expected_band: Option<Band>,
         }
 
         let tests = vec![Test {
             name: "M band".into(),
             freq: 868100000,
-            tx_power: 14,
+            tx_power_eirp: 16,
             expected_band: Some(Band {
                 label: "M".into(),
                 frequency_min: 868000000,
                 frequency_max: 868600000,
                 duty_cycle_permille_max: 10,
-                tx_power_max: 14,
+                tx_power_max_eirp: 16,
             }),
         }];
 
@@ -108,7 +110,7 @@ mod test {
         for tst in &tests {
             println!("> {}", tst.name);
 
-            let res = c.get_band(tst.freq, tst.tx_power);
+            let res = c.get_band(tst.freq, tst.tx_power_eirp);
             if tst.expected_band.is_none() {
                 assert!(res.is_err());
             } else {

@@ -81,7 +81,7 @@ mod test {
 
     struct Item {
         tx_freq: u32,
-        tx_power: i8,
+        tx_power_eirp: i8,
         start_time: Duration,
         end_time: Duration,
     }
@@ -99,7 +99,7 @@ mod test {
                 name: "K - 0.1%".into(),
                 items: vec![Item {
                     tx_freq: 863000000,
-                    tx_power: 14,
+                    tx_power_eirp: 16,
                     start_time: Duration::from_millis(0),
                     end_time: Duration::from_millis(3600),
                 }],
@@ -109,7 +109,7 @@ mod test {
                 name: "K - > 0.1%".into(),
                 items: vec![Item {
                     tx_freq: 863000000,
-                    tx_power: 14,
+                    tx_power_eirp: 16,
                     start_time: Duration::from_millis(0),
                     end_time: Duration::from_millis(3601),
                 }],
@@ -119,7 +119,7 @@ mod test {
                 name: "M - 1%".into(),
                 items: vec![Item {
                     tx_freq: 868000000,
-                    tx_power: 14,
+                    tx_power_eirp: 16,
                     start_time: Duration::from_millis(0),
                     end_time: Duration::from_millis(36000),
                 }],
@@ -129,7 +129,7 @@ mod test {
                 name: "M - >1%".into(),
                 items: vec![Item {
                     tx_freq: 868000000,
-                    tx_power: 14,
+                    tx_power_eirp: 16,
                     start_time: Duration::from_millis(0),
                     end_time: Duration::from_millis(36001),
                 }],
@@ -140,13 +140,13 @@ mod test {
                 items: vec![
                     Item {
                         tx_freq: 865000000,
-                        tx_power: 14,
+                        tx_power_eirp: 16,
                         start_time: Duration::from_millis(0),
                         end_time: Duration::from_millis(36000),
                     },
                     Item {
                         tx_freq: 868000000,
-                        tx_power: 14,
+                        tx_power_eirp: 16,
                         start_time: Duration::from_millis(36000),
                         end_time: Duration::from_millis(72000),
                     },
@@ -157,7 +157,7 @@ mod test {
                 name: "Invalid freq".into(),
                 items: vec![Item {
                     tx_freq: 920000000,
-                    tx_power: 14,
+                    tx_power_eirp: 16,
                     start_time: Duration::from_millis(0),
                     end_time: Duration::from_millis(1),
                 }],
@@ -167,7 +167,7 @@ mod test {
                 name: "K - invalid tx_power".into(),
                 items: vec![Item {
                     tx_freq: 863000000,
-                    tx_power: 15,
+                    tx_power_eirp: 17,
                     start_time: Duration::from_millis(0),
                     end_time: Duration::from_millis(3600),
                 }],
@@ -177,7 +177,7 @@ mod test {
                 name: "K - lower tx_power (valid)".into(),
                 items: vec![Item {
                     tx_freq: 863000000,
-                    tx_power: 10,
+                    tx_power_eirp: 12,
                     start_time: Duration::from_millis(0),
                     end_time: Duration::from_millis(3600),
                 }],
@@ -194,7 +194,7 @@ mod test {
                     tracker
                         .try_insert(
                             item.tx_freq,
-                            item.tx_power,
+                            item.tx_power_eirp,
                             dutycycle::Item {
                                 start_time: item.start_time,
                                 end_time: item.end_time
