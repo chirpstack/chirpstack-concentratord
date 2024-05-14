@@ -1,4 +1,4 @@
-FROM ghcr.io/cross-rs/armv5te-unknown-linux-musleabi:latest
+FROM ghcr.io/cross-rs/armv5te-unknown-linux-musleabi:main
 
 ENV SX1301_VERSION=v5.0.1r2
 ENV SX1302_VERSION=V2.1.0r7
