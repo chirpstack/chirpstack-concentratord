@@ -8,7 +8,7 @@
 [dependencies]
   log = "0.4"
   zmq = "0.10"
-  lazy_static = "1.4"
+  lazy_static = "1.5"
   chirpstack_api = { version = "4.8", default-features = false }
   prost = "0.12"
   prost-types = "0.12"
