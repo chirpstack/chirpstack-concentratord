@@ -506,7 +506,7 @@ pub struct RxPacket {
     pub freq_offset: i32,
     /// By which IF chain was packet received.
     pub if_chain: u8,
-    /// Ctatus of the received packet.
+    /// Status of the received packet.
     pub status: CRC,
     /// Internal concentrator counter for timestamping, 1 microsecond resolution.
     pub count_us: u32,
