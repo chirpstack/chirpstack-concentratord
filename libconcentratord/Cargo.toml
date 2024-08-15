@@ -8,10 +8,10 @@
 [dependencies]
   log = "0.4"
   zmq = "0.10"
-  lazy_static = "1.4"
-  chirpstack_api = { version = "4.8", default-features = false }
-  prost = "0.12"
-  prost-types = "0.12"
+  lazy_static = "1.5"
+  chirpstack_api = { version = "4.9", default-features = false }
+  prost = "0.13"
+  prost-types = "0.13"
   hex = "0.4"
   gpio-cdev = "0.6"
   anyhow = "1.0"

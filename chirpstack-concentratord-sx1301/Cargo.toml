@@ -11,7 +11,7 @@
 [dependencies]
   libloragw-sx1301 = { path = "../libloragw-sx1301" }
   libconcentratord = { path = "../libconcentratord" }
-  chirpstack_api = { version = "4.8", default-features = false }
+  chirpstack_api = { version = "4.9", default-features = false }
   serde = { version = "1.0", features = ["derive"] }
   toml = "0.8"
   clap = { version = "4.5", features = ["derive"] }
@@ -19,13 +19,13 @@
   simple_logger = "5.0"
   zmq = "0.10"
   hex = "0.4"
-  lazy_static = "1.4"
+  lazy_static = "1.5"
   chrono = "0.4"
   humantime-serde = "1.1"
-  syslog = "6.1"
-  prost = "0.12"
-  prost-types = "0.12"
+  syslog = "7.0"
+  prost = "0.13"
+  prost-types = "0.13"
   signal-hook = "0.3"
-  handlebars = "5.1"
+  handlebars = "6.0"
   rand = "0.8"
   anyhow = "1.0"
