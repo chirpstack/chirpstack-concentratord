@@ -254,11 +254,13 @@ impl<T: TxPacket + Copy> Queue<T> {
             || item.linear_count - linear_count
                 < self.tx_start_delay + self.tx_margin_delay + self.tx_jit_delay
         {
+            warn!("Too late to enqueue packet, downlink_id: {}, counter_us: {}, current_counter_us: {}", item.packet.get_id(), item.packet.get_count_us(), concentrator_count);
             return Err(gw::TxAckStatus::TooLate);
         }
 
         // Is it too early to send this packet?
         if item.linear_count - linear_count > self.tx_max_advance_delay {
+            warn!("Too early to enqueue packet, downlink_id: {}, counter_us: {}, current_counter_us: {}", item.packet.get_id(), item.packet.get_count_us(), concentrator_count);
             return Err(gw::TxAckStatus::TooEarly);
         }
 

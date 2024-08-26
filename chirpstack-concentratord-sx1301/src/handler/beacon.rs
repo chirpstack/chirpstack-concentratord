@@ -58,7 +58,10 @@ pub fn beacon_loop(
                 "Beacon enqueued, beacon_time_gps_epoch: {:?}",
                 next_beacon_time
             ),
-            Err(err) => warn!("Enqueue beacon failed, error: {}", err),
+            Err(err) => warn!(
+                "Enqueue beacon failed, error: {}, beacon_time_gps_epoch: {:?}",
+                err, next_beacon_time
+            ),
         }
     }
 }
