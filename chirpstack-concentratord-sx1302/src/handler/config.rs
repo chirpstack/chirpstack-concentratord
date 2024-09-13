@@ -48,6 +48,9 @@ pub fn update_configuration(
     }
 
     // set config
+    if let Some(stats_interval) = new_config.stats_interval {
+        config.concentratord.stats_interval = stats_interval.try_into()?;
+    }
     config
         .gateway
         .config_version
