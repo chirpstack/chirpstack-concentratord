@@ -292,7 +292,7 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
         } else {
             panic!("Invalid antenna_gain: {}", conf.gateway.antenna_gain);
         },
-        spidev_path: "/dev/spidev0.0".to_string(),
+        spidev_path: conf.gateway.get_com_dev_path("/dev/spidev0.0"),
         reset_pin: conf.gateway.get_sx1301_reset_pin("/dev/gpiochip0", 1),
         ..Default::default()
     })

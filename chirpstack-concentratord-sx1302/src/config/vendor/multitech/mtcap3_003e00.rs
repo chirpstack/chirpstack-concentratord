@@ -170,7 +170,7 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
         ],
         gps: Gps::None,
         com_type: ComType::Spi,
-        com_path: "/dev/spidev1.0".to_string(),
+        com_path: conf.gateway.get_com_dev_path("/dev/spidev1.0"),
         reset_commands: Some(vec![
             (
                 "mts-io-sysfs".to_string(),

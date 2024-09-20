@@ -169,8 +169,8 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
             false => Gps::None,
         },
         spidev_path: match port {
-            Port::AP1 => "/dev/spidev0.2".to_string(),
-            Port::AP2 => "/dev/spidev1.2".to_string(),
+            Port::AP1 => conf.gateway.get_com_dev_path("/dev/spidev0.2"),
+            Port::AP2 => conf.gateway.get_com_dev_path("/dev/spidev1.2"),
         },
         ..Default::default()
     })

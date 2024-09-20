@@ -124,6 +124,18 @@ impl Default for Gateway {
 }
 
 impl Gateway {
+    pub fn get_gnss_dev_path(&self, gnss_dev_path: &str) -> String {
+        self.gnss_dev_path
+            .clone()
+            .unwrap_or(gnss_dev_path.to_string())
+    }
+
+    pub fn get_com_dev_path(&self, com_dev_path: &str) -> String {
+        self.com_dev_path
+            .clone()
+            .unwrap_or(com_dev_path.to_string())
+    }
+
     pub fn get_sx1301_reset_pin(
         &self,
         default_chip: &str,

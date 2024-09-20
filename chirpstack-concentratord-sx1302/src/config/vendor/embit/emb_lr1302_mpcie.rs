@@ -207,23 +207,10 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
             false => ComType::Spi,
         },
         com_path: match usb {
-            true => conf
-                .gateway
-                .com_dev_path
-                .clone()
-                .unwrap_or("/dev/ttyACM0".to_string()),
-            false => conf
-                .gateway
-                .com_dev_path
-                .clone()
-                .unwrap_or("/dev/spidev0.0".to_string()),
+            true => conf.gateway.get_com_dev_path("/dev/ttyACM0"),
+            false => conf.gateway.get_com_dev_path("/dev/spidev0.0"),
         },
-        i2c_path: Some(
-            conf.gateway
-                .i2c_dev_path
-                .clone()
-                .unwrap_or("/dev/i2c-1".to_string()),
-        ),
+        i2c_path: Some(conf.gateway.get_i2c_dev_path("/dev/i2c-1")),
         i2c_temp_sensor_addr: Some(0x3B),
         sx1302_reset_pin: conf.gateway.get_sx1302_reset_pin("/dev/gpiochip0", 4),
         sx1302_power_en_pin: conf.gateway.get_sx1302_power_en_pin("/dev/gpiochip0", 17),

@@ -186,10 +186,10 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
         },
         com_type: ComType::Spi,
         com_path: match port {
-            Port::AP1 => "/dev/spidev0.0".to_string(),
-            Port::AP2 => "/dev/spidev1.0".to_string(),
+            Port::AP1 => conf.gateway.get_com_dev_path("/dev/spidev0.0"),
+            Port::AP2 => conf.gateway.get_com_dev_path("/dev/spidev1.0"),
         },
-        i2c_path: Some("/dev/i2c-1".to_string()),
+        i2c_path: Some(conf.gateway.get_i2c_dev_path("/dev/i2c-1")),
         i2c_temp_sensor_addr: match port {
             Port::AP1 => Some(0x48),
             Port::AP2 => Some(0x49),

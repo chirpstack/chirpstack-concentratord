@@ -443,12 +443,7 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
             },
         ],
         gps: match gps {
-            true => Gps::TtyPath(
-                conf.gateway
-                    .gnss_dev_path
-                    .clone()
-                    .unwrap_or("/dev/ttyAMA0".to_string()),
-            ),
+            true => Gps::TtyPath(conf.gateway.get_gnss_dev_path("/dev/ttyAMA0")),
             false => Gps::None,
         },
         com_type: match usb {
@@ -456,16 +451,8 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
             false => ComType::Spi,
         },
         com_path: match usb {
-            true => conf
-                .gateway
-                .com_dev_path
-                .clone()
-                .unwrap_or("/dev/ttyACM0".to_string()),
-            false => conf
-                .gateway
-                .com_dev_path
-                .clone()
-                .unwrap_or("/dev/spidev0.0".to_string()),
+            true => conf.gateway.get_com_dev_path("/dev/ttyACM0"),
+            false => conf.gateway.get_com_dev_path("/dev/spidev0.0"),
         },
         sx1302_reset_pin: conf.gateway.get_sx1302_reset_pin("/dev/gpiochip0", 17),
         sx1302_power_en_pin: None,

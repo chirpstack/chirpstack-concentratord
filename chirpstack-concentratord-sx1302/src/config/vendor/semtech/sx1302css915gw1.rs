@@ -171,20 +171,11 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
             },
         ],
         gps: match gps {
-            true => Gps::TtyPath(
-                conf.gateway
-                    .gnss_dev_path
-                    .clone()
-                    .unwrap_or("/dev/ttyAMA0".to_string()),
-            ),
+            true => Gps::TtyPath(conf.gateway.get_gnss_dev_path("/dev/ttyAMA0")),
             false => Gps::None,
         },
         com_type: ComType::Usb,
-        com_path: conf
-            .gateway
-            .com_dev_path
-            .clone()
-            .unwrap_or("/dev/ttyACM0".to_string()),
+        com_path: conf.gateway.get_com_dev_path("/dev/ttyACM0"),
         ..Default::default()
     })
 }

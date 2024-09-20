@@ -155,7 +155,7 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
                 dac_gain: 3,
             },
         ],
-        spidev_path: "/dev/spidev0.0".to_string(),
+        spidev_path: conf.gateway.get_com_dev_path("/dev/spidev0.0"),
         ..Default::default()
     })
 }

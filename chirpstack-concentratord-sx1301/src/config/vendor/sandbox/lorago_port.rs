@@ -233,11 +233,7 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
         radio_type: vec![hal::RadioType::SX1257, hal::RadioType::SX1257],
         radio_tx_notch_freq: vec![0, 0],
         lora_multi_sf_bandwidth: 125000,
-        spidev_path: conf
-            .gateway
-            .com_dev_path
-            .clone()
-            .unwrap_or("/dev/spidev0.0".to_string()),
+        spidev_path: conf.gateway.get_com_dev_path("/dev/spidev0.0"),
         reset_pin: conf.gateway.get_sx1301_reset_pin("/dev/gpiochip0", 25),
         ..Default::default()
     })

@@ -161,11 +161,7 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
                 dac_gain: 3,
             },
         ],
-        spidev_path: conf
-            .gateway
-            .com_dev_path
-            .clone()
-            .unwrap_or("/dev/spidev0.0".to_string()),
+        spidev_path: conf.gateway.get_com_dev_path("/dev/spidev0.0"),
         reset_pin: conf.gateway.get_sx1301_reset_pin("/dev/gpiochip0", 7),
         ..Default::default()
     })

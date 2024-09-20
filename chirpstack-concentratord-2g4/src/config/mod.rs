@@ -82,6 +82,12 @@ pub struct Gateway {
 }
 
 impl Gateway {
+    pub fn get_com_dev_path(&self, com_dev_path: &str) -> String {
+        self.com_dev_path
+            .clone()
+            .unwrap_or(com_dev_path.to_string())
+    }
+
     pub fn get_mcu_reset_pin(&self, default_chip: &str, default_pin: u32) -> Option<(String, u32)> {
         let chip = self
             .mcu_reset_chip

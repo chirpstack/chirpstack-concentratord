@@ -80,6 +80,22 @@ pub fn run(config: &config::Configuration) {
   # GNSS fix, use the system-time for setting the 'time' field on RX.
   time_fallback_enabled={{ gateway.time_fallback_enabled }}
 
+  # Device and pin configuration.
+  #
+  # Only set this configuration if you need to override the default
+  # configuration provided by the model configuration and you know
+  # the device and pin mapping. In any other case, leave this commented
+  # out.
+  # gnss_dev_path="/dev/ttyAMA0"
+  # com_dev_path="/dev/spidev0.0"
+  # i2c_dev_path="/dev/i2c-1"
+  # sx1302_reset_chip="/dev/gpiochip0"
+  # sx1302_reset_pin=17
+  # sx1302_power_en_chip="/dev/gpiochip0"
+  # sx1302_power_en_pin=18
+  # sx1261_reset_chip="/dev/gpiochip0"
+  # sx1261_reset_pin=19
+
 
   # LoRa concentrator configuration.
   [gateway.concentrator]
