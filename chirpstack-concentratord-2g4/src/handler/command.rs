@@ -96,9 +96,19 @@ fn handle_downlink(
         };
 
         // validate frequency range
-        let freqs = vendor_config.min_max_tx_freq;
-        if tx_packet.freq_hz < freqs.0 || tx_packet.freq_hz > freqs.1 {
-            error!("Frequency is not within min/max gateway frequency, downlink_id: {}, min_freq: {}, max_freq: {}", pl.downlink_id, freqs.0, freqs.1);
+        if !vendor_config
+            .tx_min_max_freqs
+            .iter()
+            .map(|(freq_min, freq_max)| {
+                tx_packet.freq_hz >= *freq_min && tx_packet.freq_hz <= *freq_max
+            })
+            .collect::<Vec<bool>>()
+            .contains(&true)
+        {
+            error!(
+                "Frequency is not within min / max gateway frequencies, downlink_id: {}, freq: {}",
+                pl.downlink_id, tx_packet.freq_hz
+            );
             tx_ack.items[i].set_status(chirpstack_api::gw::TxAckStatus::TxFreq);
 
             // try next

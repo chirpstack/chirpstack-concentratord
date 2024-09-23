@@ -12,18 +12,18 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
         .region
         .ok_or_else(|| anyhow!("You must specify a region"))?;
 
-    let (tx_freq_min, tx_freq_max) = match region {
+    let tx_min_max_freqs = match region {
         Region::AS923 | Region::AS923_2 | Region::AS923_3 | Region::AS923_4 => {
-            (915_000_000, 928_000_000)
+            vec![(915_000_000, 928_000_000)]
         }
-        Region::AU915 => (915_000_000, 928_000_000),
-        Region::CN470 => (470_000_000, 510_000_000),
-        Region::EU433 => (433_050_000, 434_900_000),
-        Region::EU868 => (863_000_000, 870_000_000),
-        Region::IN865 => (865_000_000, 867_000_000),
-        Region::KR920 => (920_900_000, 923_300_000),
-        Region::RU864 => (863_000_000, 870_000_000),
-        Region::US915 => (923_000_000, 928_000_000),
+        Region::AU915 => vec![(915_000_000, 928_000_000)],
+        Region::CN470 => vec![(470_000_000, 510_000_000)],
+        Region::EU433 => vec![(433_050_000, 434_900_000)],
+        Region::EU868 => vec![(863_000_000, 870_000_000)],
+        Region::IN865 => vec![(865_000_000, 867_000_000)],
+        Region::KR920 => vec![(920_900_000, 923_300_000)],
+        Region::RU864 => vec![(863_000_000, 870_000_000)],
+        Region::US915 => vec![(923_000_000, 928_000_000)],
         _ => return Err(anyhow!("Region not supported: {}", region)),
     };
 
@@ -408,8 +408,7 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
         lora_multi_sf_bandwidth: 125000,
         radio_config: vec![
             RadioConfig {
-                tx_freq_min,
-                tx_freq_max,
+                tx_min_max_freqs,
                 tx_gain_table,
                 rssi_offset,
                 enable: true,
@@ -437,8 +436,7 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
                     coeff_e: 0.0,
                 },
                 tx_enable: false,
-                tx_freq_min: 0,
-                tx_freq_max: 0,
+                tx_min_max_freqs: vec![],
                 tx_gain_table: vec![],
             },
         ],

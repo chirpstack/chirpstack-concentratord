@@ -9,17 +9,17 @@ use super::super::Configuration;
 pub fn new(conf: &config::Configuration) -> Result<Configuration> {
     let region = conf.gateway.region.unwrap_or(Region::EU868);
 
-    let radio_min_max_tx_freq = match region {
-        Region::EU868 => vec![(863000000, 870000000), (863000000, 870000000)],
-        Region::IN865 => vec![(865000000, 867000000), (865000000, 867000000)],
-        Region::RU864 => vec![(864000000, 870000000), (864000000, 870000000)],
+    let tx_min_max_freqs = match region {
+        Region::EU868 => vec![(863000000, 870000000)],
+        Region::IN865 => vec![(865000000, 867000000)],
+        Region::RU864 => vec![(864000000, 870000000)],
         _ => return Err(anyhow!("Region is not supported: {}", region)),
     };
 
     let enforce_duty_cycle = conf.gateway.model_flags.contains(&"ENFORCE_DC".to_string());
 
     Ok(Configuration {
-        radio_min_max_tx_freq,
+        tx_min_max_freqs,
         enforce_duty_cycle,
         radio_count: 2,
         clock_source: 1,

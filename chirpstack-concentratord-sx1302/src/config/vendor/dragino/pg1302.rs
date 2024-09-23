@@ -12,9 +12,9 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
         .region
         .ok_or_else(|| anyhow!("You must specify a region"))?;
 
-    let (tx_freq_min, tx_freq_max) = match region {
-        Region::EU868 => (863000000, 870000000),
-        Region::US915 => (923000000, 928000000),
+    let tx_min_max_freqs = match region {
+        Region::EU868 => vec![(863000000, 870000000)],
+        Region::US915 => vec![(923000000, 928000000)],
         _ => return Err(anyhow!("Unsupported region: {}", region)),
     };
 
@@ -146,8 +146,7 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
         lora_multi_sf_bandwidth: 125000,
         radio_config: vec![
             RadioConfig {
-                tx_freq_min,
-                tx_freq_max,
+                tx_min_max_freqs,
                 tx_gain_table,
                 enable: true,
                 radio_type: hal::RadioType::SX1250,
@@ -175,8 +174,7 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
                     coeff_e: 0.0,
                 },
                 tx_enable: false,
-                tx_freq_min: 0,
-                tx_freq_max: 0,
+                tx_min_max_freqs: vec![],
                 tx_gain_table: vec![],
             },
         ],

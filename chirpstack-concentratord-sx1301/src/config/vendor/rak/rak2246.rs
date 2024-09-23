@@ -47,18 +47,18 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
         _ => return Err(anyhow!("Region is not supported: {}", region)),
     };
 
-    let radio_min_max_tx_freq = match region {
+    let tx_min_max_freqs = match region {
         Region::AS923 | Region::AS923_2 | Region::AS923_3 | Region::AS923_4 => {
-            vec![(923200000, 925000000), (923200000, 925000000)]
+            vec![(923200000, 925000000)]
         }
-        Region::AU915 => vec![(915000000, 928000000), (915000000, 928000000)],
-        Region::CN470 => vec![(470000000, 510000000), (470000000, 510000000)],
-        Region::EU433 => vec![(433050000, 434900000), (433050000, 434900000)],
-        Region::EU868 => vec![(863000000, 870000000), (863000000, 870000000)],
-        Region::IN865 => vec![(865000000, 867000000), (865000000, 867000000)],
-        Region::KR920 => vec![(920900000, 923300000), (920900000, 923300000)],
-        Region::RU864 => vec![(863000000, 870000000), (863000000, 870000000)],
-        Region::US915 => vec![(902000000, 928000000), (902000000, 928000000)],
+        Region::AU915 => vec![(915000000, 928000000)],
+        Region::CN470 => vec![(470000000, 510000000)],
+        Region::EU433 => vec![(433050000, 434900000)],
+        Region::EU868 => vec![(863000000, 870000000)],
+        Region::IN865 => vec![(865000000, 867000000)],
+        Region::KR920 => vec![(920900000, 923300000)],
+        Region::RU864 => vec![(863000000, 870000000)],
+        Region::US915 => vec![(902000000, 928000000)],
         _ => return Err(anyhow!("Region is not supported: {}", region)),
     };
 
@@ -280,7 +280,7 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
         tx_gain_table,
         radio_type,
         radio_rssi_offset,
-        radio_min_max_tx_freq,
+        tx_min_max_freqs,
         enforce_duty_cycle,
         radio_count: 2,
         clock_source: 1,

@@ -51,7 +51,6 @@ pub struct RadioConfig {
     pub rssi_offset: f32,
     pub rssi_temp_compensation: hal::RssiTempCompensationConfig,
     pub tx_enable: bool,
-    pub tx_freq_min: u32,
-    pub tx_freq_max: u32,
+    pub tx_min_max_freqs: Vec<(u32, u32)>,
     pub tx_gain_table: Vec<hal::TxGainConfig>,
 }

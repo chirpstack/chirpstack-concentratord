@@ -8,10 +8,10 @@ use super::super::{ComType, Configuration, Gps, RadioConfig};
 pub fn new(conf: &config::Configuration) -> Result<Configuration> {
     let region = conf.gateway.region.unwrap_or(Region::EU868);
 
-    let (tx_freq_min, tx_freq_max) = match region {
-        Region::EU868 => (863_000_000, 870_000_000),
-        Region::IN865 => (865_000_000, 867_000_000),
-        Region::RU864 => (863_000_000, 870_000_000),
+    let tx_min_max_freqs = match region {
+        Region::EU868 => vec![(863_000_000, 870_000_000)],
+        Region::IN865 => vec![(865_000_000, 867_000_000)],
+        Region::RU864 => vec![(863_000_000, 870_000_000)],
         _ => return Err(anyhow!("Region is not supported: {}", region)),
     };
 
@@ -26,8 +26,7 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
         lora_multi_sf_bandwidth: 125000,
         radio_config: vec![
             RadioConfig {
-                tx_freq_min,
-                tx_freq_max,
+                tx_min_max_freqs,
                 enable: true,
                 radio_type: hal::RadioType::SX1250,
                 single_input_mode: true,
@@ -168,8 +167,7 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
                     coeff_e: 0.0,
                 },
                 tx_enable: false,
-                tx_freq_min: 0,
-                tx_freq_max: 0,
+                tx_min_max_freqs: vec![],
                 tx_gain_table: vec![],
             },
         ],

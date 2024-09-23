@@ -101,8 +101,16 @@ fn handle_downlink(
         // validate frequency range
         match vendor_config.radio_config.get(tx_packet.rf_chain as usize) {
             Some(v) => {
-                if tx_packet.freq_hz < v.tx_freq_min || tx_packet.freq_hz > v.tx_freq_max {
-                    error!("Frequency is not within min/max gateway frequency, downlink_id: {}, min_freq: {}, max_freq: {}", pl.downlink_id, v.tx_freq_min, v.tx_freq_max);
+                if !v
+                    .tx_min_max_freqs
+                    .iter()
+                    .map(|(freq_min, freq_max)| {
+                        tx_packet.freq_hz >= *freq_min && tx_packet.freq_hz <= *freq_max
+                    })
+                    .collect::<Vec<bool>>()
+                    .contains(&true)
+                {
+                    error!("Frequency is not within min / max gateway frequencies, downlink_id: {}, freq: {}", pl.downlink_id, tx_packet.freq_hz);
                     tx_ack.items[i].set_status(chirpstack_api::gw::TxAckStatus::TxFreq);
 
                     // try next

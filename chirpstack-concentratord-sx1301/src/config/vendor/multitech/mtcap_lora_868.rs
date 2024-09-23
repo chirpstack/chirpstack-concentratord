@@ -8,15 +8,15 @@ use super::super::Configuration;
 pub fn new(conf: &config::Configuration) -> Result<Configuration> {
     let region = conf.gateway.region.unwrap_or(Region::EU868);
 
-    let radio_min_max_tx_freq = match region {
-        Region::EU868 => vec![(902000000, 928000000), (902000000, 928000000)],
+    let tx_min_max_freqs = match region {
+        Region::EU868 => vec![(902000000, 928000000)],
         _ => return Err(anyhow!("Region is not supported: {}", region)),
     };
 
     let enforce_duty_cycle = conf.gateway.model_flags.contains(&"ENFORCE_DC".to_string());
 
     Ok(Configuration {
-        radio_min_max_tx_freq,
+        tx_min_max_freqs,
         enforce_duty_cycle,
         radio_count: 2,
         clock_source: 0,

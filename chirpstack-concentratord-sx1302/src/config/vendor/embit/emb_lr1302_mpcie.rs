@@ -13,13 +13,13 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
         .region
         .ok_or_else(|| anyhow!("You must specify a region"))?;
 
-    let (tx_freq_min, tx_freq_max) = match region {
-        Region::AU915 => (915_000_000, 928_000_000),
-        Region::EU868 => (863_000_000, 870_000_000),
-        Region::IN865 => (865_000_000, 867_000_000),
-        Region::KR920 => (920_900_000, 923_300_000),
-        Region::RU864 => (863_000_000, 870_000_000),
-        Region::US915 => (923_000_000, 928_000_000),
+    let tx_min_max_freqs = match region {
+        Region::AU915 => vec![(915_000_000, 928_000_000)],
+        Region::EU868 => vec![(863_000_000, 870_000_000)],
+        Region::IN865 => vec![(865_000_000, 867_000_000)],
+        Region::KR920 => vec![(920_900_000, 923_300_000)],
+        Region::RU864 => vec![(863_000_000, 870_000_000)],
+        Region::US915 => vec![(923_000_000, 928_000_000)],
         _ => return Err(anyhow!("Region not supported: {}", region)),
     };
 
@@ -167,8 +167,7 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
         lora_multi_sf_bandwidth: 125000,
         radio_config: vec![
             RadioConfig {
-                tx_freq_min,
-                tx_freq_max,
+                tx_min_max_freqs,
                 rssi_offset,
                 tx_gain_table,
                 enable: true,
@@ -196,8 +195,7 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
                     coeff_e: 0.0,
                 },
                 tx_enable: false,
-                tx_freq_min: 0,
-                tx_freq_max: 0,
+                tx_min_max_freqs: vec![],
                 tx_gain_table: vec![],
             },
         ],

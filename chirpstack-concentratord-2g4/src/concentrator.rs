@@ -53,7 +53,7 @@ pub fn rx_setconf(config: &Configuration) -> Result<()> {
 }
 
 pub fn tx_setconf(config: &Configuration) -> Result<()> {
-    let enable = config.gateway.model_config.min_max_tx_freq.1 > 0;
+    let enable = !config.gateway.model_config.tx_min_max_freqs.is_empty();
     info!("Configuring tx path, enable: {}", enable);
     hal::channel_tx_setconf(&hal::ChannelTxConfig { enable })
 }

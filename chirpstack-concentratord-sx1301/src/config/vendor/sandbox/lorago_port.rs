@@ -13,10 +13,10 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
         .region
         .ok_or_else(|| anyhow!("You must specify a region"))?;
 
-    let radio_min_max_tx_freq = match region {
-        Region::AU915 => vec![(915000000, 928000000), (915000000, 928000000)],
-        Region::EU868 => vec![(863000000, 870000000), (863000000, 870000000)],
-        Region::US915 => vec![(923000000, 928000000), (923000000, 928000000)],
+    let tx_min_max_freqs = match region {
+        Region::AU915 => vec![(915000000, 928000000)],
+        Region::EU868 => vec![(863000000, 870000000)],
+        Region::US915 => vec![(923000000, 928000000)],
         _ => return Err(anyhow!("Region is not supported: {}", region)),
     };
 
@@ -223,7 +223,7 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
     let enforce_duty_cycle = conf.gateway.model_flags.contains(&"ENFORCE_DC".to_string());
 
     Ok(Configuration {
-        radio_min_max_tx_freq,
+        tx_min_max_freqs,
         tx_gain_table,
         enforce_duty_cycle,
         radio_count: 2,

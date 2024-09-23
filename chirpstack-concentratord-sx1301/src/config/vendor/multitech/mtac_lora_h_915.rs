@@ -13,8 +13,8 @@ pub enum Port {
 pub fn new(conf: &config::Configuration) -> Result<Configuration> {
     let region = conf.gateway.region.unwrap_or(Region::US915);
 
-    let radio_min_max_tx_freq = match region {
-        Region::US915 => vec![(902000000, 928000000), (902000000, 928000000)],
+    let tx_min_max_freqs = match region {
+        Region::US915 => vec![(902000000, 928000000)],
         _ => return Err(anyhow!("Region is not supported: {}", region)),
     };
 
@@ -26,7 +26,7 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
     };
 
     Ok(Configuration {
-        radio_min_max_tx_freq,
+        tx_min_max_freqs,
         radio_count: 2,
         clock_source: 0,
         radio_rssi_offset: vec![-162.0, -162.0],
