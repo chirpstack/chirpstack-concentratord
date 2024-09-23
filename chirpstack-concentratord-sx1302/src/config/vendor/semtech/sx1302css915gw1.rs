@@ -1,4 +1,5 @@
 use anyhow::Result;
+use libconcentratord::region;
 use libloragw_sx1302::hal;
 
 use super::super::super::super::config::{self, Region};
@@ -9,8 +10,8 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
     let region = conf.gateway.region.unwrap_or(Region::US915);
 
     let tx_min_max_freqs = match region {
-        Region::US915 => vec![(923000000, 928000000)],
-        Region::AU915 => vec![(915000000, 928000000)],
+        Region::US915 => region::us915::TX_MIN_MAX_FREQS.to_vec(),
+        Region::AU915 => region::au915::TX_MIN_MAX_FREQS.to_vec(),
         _ => return Err(anyhow!("Region is not supported: {}", region)),
     };
 

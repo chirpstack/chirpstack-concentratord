@@ -3,13 +3,14 @@ use libloragw_sx1301::hal;
 
 use super::super::super::super::config::{self, Region};
 use super::super::Configuration;
+use libconcentratord::region;
 
 // source: http://git.multitech.net/cgi-bin/cgit.cgi/meta-mlinux.git/tree/recipes-connectivity/lora/lora-packet-forwarder/global_conf.json.3.1.0.MTCAP-LORA-1-5.US915.basic
 pub fn new(conf: &config::Configuration) -> Result<Configuration> {
     let region = conf.gateway.region.unwrap_or(Region::EU868);
 
     let tx_min_max_freqs = match region {
-        Region::EU868 => vec![(902000000, 928000000)],
+        Region::EU868 => region::eu868::TX_MIN_MAX_FREQS.to_vec(),
         _ => return Err(anyhow!("Region is not supported: {}", region)),
     };
 

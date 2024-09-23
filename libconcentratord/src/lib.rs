@@ -9,6 +9,7 @@ pub mod events;
 pub mod gpsd;
 mod helpers;
 pub mod jitqueue;
+pub mod region;
 pub mod regulation;
 pub mod reset;
 pub mod signals;

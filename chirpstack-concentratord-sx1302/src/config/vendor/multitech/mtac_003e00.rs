@@ -3,6 +3,7 @@ use libloragw_sx1302::hal;
 
 use super::super::super::super::config::{self, Region};
 use super::super::{ComType, Configuration, Gps, RadioConfig};
+use libconcentratord::region;
 
 pub enum Port {
     AP1,
@@ -15,7 +16,7 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
     let region = conf.gateway.region.unwrap_or(Region::EU868);
 
     let tx_min_max_freqs = match region {
-        Region::EU868 => vec![(863_000_000, 870_000_000)],
+        Region::EU868 => region::eu868::TX_MIN_MAX_FREQS.to_vec(),
         _ => return Err(anyhow!("Unsupported region: {}", region)),
     };
 

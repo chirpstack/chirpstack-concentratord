@@ -1,4 +1,5 @@
 use anyhow::Result;
+use libconcentratord::region;
 use libloragw_sx1302::hal;
 
 use super::super::super::super::config::{self, Region};
@@ -9,15 +10,16 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
     let region = conf.gateway.region.unwrap_or(Region::EU868);
 
     let tx_min_max_freqs = match region {
-        Region::AS923 | Region::AS923_2 | Region::AS923_3 | Region::AS923_4 => {
-            vec![(915_000_000, 928_000_000)]
-        }
-        Region::AU915 => vec![(915_000_000, 928_000_000)],
-        Region::EU868 => vec![(863_000_000, 870_000_000)],
-        Region::IN865 => vec![(865_000_000, 867_000_000)],
-        Region::KR920 => vec![(920_900_000, 923_300_000)],
-        Region::RU864 => vec![(863_000_000, 870_000_000)],
-        Region::US915 => vec![(923_000_000, 928_000_000)],
+        Region::AS923 => region::as923::TX_MIN_MAX_FREQS.to_vec(),
+        Region::AS923_2 => region::as923_2::TX_MIN_MAX_FREQS.to_vec(),
+        Region::AS923_3 => region::as923_3::TX_MIN_MAX_FREQS.to_vec(),
+        Region::AS923_4 => region::as923_4::TX_MIN_MAX_FREQS.to_vec(),
+        Region::AU915 => region::au915::TX_MIN_MAX_FREQS.to_vec(),
+        Region::EU868 => region::eu868::TX_MIN_MAX_FREQS.to_vec(),
+        Region::IN865 => region::in865::TX_MIN_MAX_FREQS.to_vec(),
+        Region::KR920 => region::kr920::TX_MIN_MAX_FREQS.to_vec(),
+        Region::RU864 => region::ru864::TX_MIN_MAX_FREQS.to_vec(),
+        Region::US915 => region::us915::TX_MIN_MAX_FREQS.to_vec(),
         _ => return Err(anyhow!("Region not supported: {}", region)),
     };
 

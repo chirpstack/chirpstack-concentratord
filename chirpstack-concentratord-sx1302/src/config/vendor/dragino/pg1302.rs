@@ -3,6 +3,7 @@ use libloragw_sx1302::hal;
 
 use super::super::super::super::config::{self, Region};
 use super::super::{ComType, Configuration, Gps, RadioConfig};
+use libconcentratord::region;
 
 // source:
 // wget https://www.dragino.com/downloads/downloads/LoRa_Gateway/PG1302/software/draginofwd-32bit.deb
@@ -13,8 +14,8 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
         .ok_or_else(|| anyhow!("You must specify a region"))?;
 
     let tx_min_max_freqs = match region {
-        Region::EU868 => vec![(863000000, 870000000)],
-        Region::US915 => vec![(923000000, 928000000)],
+        Region::EU868 => region::eu868::TX_MIN_MAX_FREQS.to_vec(),
+        Region::US915 => region::us915::TX_MIN_MAX_FREQS.to_vec(),
         _ => return Err(anyhow!("Unsupported region: {}", region)),
     };
 

@@ -3,6 +3,7 @@ use libloragw_sx1301::hal;
 
 use super::super::super::super::config::{self, Region};
 use super::super::{Configuration, Gps};
+use libconcentratord::region::{self, au915};
 
 // source:
 // https://github.com/RAKWireless/rak_common_for_gateway/blob/713ebf74f65beecdbc0304c7d880d05890f84315/lora/rak2246/global_conf/
@@ -48,17 +49,18 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
     };
 
     let tx_min_max_freqs = match region {
-        Region::AS923 | Region::AS923_2 | Region::AS923_3 | Region::AS923_4 => {
-            vec![(923200000, 925000000)]
-        }
-        Region::AU915 => vec![(915000000, 928000000)],
-        Region::CN470 => vec![(470000000, 510000000)],
-        Region::EU433 => vec![(433050000, 434900000)],
-        Region::EU868 => vec![(863000000, 870000000)],
-        Region::IN865 => vec![(865000000, 867000000)],
-        Region::KR920 => vec![(920900000, 923300000)],
-        Region::RU864 => vec![(863000000, 870000000)],
-        Region::US915 => vec![(902000000, 928000000)],
+        Region::AS923 => region::as923::TX_MIN_MAX_FREQS.to_vec(),
+        Region::AS923_2 => region::as923_2::TX_MIN_MAX_FREQS.to_vec(),
+        Region::AS923_3 => region::as923_3::TX_MIN_MAX_FREQS.to_vec(),
+        Region::AS923_4 => region::as923_4::TX_MIN_MAX_FREQS.to_vec(),
+        Region::AU915 => region::au915::TX_MIN_MAX_FREQS.to_vec(),
+        Region::CN470 => region::cn470::TX_MIN_MAX_FREQS.to_vec(),
+        Region::EU433 => region::eu433::TX_MIN_MAX_FREQS.to_vec(),
+        Region::EU868 => region::eu868::TX_MIN_MAX_FREQS.to_vec(),
+        Region::IN865 => region::in865::TX_MIN_MAX_FREQS.to_vec(),
+        Region::KR920 => region::kr920::TX_MIN_MAX_FREQS.to_vec(),
+        Region::RU864 => region::ru864::TX_MIN_MAX_FREQS.to_vec(),
+        Region::US915 => region::us915::TX_MIN_MAX_FREQS.to_vec(),
         _ => return Err(anyhow!("Region is not supported: {}", region)),
     };
 

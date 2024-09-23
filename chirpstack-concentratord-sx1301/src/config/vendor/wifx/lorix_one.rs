@@ -3,6 +3,7 @@ use libloragw_sx1301::hal;
 
 use super::super::super::super::config::{self, Region};
 use super::super::Configuration;
+use libconcentratord::region;
 
 // source:
 // https://github.com/Wifx/meta-wifx/blob/krogoth/recipes-connectivity/packet-forwarder/files/configs/global_conf_EU868_2dBi_indoor.json
@@ -11,7 +12,7 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
     let region = conf.gateway.region.unwrap_or(Region::EU868);
 
     let tx_min_max_freqs = match region {
-        Region::EU868 => vec![(863000000, 870000000)],
+        Region::EU868 => region::eu868::TX_MIN_MAX_FREQS.to_vec(),
         _ => return Err(anyhow!("Region is not supported: {}", region)),
     };
 

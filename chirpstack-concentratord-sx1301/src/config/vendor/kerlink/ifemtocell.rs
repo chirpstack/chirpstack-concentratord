@@ -3,15 +3,16 @@ use libloragw_sx1301::hal;
 
 use super::super::super::super::config::{self, Region};
 use super::super::Configuration;
+use libconcentratord::region;
 
 // source: /tmp/calib_rf.json on gateway
 pub fn new(conf: &config::Configuration) -> Result<Configuration> {
     let region = conf.gateway.region.unwrap_or(Region::EU868);
 
     let tx_min_max_freqs = match region {
-        Region::EU868 => vec![(863000000, 870000000)],
-        Region::IN865 => vec![(865000000, 867000000)],
-        Region::RU864 => vec![(864000000, 870000000)],
+        Region::EU868 => region::eu868::TX_MIN_MAX_FREQS.to_vec(),
+        Region::IN865 => region::in865::TX_MIN_MAX_FREQS.to_vec(),
+        Region::RU864 => region::ru864::TX_MIN_MAX_FREQS.to_vec(),
         _ => return Err(anyhow!("Region is not supported: {}", region)),
     };
 
