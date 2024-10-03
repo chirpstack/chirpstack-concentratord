@@ -2,8 +2,8 @@ use anyhow::Result;
 use libloragw_sx1302::hal;
 
 use super::super::super::super::config::{self, Region};
-use super::super::{ComType, Configuration, Gps, RadioConfig};
-use libconcentratord::region;
+use super::super::{ComType, Configuration, RadioConfig};
+use libconcentratord::{gnss, region};
 
 // source:
 // wget https://www.dragino.com/downloads/downloads/LoRa_Gateway/PG1302/software/draginofwd-32bit.deb
@@ -179,7 +179,7 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
                 tx_gain_table: vec![],
             },
         ],
-        gps: Gps::None,
+        gps: gnss::Device::None,
         com_type: ComType::Spi,
         com_path: conf.gateway.get_com_dev_path("/dev/spidev0.0"),
         sx1302_reset_pin: conf.gateway.get_sx1302_reset_pin("/dev/gpiochip0", 23),

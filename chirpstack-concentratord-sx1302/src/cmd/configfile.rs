@@ -87,6 +87,7 @@ pub fn run(config: &config::Configuration) {
   # the device and pin mapping. In any other case, leave this commented
   # out.
   # gnss_dev_path="/dev/ttyAMA0"
+  # gnss_dev_path="gpsd://localhost:2947"
   # com_dev_path="/dev/spidev0.0"
   # i2c_dev_path="/dev/i2c-1"
   # sx1302_reset_chip="/dev/gpiochip0"

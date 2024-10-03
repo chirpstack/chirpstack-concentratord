@@ -1,9 +1,9 @@
 use anyhow::Result;
-use libconcentratord::region;
+use libconcentratord::{gnss, region};
 use libloragw_sx1302::hal;
 
 use super::super::super::super::config::{self, Region};
-use super::super::{ComType, Configuration, Gps, RadioConfig};
+use super::super::{ComType, Configuration, RadioConfig};
 
 // source:
 // https://github.com/RAKWireless/rak_common_for_gateway/blob/45c93c07f7/lora/rak5146/
@@ -443,8 +443,10 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
             },
         ],
         gps: match gps {
-            true => Gps::TtyPath(conf.gateway.get_gnss_dev_path("/dev/ttyAMA0")),
-            false => Gps::None,
+            true => conf
+                .gateway
+                .get_gnss_dev_path(&gnss::Device::new("/dev/ttyAMA0")),
+            false => gnss::Device::None,
         },
         com_type: match usb {
             true => ComType::Usb,

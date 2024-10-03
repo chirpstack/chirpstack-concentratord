@@ -1,9 +1,9 @@
 use anyhow::Result;
-use libconcentratord::region;
+use libconcentratord::{gnss, region};
 use libloragw_sx1302::hal;
 
 use super::super::super::super::config::{self, Region};
-use super::super::{ComType, Configuration, Gps, RadioConfig};
+use super::super::{ComType, Configuration, RadioConfig};
 
 // source:
 // mPower FW (/opt/lora/global_conf.json.MTCAP3.EU868)
@@ -167,7 +167,7 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
                 tx_gain_table: vec![],
             },
         ],
-        gps: Gps::None,
+        gps: gnss::Device::None,
         com_type: ComType::Spi,
         com_path: conf.gateway.get_com_dev_path("/dev/spidev1.0"),
         reset_commands: Some(vec![

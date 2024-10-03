@@ -1,9 +1,10 @@
 use anyhow::Result;
+use libconcentratord::gnss;
 use libconcentratord::region;
 use libloragw_sx1301::hal;
 
 use super::super::super::super::config::{self, Region};
-use super::super::{Configuration, Gps};
+use super::super::Configuration;
 
 // source: https://github.com/RAKWireless/rak_common_for_gateway/blob/099555865a42238f125c68ded5233a985747c40d/lora/rak2245/global_conf/
 pub fn new(conf: &config::Configuration) -> Result<Configuration> {
@@ -480,8 +481,10 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
         radio_tx_notch_freq: vec![0, 0],
         lora_multi_sf_bandwidth: 125000,
         gps: match gps {
-            true => Gps::TtyPath(conf.gateway.get_gnss_dev_path("/dev/ttyAMA0")),
-            false => Gps::None,
+            true => conf
+                .gateway
+                .get_gnss_dev_path(&gnss::Device::new("/dev/ttyAMA0")),
+            false => gnss::Device::None,
         },
         spidev_path: conf.gateway.get_com_dev_path("/dev/spidev0.0"),
         reset_pin: conf.gateway.get_sx1301_reset_pin("/dev/gpiochip0", 17),

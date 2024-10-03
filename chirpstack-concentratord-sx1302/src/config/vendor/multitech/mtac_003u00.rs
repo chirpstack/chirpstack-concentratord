@@ -2,8 +2,8 @@ use anyhow::Result;
 use libloragw_sx1302::hal;
 
 use super::super::super::super::config::{self, Region};
-use super::super::{ComType, Configuration, Gps, RadioConfig};
-use libconcentratord::region;
+use super::super::{ComType, Configuration, RadioConfig};
+use libconcentratord::{gnss, region};
 
 pub enum Port {
     AP1,
@@ -180,8 +180,10 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
             },
         ],
         gps: match gps {
-            true => Gps::Gpsd,
-            false => Gps::None,
+            true => conf
+                .gateway
+                .get_gnss_dev_path(&gnss::Device::new("gpsd://localhost:2947")),
+            false => gnss::Device::None,
         },
         com_type: ComType::Spi,
         com_path: match port {

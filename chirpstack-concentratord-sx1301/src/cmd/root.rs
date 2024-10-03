@@ -7,7 +7,7 @@ use std::thread;
 use anyhow::Result;
 use libconcentratord::signals;
 use libconcentratord::signals::Signal;
-use libconcentratord::{commands, events, jitqueue, reset};
+use libconcentratord::{commands, events, gnss, jitqueue, reset};
 use libloragw_sx1301::hal;
 
 use super::super::{concentrator, config, handler, wrapper};
@@ -171,7 +171,7 @@ pub fn run(
         }
     }));
 
-    if config.gateway.model_config.gps != config::vendor::Gps::None {
+    if config.gateway.model_config.gps != gnss::Device::None {
         // gps thread
         threads.push(thread::spawn({
             let gps = config.gateway.model_config.gps.clone();

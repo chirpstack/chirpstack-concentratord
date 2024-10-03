@@ -1,3 +1,4 @@
+use libconcentratord::gnss;
 use libloragw_sx1302::hal;
 
 pub mod dragino;
@@ -7,14 +8,6 @@ pub mod rak;
 pub mod seeed;
 pub mod semtech;
 pub mod waveshare;
-
-#[derive(Default, Clone, PartialEq)]
-pub enum Gps {
-    #[default]
-    None,
-    TtyPath(String),
-    Gpsd,
-}
 
 #[derive(Default, Clone, PartialEq, Debug)]
 pub enum ComType {
@@ -30,7 +23,7 @@ pub struct Configuration {
     pub full_duplex: bool,
     pub lora_multi_sf_bandwidth: u32,
     pub radio_config: Vec<RadioConfig>,
-    pub gps: Gps,
+    pub gps: gnss::Device,
     pub com_type: ComType,
     pub com_path: String,
     pub i2c_path: Option<String>,

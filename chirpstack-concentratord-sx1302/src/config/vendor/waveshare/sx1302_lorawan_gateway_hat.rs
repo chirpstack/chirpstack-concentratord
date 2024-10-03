@@ -1,9 +1,9 @@
 use anyhow::Result;
-use libconcentratord::region;
+use libconcentratord::{gnss, region};
 use libloragw_sx1302::hal;
 
 use super::super::super::super::config::{self, Region};
-use super::super::{ComType, Configuration, Gps, RadioConfig};
+use super::super::{ComType, Configuration, RadioConfig};
 
 // source: https://github.com/Lora-net/sx1302_hal/blob/master/packet_forwarder/global_conf.json.sx1250.EU868
 pub fn new(conf: &config::Configuration) -> Result<Configuration> {
@@ -206,7 +206,7 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
                 tx_gain_table: vec![],
             },
         ],
-        gps: Gps::None,
+        gps: gnss::Device::None,
         com_type: ComType::Spi,
         com_path: conf.gateway.get_com_dev_path("/dev/spidev0.0"),
         i2c_path: Some(conf.gateway.get_i2c_dev_path("/dev/i2c-1")),

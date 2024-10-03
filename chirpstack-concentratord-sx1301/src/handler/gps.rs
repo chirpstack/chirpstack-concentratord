@@ -8,8 +8,7 @@ use anyhow::{Context, Result};
 use chrono::offset::Utc;
 use chrono::DateTime;
 
-use crate::config;
-use libconcentratord::{gpsd, signals::Signal};
+use libconcentratord::{gnss, gpsd, signals::Signal};
 use libloragw_sx1301::{gps, hal};
 
 lazy_static! {
@@ -43,22 +42,22 @@ pub fn set_static_gps_coords(lat: f64, lon: f64, alt: i16) {
     }
 }
 
-pub fn gps_loop(gps_device: config::vendor::Gps, stop_receive: Receiver<Signal>) -> Result<()> {
+pub fn gps_loop(gps_device: gnss::Device, stop_receive: Receiver<Signal>) -> Result<()> {
     debug!("Starting GPS loop");
 
     let mut gps_reader: Box<dyn BufRead> = match gps_device {
-        config::vendor::Gps::TtyPath(tty_path) => {
+        gnss::Device::TtyPath(tty_path) => {
             info!("Enabling GPS device, tty_path: {}", tty_path);
             let gps_file = gps::enable(&tty_path, gps::GPSFamily::UBX7, 0)
                 .expect("could not open gps tty path for gps sync");
             Box::new(BufReader::new(gps_file)) as Box<dyn BufRead>
         }
-        config::vendor::Gps::Gpsd => {
+        gnss::Device::Gpsd(gpsd_host) => {
             info!("Starting gpsd reader, server: localhost:2947");
-            Box::new(gpsd::get_reader("localhost:2947").expect("could not open gpsd reader"))
+            Box::new(gpsd::get_reader(&gpsd_host).expect("could not open gpsd reader"))
                 as Box<dyn BufRead>
         }
-        config::vendor::Gps::None => {
+        gnss::Device::None => {
             warn!("No GPS device configured");
             return Ok(());
         }

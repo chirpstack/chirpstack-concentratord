@@ -3,6 +3,7 @@ use std::{env, fmt, fs};
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
+use libconcentratord::gnss;
 use libconcentratord::regulation::{standard, tracker::Tracker};
 
 pub mod helpers;
@@ -86,7 +87,7 @@ pub struct Gateway {
     pub beacon: Beacon,
     pub location: Location,
 
-    pub gnss_dev_path: Option<String>,
+    pub gnss_dev_path: Option<gnss::Device>,
     pub com_dev_path: Option<String>,
     pub sx1301_reset_chip: Option<String>,
     pub sx1301_reset_pin: Option<u32>,
@@ -124,10 +125,8 @@ impl Default for Gateway {
 }
 
 impl Gateway {
-    pub fn get_gnss_dev_path(&self, gnss_dev_path: &str) -> String {
-        self.gnss_dev_path
-            .clone()
-            .unwrap_or(gnss_dev_path.to_string())
+    pub fn get_gnss_dev_path(&self, gnss_dev_path: &gnss::Device) -> gnss::Device {
+        self.gnss_dev_path.clone().unwrap_or(gnss_dev_path.clone())
     }
 
     pub fn get_com_dev_path(&self, com_dev_path: &str) -> String {

@@ -2,8 +2,8 @@ use anyhow::Result;
 use libloragw_sx1302::hal;
 
 use super::super::super::super::config::{self, Region};
-use super::super::{ComType, Configuration, Gps, RadioConfig};
-use libconcentratord::region;
+use super::super::{ComType, Configuration, RadioConfig};
+use libconcentratord::{gnss, region};
 
 // source: https://github.com/Lora-net/sx1302_hal/blob/master/packet_forwarder/
 // Note: At the time of implementation, Embit does not provide tx_gain_table values.
@@ -200,7 +200,7 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
                 tx_gain_table: vec![],
             },
         ],
-        gps: Gps::None,
+        gps: gnss::Device::None,
         com_type: match usb {
             true => ComType::Usb,
             false => ComType::Spi,
