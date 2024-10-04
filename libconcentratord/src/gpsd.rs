@@ -44,10 +44,9 @@ pub fn get_reader(server: &str) -> Result<BufReader<TcpStream>> {
 
     for device in &resp.devices {
         if device.driver == "u-blox" {
+            let config_str = format!("&{}=b5620601080001200001010000003294\r\n", device.path);
             debug!("Configuring uBlox device {} for NAV-TIMEGPS", device.path);
-            writer.write_all(
-                format!("&{}=b5620601080001200001010000003294", device.path).as_bytes(),
-            )?;
+            writer.write_all(config_str.as_bytes())?;
             writer.flush()?;
         }
     }

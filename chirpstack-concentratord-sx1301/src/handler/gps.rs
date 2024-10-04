@@ -98,6 +98,7 @@ pub fn gps_loop(gps_device: gnss::Device, stop_receive: Receiver<Signal>) -> Res
                 match gps::parse_ubx(&buffer) {
                     Ok((m_type, _)) => {
                         if m_type == gps::MessageType::UBX_NAV_TIMEGPS {
+                            debug!("Processing u-blox NAV-TIMEGPS");
                             gps_process_sync();
                         }
                     }
@@ -116,6 +117,7 @@ pub fn gps_loop(gps_device: gnss::Device, stop_receive: Receiver<Signal>) -> Res
                 match gps::parse_nmea(&buffer[..buffer.len() - 1]) {
                     Ok(m_type) => {
                         if m_type == gps::MessageType::NMEA_RMC {
+                            debug!("Processing NMEA RMC");
                             gps_process_coords();
                         }
                     }
