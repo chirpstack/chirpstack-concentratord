@@ -10,4 +10,4 @@
   anyhow = "1.0"
 
 [build-dependencies]
-  bindgen = "0.69"
+  bindgen = "0.70"
