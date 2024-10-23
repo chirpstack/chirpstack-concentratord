@@ -89,6 +89,7 @@ pub struct Gateway {
     pub region: Option<Region>,
     pub model: String,
     pub model_flags: Vec<String>,
+    pub gateway_id: String,
 
     pub time_fallback_enabled: bool,
     pub concentrator: Concentrator,
@@ -111,6 +112,8 @@ pub struct Gateway {
     pub i2c_dev_path: Option<String>,
 
     #[serde(skip)]
+    pub gateway_id_bytes: Vec<u8>,
+    #[serde(skip)]
     pub model_config: vendor::Configuration,
     #[serde(skip)]
     pub config_version: String,
@@ -124,6 +127,7 @@ impl Default for Gateway {
             region: None,
             model: "".into(),
             model_flags: vec![],
+            gateway_id: "0000000000000000".into(),
             time_fallback_enabled: false,
             concentrator: Concentrator::default(),
             beacon: Beacon::default(),
@@ -135,6 +139,7 @@ impl Default for Gateway {
             sx1302_power_en_pin: None,
             sx1261_reset_chip: None,
             sx1261_reset_pin: None,
+            gateway_id_bytes: vec![],
             gnss_dev_path: None,
             com_dev_path: None,
             i2c_dev_path: None,
@@ -280,6 +285,7 @@ fn example_configuration() -> Configuration {
         gateway: Gateway {
             lorawan_public: true,
             model: "rak_2287_eu868".to_string(),
+            gateway_id: "0000000000000000".to_string(),
             concentrator: Concentrator {
                 multi_sf_channels: [
                     868100000, 868300000, 868500000, 867100000, 867300000, 867500000, 867700000,
@@ -320,6 +326,13 @@ pub fn get(filenames: Vec<String>) -> Configuration {
     }
 
     let mut config: Configuration = toml::from_str(&content).expect("Error parsing config file");
+
+    // decode gateway id
+    let bytes = hex::decode(&config.gateway.gateway_id).expect("Could not decode gateway_id");
+    if bytes.len() != 8 {
+        panic!("gateway_id must be exactly 8 bytes");
+    }
+    config.gateway.gateway_id_bytes = bytes;
 
     // get model configuration
     config.gateway.model_config = match config.gateway.model.as_ref() {

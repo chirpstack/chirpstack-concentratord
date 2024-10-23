@@ -10,6 +10,9 @@ DAEMON_PID=/var/run/$NAME.pid
 read_lora_hw_info() {
 	lora_id=$(mts-io-sysfs show lora/product-id 2> /dev/null)
 	lora_hw=$(mts-io-sysfs show lora/hw-version 2> /dev/null)
+	lora_eui=$(mts-io-sysfs show lora/eui 2> /dev/null)
+        # remove all colons
+        lora_eui_raw=${lora_eui//:/}
 }
 
 hardware_found() {
@@ -43,6 +46,7 @@ copy_config() {
 
 	sed -i "s/region=.*/region=\"${region}\"/" $DAEMON_CONF_DIR/concentratord.toml
 	sed -i "s/model=.*/model=\"multitech_${model}\"/" $DAEMON_CONF_DIR/concentratord.toml
+	sed -i "s/gateway_id=.*/gateway_id=\"${lora_eui_raw}\"/" $DAEMON_CONF_DIR/concentratord.toml
 }
 
 do_start() {

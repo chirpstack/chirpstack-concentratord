@@ -74,6 +74,9 @@ pub fn run(config: &config::Configuration) {
   #     USB  - Use USB for concentrator communication (default is SPI)
   model_flags=[{{#each gateway.model_flags}}"{{ this }},{{/each}}]
 
+  # Gateway ID.
+  gateway_id="{{ gateway.gateway_id }}"
+
   # Time fallback.
   #
   # In case the gateway does not have a GNSS module or is unable to aquire a
