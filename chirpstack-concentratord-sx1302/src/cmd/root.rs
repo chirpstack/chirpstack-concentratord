@@ -45,25 +45,17 @@ pub fn run(
     );
 
     // get concentrator eui
-    let mut gateway_id = concentrator::get_eui().unwrap();
+    let gateway_id = if let Some(gateway_id) = config.gateway.gateway_id_bytes {
+        gateway_id
+    }
+    else {
+        concentrator::get_eui().unwrap()
+    };
 
     info!(
         "Gateway ID retrieved, gateway_id: {:x?}",
         hex::encode(gateway_id)
     );
-
-    // check if gateway_id is specified in config file,
-    // in which case it will override the embedded sx1302 eui
-    let sum: u8 = config.gateway.gateway_id_bytes.iter().sum();
-    if sum != 0 {
-        let id = config.gateway.gateway_id_bytes.as_slice();
-        gateway_id = id[0..8].try_into().unwrap();
-
-        info!(
-            "Gateway ID overriden by config, gateway_id: {:x?}",
-            hex::encode(gateway_id)
-        );
-    }
 
     // setup jit queue
     let queue: jitqueue::Queue<wrapper::TxPacket> =
