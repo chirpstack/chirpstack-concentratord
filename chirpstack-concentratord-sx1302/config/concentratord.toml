@@ -57,6 +57,7 @@ model=""
 # Gateway vendor / model flags.
 model_flags=[]
 
-# Override Gateway ID.
-# Comment out to use the embedded SX1302 EUI.
+# Gateway ID.
+#
+# Only set this if you would like to override the Gateway ID provided by the SX1302/3.
 gateway_id=""

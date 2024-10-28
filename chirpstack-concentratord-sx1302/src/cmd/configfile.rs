@@ -75,6 +75,8 @@ pub fn run(config: &config::Configuration) {
   model_flags=[{{#each gateway.model_flags}}"{{ this }},{{/each}}]
 
   # Gateway ID.
+  #
+  # Only set this if you would like to override the Gateway ID provided by the SX1302/3.
   gateway_id="{{ gateway.gateway_id }}"
 
   # Time fallback.
