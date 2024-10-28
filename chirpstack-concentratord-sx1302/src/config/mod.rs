@@ -285,7 +285,6 @@ fn example_configuration() -> Configuration {
         gateway: Gateway {
             lorawan_public: true,
             model: "rak_2287_eu868".to_string(),
-            gateway_id: None,
             concentrator: Concentrator {
                 multi_sf_channels: [
                     868100000, 868300000, 868500000, 867100000, 867300000, 867500000, 867700000,
