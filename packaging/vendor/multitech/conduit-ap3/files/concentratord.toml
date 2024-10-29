@@ -49,6 +49,8 @@ model=""
 model_flags=[]
 
 # Gateway ID.
+#
+# Only set this if you would like to override the Gateway ID provided by the SX1302/3.
 gateway_id=""
 
 # Time fallback.

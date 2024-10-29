@@ -89,6 +89,7 @@ pub struct Gateway {
     pub region: Option<Region>,
     pub model: String,
     pub model_flags: Vec<String>,
+    pub gateway_id: Option<String>,
 
     pub time_fallback_enabled: bool,
     pub concentrator: Concentrator,
@@ -111,6 +112,8 @@ pub struct Gateway {
     pub i2c_dev_path: Option<String>,
 
     #[serde(skip)]
+    pub gateway_id_bytes: Option<[u8; 8]>,
+    #[serde(skip)]
     pub model_config: vendor::Configuration,
     #[serde(skip)]
     pub config_version: String,
@@ -124,6 +127,7 @@ impl Default for Gateway {
             region: None,
             model: "".into(),
             model_flags: vec![],
+            gateway_id: None,
             time_fallback_enabled: false,
             concentrator: Concentrator::default(),
             beacon: Beacon::default(),
@@ -135,6 +139,7 @@ impl Default for Gateway {
             sx1302_power_en_pin: None,
             sx1261_reset_chip: None,
             sx1261_reset_pin: None,
+            gateway_id_bytes: None,
             gnss_dev_path: None,
             com_dev_path: None,
             i2c_dev_path: None,
@@ -320,6 +325,16 @@ pub fn get(filenames: Vec<String>) -> Configuration {
     }
 
     let mut config: Configuration = toml::from_str(&content).expect("Error parsing config file");
+
+    // decode gateway id
+    if let Some(gateway_id) = &config.gateway.gateway_id {
+        let bytes = hex::decode(gateway_id).expect("Could not decode gateway_id");
+        if bytes.len() != 8 {
+            panic!("gateway_id must be exactly 8 bytes");
+        }
+        let id = bytes.as_slice();
+        config.gateway.gateway_id_bytes = Some(id[0..8].try_into().unwrap());
+    }
 
     // get model configuration
     config.gateway.model_config = match config.gateway.model.as_ref() {
