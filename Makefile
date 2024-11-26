@@ -18,6 +18,11 @@ build-armv7-unknown-linux-musleabihf:
 build-x86_64-unknown-linux-musl:
 	cross build --target x86_64-unknown-linux-musl --release
 
+build-mipsel-unknown-linux-musl:
+	# mipsel is a tier-3 target.
+	rustup toolchain add nightly-2024-05-17-x86_64-unknown-linux-gnu
+	cross +nightly-2024-05-17 build -Z build-std=std --target mipsel-unknown-linux-musl --release
+
 # Build distributable binaries for all targets.
 dist: dist-aarch64-unknown-linux-musl \
 	dist-armv5te-unknown-linux-musleabi \

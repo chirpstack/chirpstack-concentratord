@@ -1,0 +1,54 @@
+FROM ghcr.io/cross-rs/mipsel-unknown-linux-musl:main
+
+ENV SX1301_VERSION=v5.0.1r4
+ENV SX1302_VERSION=V2.1.0r9
+ENV SX2G4_VERSION=V1.1.0
+
+ENV HAL_ARCH=mips
+ENV MUSL_PREFIX=mipsel-linux-muslsf
+
+RUN apt-get update && \
+    apt-get --assume-yes install \
+    protobuf-compiler \
+    libprotobuf-dev \
+    git
+
+RUN mkdir /hal
+
+# Needed for RAK shields, works with other shields too
+# sed -i 's/define SPI_SPEED.*/define SPI_SPEED 2000000/g' /hal/lora_gateway/libloragw/src/loragw_spi.native.c
+
+RUN echo "Building sx1301 HAL" && \
+    cd /hal && \
+    git clone https://github.com/brocaar/lora_gateway.git -b $SX1301_VERSION && \
+    cd /hal/lora_gateway && \
+    sed -i "s/CFLAGS :=.*/CFLAGS := -O2 -Wall -Wextra -std=c99 -Iinc -I. -fPIC/g" libloragw/Makefile && \
+    ARCH=$ARCH CROSS_COMPILE=$MUSL_PREFIX- make && \
+    ln -s /hal/lora_gateway/libloragw/inc /usr/local/$MUSL_PREFIX/include/libloragw-sx1301 && \
+    ln -s /hal/lora_gateway/libloragw/libloragw.a /usr/local/$MUSL_PREFIX/lib/libloragw-sx1301.a
+
+RUN echo "Building sx1302 HAL" && \
+    cd /hal && \
+    git clone https://github.com/brocaar/sx1302_hal.git -b $SX1302_VERSION && \
+    cd /hal/sx1302_hal && \
+    sed -i "s/CFLAGS :=.*/CFLAGS := -O2 -Wall -Wextra -std=c99 -Iinc -I. -I..\/libtools\/inc -fPIC/g" libloragw/Makefile && \
+    sed -i "s/CFLAGS :=.*/CFLAGS := -O2 -Wall -Wextra -std=c99 -Iinc -I. -fPIC/g" libtools/Makefile && \
+    ARCH=$ARCH CROSS_COMPILE=$MUSL_PREFIX- make libloragw && \
+    ln -s /hal/sx1302_hal/libloragw/inc /usr/local/$MUSL_PREFIX/include/libloragw-sx1302 && \
+    ln -s /hal/sx1302_hal/libloragw/libloragw.a /usr/local/$MUSL_PREFIX/lib/libloragw-sx1302.a && \
+    cp /hal/sx1302_hal/libtools/inc/* /usr/local/$MUSL_PREFIX/include && \
+    cp /hal/sx1302_hal/libtools/*.a /usr/local/$MUSL_PREFIX/lib
+
+RUN echo "Building 2g4 HAL" && \
+    cd /hal && \
+    git clone https://github.com/Lora-net/gateway_2g4_hal.git -b $SX2G4_VERSION && \
+    cd /hal/gateway_2g4_hal && \
+    sed -i "s/CFLAGS :=.*/CFLAGS := -g -O0 -Wall -Wextra -std=c99 -Iinc -I. -fPIC/g" libloragw/Makefile && \
+    sed -i "s/CFLAGS :=.*/CFLAGS := -g -O0 -Wall -Wextra -std=c99 -Iinc -I. -fPIC/g" libtools/Makefile && \
+    ARCH=$ARCH CROSS_COMPILE=$MUSL_PREFIX- make libloragw && \
+    ln -s /hal/gateway_2g4_hal/libloragw/inc /usr/local/$MUSL_PREFIX/include/libloragw-2g4 && \
+    ln -s /hal/gateway_2g4_hal/libloragw/libloragw.a /usr/local/$MUSL_PREFIX/lib/libloragw-2g4.a
+
+RUN echo "Copy libstdc++" && \
+    mkdir -p /usr/local/$MUSL_PREFIX-target/lib && \
+    cp /usr/local/$MUSL_PREFIX/lib/libstdc++* /usr/local/$MUSL_PREFIX-target/lib
