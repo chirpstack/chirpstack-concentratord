@@ -1,5 +1,6 @@
 use std::io::{BufRead, BufReader, BufWriter, Write};
 use std::net::TcpStream;
+use std::time::Duration;
 
 use anyhow::Result;
 use log::{debug, info};
@@ -13,12 +14,14 @@ struct DevicesResponse {
 #[derive(Debug, Clone, Deserialize)]
 struct DevicesResponseDevice {
     pub path: String,
-    pub driver: String,
+    pub driver: Option<String>,
 }
 
 pub fn get_reader(server: &str) -> Result<BufReader<TcpStream>> {
     info!("Connecting to gpsd, server: {}", server);
     let stream = TcpStream::connect(server)?;
+    stream.set_read_timeout(Some(Duration::from_secs(5)))?;
+
     let mut reader = BufReader::new(stream.try_clone()?);
     let mut writer = BufWriter::new(stream);
 
@@ -34,8 +37,8 @@ pub fn get_reader(server: &str) -> Result<BufReader<TcpStream>> {
     // DEVICES
     let mut b = Vec::new();
     reader.read_until(b'\n', &mut b)?;
-    let resp: DevicesResponse = serde_json::from_slice(&b)?;
     debug!("Devices response: {}", String::from_utf8(b.clone())?);
+    let resp: DevicesResponse = serde_json::from_slice(&b)?;
 
     // WATCH
     let mut b = Vec::new();
@@ -43,13 +46,16 @@ pub fn get_reader(server: &str) -> Result<BufReader<TcpStream>> {
     debug!("Watch response: {}", String::from_utf8(b.clone())?);
 
     for device in &resp.devices {
-        if device.driver == "u-blox" {
-            let config_str = format!("&{}=b5620601080001200001010000003294\r\n", device.path);
-            debug!("Configuring uBlox device {} for NAV-TIMEGPS", device.path);
-            writer.write_all(config_str.as_bytes())?;
-            writer.flush()?;
+        if let Some(driver) = &device.driver {
+            if driver == "u-blox" {
+                let config_str = format!("&{}=b5620601080001200001010000003294\r\n", device.path);
+                debug!("Configuring uBlox device {} for NAV-TIMEGPS", device.path);
+                writer.write_all(config_str.as_bytes())?;
+                writer.flush()?;
+                return Ok(reader);
+            }
         }
     }
 
-    Ok(reader)
+    Err(anyhow!("No u-blox GNSS device found"))
 }
