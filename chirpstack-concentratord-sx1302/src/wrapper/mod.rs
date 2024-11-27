@@ -116,7 +116,7 @@ pub fn uplink_to_proto(
                     hal::Modulation::FSK => {
                         Some(gw::modulation::Parameters::Fsk(gw::FskModulationInfo {
                             datarate: match packet.datarate {
-                                hal::DataRate::FSK(v) => v * 1000,
+                                hal::DataRate::FSK(v) => v,
                                 _ => return Err(anyhow!("unexpected datarate")),
                             },
                             ..Default::default()
@@ -333,7 +333,7 @@ pub fn downlink_to_tx_info_proto(packet: &hal::TxPacket) -> Result<gw::DownlinkT
                 hal::Modulation::FSK => {
                     Some(gw::modulation::Parameters::Fsk(gw::FskModulationInfo {
                         datarate: match packet.datarate {
-                            hal::DataRate::FSK(v) => v * 1000,
+                            hal::DataRate::FSK(v) => v,
                             _ => return Err(anyhow!("unexpected datarate")),
                         },
                         ..Default::default()
