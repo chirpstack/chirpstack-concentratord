@@ -184,7 +184,7 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
 name = "chirpstack-concentratord-2g4"
-version = "4.4.5"
+version = "4.4.6"
 dependencies = [
  "anyhow",
  "chirpstack_api",
@@ -210,7 +210,7 @@ dependencies = [
 
 [[package]]
 name = "chirpstack-concentratord-sx1301"
-version = "4.4.5"
+version = "4.4.6"
 dependencies = [
  "anyhow",
  "chirpstack_api",
@@ -236,7 +236,7 @@ dependencies = [
 
 [[package]]
 name = "chirpstack-concentratord-sx1302"
-version = "4.4.5"
+version = "4.4.6"
 dependencies = [
  "anyhow",
  "chirpstack_api",
@@ -502,7 +502,7 @@ checksum = "0ce7134b9999ecaf8bcd65542e436736ef32ddca1b3e06094cb6ec5755203b80"
 
 [[package]]
 name = "gateway-id"
-version = "4.4.5"
+version = "4.4.6"
 dependencies = [
  "clap",
  "hex",
@@ -704,7 +704,7 @@ checksum = "5aaeb2981e0606ca11d79718f8bb01164f1d6ed75080182d3abf017e6d244b6d"
 
 [[package]]
 name = "libconcentratord"
-version = "4.4.5"
+version = "4.4.6"
 dependencies = [
  "anyhow",
  "chirpstack_api",
