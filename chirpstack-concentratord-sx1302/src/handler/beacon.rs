@@ -71,7 +71,7 @@ fn send_beacon(
     beacon_time: Duration,
     queue: &Arc<Mutex<jitqueue::Queue<wrapper::TxPacket>>>,
 ) -> Result<()> {
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
 
     let mut beacon_pl = get_beacon(conf.compulsory_rfu_size, beacon_time);
     let data_size = beacon_pl.len();
@@ -111,7 +111,7 @@ fn send_beacon(
         payload: data,
         ..Default::default()
     };
-    let tx_packet = wrapper::TxPacket::new(rng.gen(), tx_packet);
+    let tx_packet = wrapper::TxPacket::new(rng.random(), tx_packet);
 
     queue
         .lock()

@@ -65,8 +65,8 @@ pub fn uplink_to_proto(
     packet: &hal::RxPacket,
     time_fallback: bool,
 ) -> Result<gw::UplinkFrame> {
-    let mut rng = rand::thread_rng();
-    let uplink_id: u32 = rng.gen();
+    let mut rng = rand::rng();
+    let uplink_id: u32 = rng.random();
 
     let time_since_gps_epoch = match gps::cnt2epoch(packet.count_us) {
         Ok(v) => Some(prost_types::Duration {

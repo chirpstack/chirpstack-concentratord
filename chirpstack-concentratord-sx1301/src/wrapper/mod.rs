@@ -65,7 +65,7 @@ pub fn uplink_to_proto(
     packet: &hal::RxPacket,
     time_fallback: bool,
 ) -> Result<gw::UplinkFrame> {
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
 
     // tx info
     let mut tx_info = gw::UplinkTxInfo {
@@ -117,7 +117,7 @@ pub fn uplink_to_proto(
 
     // rx info
     let mut rx_info = gw::UplinkRxInfo {
-        uplink_id: rng.gen(),
+        uplink_id: rng.random(),
         context: packet.count_us.to_be_bytes().to_vec(),
         gateway_id: hex::encode(gateway_id),
         rssi: packet.rssi as i32,
