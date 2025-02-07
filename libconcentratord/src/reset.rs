@@ -4,16 +4,15 @@ use std::thread::sleep;
 use std::time::Duration;
 
 use anyhow::Result;
-use gpio_cdev::{Chip, LineHandle, LineRequestFlags};
 use log::info;
 
 type ResetCommand = (String, Vec<String>);
 
 lazy_static! {
-    static ref SX130X_RESET: Mutex<Option<LineHandle>> = Mutex::new(None);
-    static ref SX1302_POWER_EN: Mutex<Option<LineHandle>> = Mutex::new(None);
-    static ref SX1261_RESET: Mutex<Option<LineHandle>> = Mutex::new(None);
-    static ref AD5338R_RESET: Mutex<Option<LineHandle>> = Mutex::new(None);
+    static ref SX130X_RESET: Mutex<Option<gpiocdev::Request>> = Mutex::new(None);
+    static ref SX1302_POWER_EN: Mutex<Option<gpiocdev::Request>> = Mutex::new(None);
+    static ref SX1261_RESET: Mutex<Option<gpiocdev::Request>> = Mutex::new(None);
+    static ref AD5338R_RESET: Mutex<Option<gpiocdev::Request>> = Mutex::new(None);
     static ref RESET_COMMANDS: Mutex<Option<Vec<ResetCommand>>> = Mutex::new(None);
 }
 
@@ -33,10 +32,14 @@ pub fn setup_pins(config: Configuration) -> Result<()> {
             sx130x_reset.0, sx130x_reset.1
         );
 
-        let mut chip = Chip::new(sx130x_reset.0)?;
-        let line = chip.get_line(sx130x_reset.1)?;
+        let req = gpiocdev::Request::builder()
+            .on_chip(sx130x_reset.0)
+            .with_line(sx130x_reset.1)
+            .as_output(gpiocdev::line::Value::Inactive)
+            .request()?;
+
         let mut sx130x_reset = SX130X_RESET.lock().unwrap();
-        *sx130x_reset = Some(line.request(LineRequestFlags::OUTPUT, 0, "sx130x_reset")?);
+        *sx130x_reset = Some(req);
     }
 
     if let Some(sx1302_power_en) = config.sx1302_power_en {
@@ -45,10 +48,14 @@ pub fn setup_pins(config: Configuration) -> Result<()> {
             sx1302_power_en.0, sx1302_power_en.1
         );
 
-        let mut chip = Chip::new(sx1302_power_en.0)?;
-        let line = chip.get_line(sx1302_power_en.1)?;
+        let req = gpiocdev::Request::builder()
+            .on_chip(sx1302_power_en.0)
+            .with_line(sx1302_power_en.1)
+            .as_output(gpiocdev::line::Value::Inactive)
+            .request()?;
+
         let mut sx1302_power_en = SX1302_POWER_EN.lock().unwrap();
-        *sx1302_power_en = Some(line.request(LineRequestFlags::OUTPUT, 0, "sx1302_power_en")?);
+        *sx1302_power_en = Some(req);
     }
 
     if let Some(sx1261_reset) = config.sx1261_reset {
@@ -57,10 +64,14 @@ pub fn setup_pins(config: Configuration) -> Result<()> {
             sx1261_reset.0, sx1261_reset.1
         );
 
-        let mut chip = Chip::new(sx1261_reset.0)?;
-        let line = chip.get_line(sx1261_reset.1)?;
+        let req = gpiocdev::Request::builder()
+            .on_chip(sx1261_reset.0)
+            .with_line(sx1261_reset.1)
+            .as_output(gpiocdev::line::Value::Inactive)
+            .request()?;
+
         let mut sx1261_reset = SX1261_RESET.lock().unwrap();
-        *sx1261_reset = Some(line.request(LineRequestFlags::OUTPUT, 0, "sx1261_reset")?);
+        *sx1261_reset = Some(req);
     }
 
     if let Some(ad5338r_reset) = config.ad5338r_reset {
@@ -69,10 +80,14 @@ pub fn setup_pins(config: Configuration) -> Result<()> {
             ad5338r_reset.0, ad5338r_reset.1
         );
 
-        let mut chip = Chip::new(ad5338r_reset.0)?;
-        let line = chip.get_line(ad5338r_reset.1)?;
+        let req = gpiocdev::Request::builder()
+            .on_chip(ad5338r_reset.0)
+            .with_line(ad5338r_reset.1)
+            .as_output(gpiocdev::line::Value::Inactive)
+            .request()?;
+
         let mut ad5338r_reset = AD5338R_RESET.lock().unwrap();
-        *ad5338r_reset = Some(line.request(LineRequestFlags::OUTPUT, 0, "ad5338r_reset")?);
+        *ad5338r_reset = Some(req);
     }
 
     if let Some(reset_commands) = config.reset_commands {
@@ -92,7 +107,7 @@ pub fn reset() -> Result<()> {
 
         info!("Enabling concentrator power");
 
-        sx1302_power_en.set_value(1)?;
+        sx1302_power_en.set_lone_value(gpiocdev::line::Value::Active)?;
         sleep(Duration::from_millis(100));
     }
 
@@ -102,9 +117,9 @@ pub fn reset() -> Result<()> {
 
         info!("Triggering sx130x reset");
 
-        sx130x.set_value(1)?;
+        sx130x.set_lone_value(gpiocdev::line::Value::Active)?;
         sleep(Duration::from_millis(100));
-        sx130x.set_value(0)?;
+        sx130x.set_lone_value(gpiocdev::line::Value::Inactive)?;
         sleep(Duration::from_millis(100));
     }
 
@@ -114,9 +129,9 @@ pub fn reset() -> Result<()> {
 
         info!("Triggering sx1261 reset");
 
-        sx1261_reset.set_value(0)?;
+        sx1261_reset.set_lone_value(gpiocdev::line::Value::Inactive)?;
         sleep(Duration::from_millis(100));
-        sx1261_reset.set_value(1)?;
+        sx1261_reset.set_lone_value(gpiocdev::line::Value::Active)?;
         sleep(Duration::from_millis(100));
     }
 
@@ -125,9 +140,9 @@ pub fn reset() -> Result<()> {
         let ad5338r_reset = ad5338r_reset.as_ref().unwrap();
 
         info!("Triggering AD5338R reset");
-        ad5338r_reset.set_value(0)?;
+        ad5338r_reset.set_lone_value(gpiocdev::line::Value::Inactive)?;
         sleep(Duration::from_millis(100));
-        ad5338r_reset.set_value(1)?;
+        ad5338r_reset.set_lone_value(gpiocdev::line::Value::Active)?;
         sleep(Duration::from_millis(100));
     }
 
