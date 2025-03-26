@@ -5,7 +5,7 @@
   license = "MIT"
   version = "4.4.7"
   authors = ["Orne Brocaar <info@brocaar.com>"]
-  edition = "2021"
+  edition = "2024"
   publish = false
 
 [dependencies]

@@ -1,5 +1,4 @@
-use std::sync::Mutex;
+use std::sync::{LazyLock, Mutex};
 
-lazy_static! {
-    pub static ref ZMQ_CONTEXT: Mutex<zmq::Context> = Mutex::new(zmq::Context::new());
-}
+pub static ZMQ_CONTEXT: LazyLock<Mutex<zmq::Context>> =
+    LazyLock::new(|| Mutex::new(zmq::Context::new()));

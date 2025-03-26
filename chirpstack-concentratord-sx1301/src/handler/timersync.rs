@@ -1,5 +1,5 @@
 use std::sync::mpsc::Receiver;
-use std::sync::Mutex;
+use std::sync::{LazyLock, Mutex};
 use std::time::{Duration, SystemTime};
 
 use anyhow::Result;
@@ -7,14 +7,15 @@ use anyhow::Result;
 use libconcentratord::signals::Signal;
 use libloragw_sx1301::{hal, reg, wrapper};
 
-lazy_static! {
-    static ref PREV_CONCENTRATOR_COUNT: Mutex<u32> = Mutex::new(hal::get_trigcnt().unwrap());
-    static ref PREV_UNIX_TIME: Mutex<Duration> = Mutex::new(
+static PREV_CONCENTRATOR_COUNT: LazyLock<Mutex<u32>> =
+    LazyLock::new(|| Mutex::new(hal::get_trigcnt().unwrap()));
+static PREV_UNIX_TIME: LazyLock<Mutex<Duration>> = LazyLock::new(|| {
+    Mutex::new(
         SystemTime::now()
             .duration_since(SystemTime::UNIX_EPOCH)
-            .unwrap()
-    );
-}
+            .unwrap(),
+    )
+});
 
 pub fn timesync_loop(stop_receive: Receiver<Signal>) -> Result<()> {
     debug!("Starting timesync loop");

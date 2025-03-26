@@ -1,16 +1,14 @@
 #[macro_use]
 extern crate log;
 #[macro_use]
-extern crate lazy_static;
-#[macro_use]
 extern crate anyhow;
 extern crate simple_logger;
 extern crate syslog;
 
 use std::process;
+use std::rc::Rc;
 use std::str::FromStr;
 use std::sync::mpsc::channel;
-use std::rc::Rc;
 use std::thread;
 
 use clap::{Parser, Subcommand};

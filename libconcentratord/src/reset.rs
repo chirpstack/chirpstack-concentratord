@@ -1,5 +1,5 @@
 use std::process::Command;
-use std::sync::Mutex;
+use std::sync::{LazyLock, Mutex};
 use std::thread::sleep;
 use std::time::Duration;
 
@@ -8,13 +8,16 @@ use log::info;
 
 type ResetCommand = (String, Vec<String>);
 
-lazy_static! {
-    static ref SX130X_RESET: Mutex<Option<gpiocdev::Request>> = Mutex::new(None);
-    static ref SX1302_POWER_EN: Mutex<Option<gpiocdev::Request>> = Mutex::new(None);
-    static ref SX1261_RESET: Mutex<Option<gpiocdev::Request>> = Mutex::new(None);
-    static ref AD5338R_RESET: Mutex<Option<gpiocdev::Request>> = Mutex::new(None);
-    static ref RESET_COMMANDS: Mutex<Option<Vec<ResetCommand>>> = Mutex::new(None);
-}
+static SX130X_RESET: LazyLock<Mutex<Option<gpiocdev::Request>>> =
+    LazyLock::new(|| Mutex::new(None));
+static SX1302_POWER_EN: LazyLock<Mutex<Option<gpiocdev::Request>>> =
+    LazyLock::new(|| Mutex::new(None));
+static SX1261_RESET: LazyLock<Mutex<Option<gpiocdev::Request>>> =
+    LazyLock::new(|| Mutex::new(None));
+static AD5338R_RESET: LazyLock<Mutex<Option<gpiocdev::Request>>> =
+    LazyLock::new(|| Mutex::new(None));
+static RESET_COMMANDS: LazyLock<Mutex<Option<Vec<ResetCommand>>>> =
+    LazyLock::new(|| Mutex::new(None));
 
 #[derive(Default)]
 pub struct Configuration {

@@ -5,7 +5,7 @@
   license = "MIT"
   version = "4.4.7"
   authors = ["Orne Brocaar <info@brocaar.com>"]
-  edition = "2021"
+  edition = "2024"
   publish = false
 
 [dependencies]
@@ -19,7 +19,6 @@
   simple_logger = "5.0"
   zmq = "0.10"
   hex = "0.4"
-  lazy_static = "1.5"
   chrono = "0.4"
   humantime-serde = "1.1"
   syslog = "7.0"

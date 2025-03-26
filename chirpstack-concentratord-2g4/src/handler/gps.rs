@@ -1,10 +1,9 @@
-use std::sync::Mutex;
+use std::sync::{LazyLock, Mutex};
 
 use libloragw_2g4::gps;
 
-lazy_static! {
-    static ref STATIC_GPS_COORDS: Mutex<Option<gps::Coordinates>> = Mutex::new(None);
-}
+static STATIC_GPS_COORDS: LazyLock<Mutex<Option<gps::Coordinates>>> =
+    LazyLock::new(|| Mutex::new(None));
 
 pub fn set_static_gps_coords(lat: f64, lon: f64, alt: i16) {
     let mut static_gps_coords = STATIC_GPS_COORDS.lock().unwrap();

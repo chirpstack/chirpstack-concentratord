@@ -1,28 +1,30 @@
 use std::cmp::Ordering;
 use std::io::{BufRead, BufReader, Read};
 use std::sync::mpsc::Receiver;
-use std::sync::Mutex;
+use std::sync::{LazyLock, Mutex};
 use std::time::{Duration, SystemTime};
 
 use anyhow::{Context, Result};
-use chrono::offset::Utc;
 use chrono::DateTime;
+use chrono::offset::Utc;
 use libconcentratord::{gnss, gpsd, signals::Signal};
 use libloragw_sx1302::{gps, hal};
 
-lazy_static! {
-    static ref GPS_TIME_REF: Mutex<gps::TimeReference> = Mutex::new(Default::default());
-    static ref STATIC_GPS_COORDS: Mutex<Option<gps::Coordinates>> = Mutex::new(None);
-    static ref GPS_COORDS: Mutex<Option<gps::Coordinates>> = Mutex::new(None);
-    static ref GPS_COORDS_ERROR: Mutex<gps::Coordinates> = Mutex::new(gps::Coordinates {
+static GPS_TIME_REF: LazyLock<Mutex<gps::TimeReference>> =
+    LazyLock::new(|| Mutex::new(Default::default()));
+static STATIC_GPS_COORDS: LazyLock<Mutex<Option<gps::Coordinates>>> =
+    LazyLock::new(|| Mutex::new(None));
+static GPS_COORDS: LazyLock<Mutex<Option<gps::Coordinates>>> = LazyLock::new(|| Mutex::new(None));
+static GPS_COORDS_ERROR: LazyLock<Mutex<gps::Coordinates>> = LazyLock::new(|| {
+    Mutex::new(gps::Coordinates {
         latitude: 0.0,
         longitude: 0.0,
-        altitude: 0
-    });
-    static ref GPS_TIME_REF_VALID: Mutex<bool> = Mutex::new(false);
-    static ref XTAL_CORRECT_OK: Mutex<bool> = Mutex::new(false);
-    static ref XTAL_CORRECT: Mutex<f64> = Mutex::new(1.0);
-}
+        altitude: 0,
+    })
+});
+static GPS_TIME_REF_VALID: LazyLock<Mutex<bool>> = LazyLock::new(|| Mutex::new(false));
+static XTAL_CORRECT_OK: LazyLock<Mutex<bool>> = LazyLock::new(|| Mutex::new(false));
+static XTAL_CORRECT: LazyLock<Mutex<f64>> = LazyLock::new(|| Mutex::new(1.0));
 
 const XERR_INIT_AVG: isize = 128;
 const XERR_FILT_COEF: f64 = 256.0;
@@ -187,9 +189,7 @@ pub fn gps_validate_loop(stop_receive: Receiver<Signal>) {
                         init_cpt += 1;
                         trace!(
                             "Initial accumulation, xtal_err: {}, init_acc: {}, init_cpt: {}",
-                            time_ref.xtal_err,
-                            init_acc,
-                            init_cpt
+                            time_ref.xtal_err, init_acc, init_cpt
                         );
                     }
                     Ordering::Equal => {
@@ -198,8 +198,7 @@ pub fn gps_validate_loop(stop_receive: Receiver<Signal>) {
                         init_cpt += 1;
                         trace!(
                             "Initial average calculation, xtal_correct: {}, init_cpt: {}",
-                            xtal_correct,
-                            init_cpt
+                            xtal_correct, init_cpt
                         );
                     }
                     Ordering::Greater => {
@@ -208,8 +207,7 @@ pub fn gps_validate_loop(stop_receive: Receiver<Signal>) {
                             *xtal_correct - *xtal_correct / XERR_FILT_COEF + x / XERR_FILT_COEF;
                         trace!(
                             "Tracking with low-pass filter, x: {}, xtal_correct: {}",
-                            x,
-                            xtal_correct
+                            x, xtal_correct
                         );
                     }
                 }
@@ -331,7 +329,6 @@ fn gps_process_coords() {
 
     trace!(
         "GPS coordinates sync completed, coords: {:?}, coords_error: {:?}",
-        coords,
-        coords_error
+        coords, coords_error
     );
 }

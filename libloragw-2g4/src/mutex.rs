@@ -1,5 +1,3 @@
-use std::sync::Mutex;
+use std::sync::{LazyLock, Mutex};
 
-lazy_static! {
-    pub static ref CONCENTATOR: Mutex<()> = Mutex::new(());
-}
+pub static CONCENTATOR: LazyLock<Mutex<()>> = LazyLock::new(|| Mutex::new(()));
