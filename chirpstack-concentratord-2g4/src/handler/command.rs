@@ -37,17 +37,11 @@ pub fn handle_loop(
                 continue;
             }
             commands::Command::Downlink(pl) => {
-                match handle_downlink(lorawan_public, vendor_config, gateway_id, &queue, &pl) {
-                    Ok(v) => v,
-                    Err(_) => Vec::new(),
-                }
+                handle_downlink(lorawan_public, vendor_config, gateway_id, &queue, &pl).unwrap_or_default()
             }
             commands::Command::GatewayID => gateway_id.to_vec(),
             commands::Command::Configuration(pl) => {
-                match handle_configuration(stop_send.clone(), pl) {
-                    Ok(v) => v,
-                    Err(_) => Vec::new(),
-                }
+                handle_configuration(stop_send.clone(), pl).unwrap_or_default()
             }
             commands::Command::Error(err) => {
                 error!("Read command error, error: {}", err);

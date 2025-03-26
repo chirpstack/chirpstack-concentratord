@@ -86,10 +86,7 @@ fn send_beacon(
     let tx_packet = hal::TxPacket {
         freq_hz: tx_freq,
         tx_mode: hal::TxMode::OnGPS,
-        count_us: match gps::epoch2cnt(&beacon_time) {
-            Ok(v) => v,
-            Err(err) => return Err(err),
-        },
+        count_us: gps::epoch2cnt(&beacon_time)?,
         rf_chain: 0,
         rf_power: conf.tx_power as i8,
         modulation: hal::Modulation::LoRa,
