@@ -20,8 +20,8 @@ build-x86_64-unknown-linux-musl:
 
 build-mipsel-unknown-linux-musl:
 	# mipsel is a tier-3 target.
-	rustup toolchain add nightly-2024-05-17-x86_64-unknown-linux-gnu
-	cross +nightly-2024-05-17 build -Z build-std=std --target mipsel-unknown-linux-musl --release
+	rustup toolchain add nightly-2025-02-14-x86_64-unknown-linux-gnu
+	cross +nightly-2025-02-14 build -Z build-std=std --target mipsel-unknown-linux-musl --release
 
 # Build distributable binaries for all targets.
 dist: dist-aarch64-unknown-linux-musl \
@@ -114,3 +114,7 @@ test:
 # Enter the devshell.
 devshell:
 	nix-shell
+
+# Dependencies
+dev-dependencies:
+	cargo install cross --git https://github.com/cross-rs/cross --rev c7dee4d008475ce1c140773cbcd6078f4b86c2aa --locked

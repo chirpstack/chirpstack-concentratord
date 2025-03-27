@@ -66,6 +66,9 @@ jobs:
             target/
           key: ${{ runner.os }}-cargo-dist-${{ matrix.target }}-${{ hashFiles('**/Cargo.lock') }}
       -
+        name: Install dev dependencies
+        run: nix-shell --command "make dev-dependencies"
+      -
         name: Build distributables
         run: nix-shell --command "make dist-${{ matrix.target }}"
       -
