@@ -31,6 +31,9 @@ jobs:
             target/
           key: ${{ runner.os }}-cargo-test-${{ hashFiles('**/Cargo.lock') }}
       -
+        name: Install dev dependencies
+        run: nix-shell --command "make dev-dependencies"
+      -
         name: Run tests
         run: nix-shell --command "make test"
 
