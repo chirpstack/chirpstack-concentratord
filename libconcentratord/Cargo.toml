@@ -8,7 +8,7 @@
 [dependencies]
   log = "0.4"
   zmq = "0.10"
-  chirpstack_api = { version = "4.11", default-features = false }
+  chirpstack_api = { version = "4.12", default-features = false }
   prost = "0.13"
   prost-types = "0.13"
   hex = "0.4"
