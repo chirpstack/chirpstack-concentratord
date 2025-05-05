@@ -254,9 +254,9 @@ dependencies = [
 
 [[package]]
 name = "chirpstack_api"
-version = "4.12.0"
+version = "4.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "88e36da3fd2016e1859993d9b8ff6758e38bd754489d289571c23ffe75b5d0b7"
+checksum = "c4fb9addcbde934701c4787790c8758e89ab7bf865eef4f255b0d351c85c9b69"
 dependencies = [
  "hex",
  "pbjson-build",
