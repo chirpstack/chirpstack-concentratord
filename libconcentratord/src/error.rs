@@ -8,4 +8,10 @@ pub enum Error {
 
     #[error("No band for freq: {0}, tx_power_eirp: {1}")]
     BandNotFound(u32, i8),
+
+    #[error("Timeout")]
+    Timeout,
+
+    #[error(transparent)]
+    Anyhow(#[from] anyhow::Error),
 }

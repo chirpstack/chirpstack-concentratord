@@ -191,8 +191,6 @@ dependencies = [
  "libconcentratord",
  "libloragw-2g4",
  "log",
- "prost",
- "prost-types",
  "rand",
  "serde",
  "signal-hook",
@@ -216,8 +214,6 @@ dependencies = [
  "libconcentratord",
  "libloragw-sx1301",
  "log",
- "prost",
- "prost-types",
  "rand",
  "serde",
  "signal-hook",
@@ -241,8 +237,6 @@ dependencies = [
  "libconcentratord",
  "libloragw-sx1302",
  "log",
- "prost",
- "prost-types",
  "rand",
  "serde",
  "signal-hook",
@@ -255,8 +249,6 @@ dependencies = [
 [[package]]
 name = "chirpstack_api"
 version = "4.12.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "88e36da3fd2016e1859993d9b8ff6758e38bd754489d289571c23ffe75b5d0b7"
 dependencies = [
  "hex",
  "pbjson-build",
@@ -568,8 +560,8 @@ checksum = "3f9eec918d3f24069decb9af1554cad7c880e2da24a9afd88aca000531ab82c1"
 name = "gateway-id"
 version = "4.4.8"
 dependencies = [
+ "chirpstack_api",
  "clap",
- "hex",
  "zmq",
 ]
 
@@ -811,8 +803,6 @@ dependencies = [
  "gpiocdev",
  "hex",
  "log",
- "prost",
- "prost-types",
  "serde",
  "serde_json",
  "thiserror",

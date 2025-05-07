@@ -3,13 +3,11 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use anyhow::Result;
+use chirpstack_api::{gw, prost::Message};
 use libconcentratord::signals::Signal;
 use libconcentratord::{commands, jitqueue, stats};
-use prost::Message;
 
-use super::super::config::vendor;
-use super::super::wrapper;
-use super::timersync;
+use crate::{config::vendor, handler::timersync, wrapper};
 
 pub fn handle_loop(
     vendor_config: &vendor::Configuration,
@@ -31,36 +29,35 @@ pub fn handle_loop(
         }
 
         let resp = match cmd {
-            commands::Command::Timeout => {
-                continue;
-            }
-            commands::Command::Downlink(pl) => {
-                match handle_downlink(vendor_config, gateway_id, &queue, &pl) {
-                    Ok(v) => v,
-                    Err(e) => {
-                        error!("Handle downlink error: {}", e);
+            Ok(v) => match v.command {
+                Some(gw::command::Command::SendDownlinkFrame(v)) => {
+                    handle_downlink(vendor_config, gateway_id, &queue, &v).unwrap_or_else(|e| {
+                        error!("Handle downlink error, error: {}", e);
                         Vec::new()
-                    }
+                    })
                 }
-            }
-            commands::Command::GatewayID => gateway_id.to_vec(),
-            commands::Command::Configuration(pl) => {
-                match handle_configuration(stop_send.clone(), pl) {
-                    Ok(v) => v,
-                    Err(e) => {
-                        error!("Handle configuration error: {}", e);
+                Some(gw::command::Command::SetGatewayConfiguration(v)) => {
+                    handle_configuration(stop_send.clone(), v).unwrap_or_else(|e| {
+                        error!("Handle configuration error, error:: {}", e);
                         Vec::new()
-                    }
+                    })
                 }
-            }
-            commands::Command::Error(err) => {
-                error!("Read command error, error: {}", err);
-                Vec::new()
-            }
-            commands::Command::Unknown(command, _) => {
-                warn!("Unknown command received, command: {}", command);
-                Vec::new()
-            }
+                Some(gw::command::Command::GetGatewayId(_)) => {
+                    let resp = gw::GetGatewayIdResponse {
+                        gateway_id: hex::encode(gateway_id),
+                    };
+                    resp.encode_to_vec()
+                }
+                Some(gw::command::Command::GetLocation(_)) => Vec::new(),
+                None => Vec::new(),
+            },
+            Err(e) => match e {
+                libconcentratord::error::Error::Timeout => continue,
+                _ => {
+                    warn!("Read command error, error: {}", e);
+                    Vec::new()
+                }
+            },
         };
 
         rep_sock.send(resp, 0)?;

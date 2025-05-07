@@ -100,9 +100,11 @@ impl<T: TxPacket + Copy> Queue<T> {
                 if v.linear_count < linear_count {
                     // it can happen if cpu load is too high but should normally
                     // not happen.
-                    error!("Scheduled packet is too old, dropped: count_us: {}, current_counter_us: {}", 
+                    error!(
+                        "Scheduled packet is too old, dropped: count_us: {}, current_counter_us: {}",
                         v.packet.get_count_us(),
-                        concentrator_count);
+                        concentrator_count
+                    );
                     self.items.remove(0);
                     return None;
                 }
@@ -254,13 +256,23 @@ impl<T: TxPacket + Copy> Queue<T> {
             || item.linear_count - linear_count
                 < self.tx_start_delay + self.tx_margin_delay + self.tx_jit_delay
         {
-            warn!("Too late to enqueue packet, downlink_id: {}, counter_us: {}, current_counter_us: {}", item.packet.get_id(), item.packet.get_count_us(), concentrator_count);
+            warn!(
+                "Too late to enqueue packet, downlink_id: {}, counter_us: {}, current_counter_us: {}",
+                item.packet.get_id(),
+                item.packet.get_count_us(),
+                concentrator_count
+            );
             return Err(gw::TxAckStatus::TooLate);
         }
 
         // Is it too early to send this packet?
         if item.linear_count - linear_count > self.tx_max_advance_delay {
-            warn!("Too early to enqueue packet, downlink_id: {}, counter_us: {}, current_counter_us: {}", item.packet.get_id(), item.packet.get_count_us(), concentrator_count);
+            warn!(
+                "Too early to enqueue packet, downlink_id: {}, counter_us: {}, current_counter_us: {}",
+                item.packet.get_id(),
+                item.packet.get_count_us(),
+                concentrator_count
+            );
             return Err(gw::TxAckStatus::TooEarly);
         }
 
@@ -288,11 +300,13 @@ impl<T: TxPacket + Copy> Queue<T> {
                     Some(Error::BandNotFound(f, t)) => {
                         warn!(
                             "No duty-cycle band found for packet, downlink_id: {}, freq: {}, tx_power: {}",
-                            item.packet.get_id(), f, t
+                            item.packet.get_id(),
+                            f,
+                            t
                         );
                         return Err(gw::TxAckStatus::DutyCycleOverflow);
                     }
-                    None => {
+                    _ => {
                         warn!("Duty-cycle tracker error, error: {}", e);
                         return Err(gw::TxAckStatus::InternalError);
                     }

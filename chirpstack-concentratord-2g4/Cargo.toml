@@ -11,7 +11,7 @@
 [dependencies]
   libloragw-2g4 = { path = "../libloragw-2g4" }
   libconcentratord = { path = "../libconcentratord" }
-  chirpstack_api = { version = "4.12", default-features = false }
+  chirpstack_api = { version = "4.12", default-features = false, path = "../../chirpstack/api/rust" }
   serde = { version = "1.0", features = ["derive"] }
   toml = "0.8"
   clap = { version = "4.5", features = ["derive"] }
@@ -22,8 +22,6 @@
   chrono = "0.4"
   humantime-serde = "1.1"
   syslog = "7.0"
-  prost = "0.13"
-  prost-types = "0.13"
   signal-hook = "0.3"
   handlebars = "6.3"
   rand = "0.9"

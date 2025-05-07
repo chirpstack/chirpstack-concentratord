@@ -1,11 +1,11 @@
 use std::time::Duration;
 
 use anyhow::Result;
-use chirpstack_api::gw;
+use chirpstack_api::{gw, prost::Message};
 use log::info;
-use prost::Message;
 
-use super::socket::ZMQ_CONTEXT;
+use crate::error::Error;
+use crate::socket::ZMQ_CONTEXT;
 
 pub fn get_socket(bind: &str) -> Result<zmq::Socket> {
     info!("Creating socket for receiving commands, bind: {}", bind);
@@ -48,41 +48,20 @@ impl<'a> Reader<'a> {
 }
 
 impl Iterator for Reader<'_> {
-    type Item = Command;
+    type Item = Result<gw::Command, Error>;
 
-    fn next(&mut self) -> Option<Command> {
+    fn next(&mut self) -> Option<Result<gw::Command, Error>> {
         // set poller so that we can timeout
         let mut items = [self.rep_sock.as_poll_item(zmq::POLLIN)];
         zmq::poll(&mut items, self.timeout.as_millis() as i64).unwrap();
         if !items[0].is_readable() {
-            return Some(Command::Timeout);
+            return Some(Err(Error::Timeout));
         }
 
-        let msg = self.rep_sock.recv_multipart(0).unwrap();
-        match handle_message(msg) {
-            Ok(v) => Some(v),
-            Err(err) => Some(Command::Error(err.to_string())),
+        let b = self.rep_sock.recv_bytes(0).unwrap();
+        match gw::Command::decode(b.as_slice()).map_err(|e| Error::Anyhow(anyhow::Error::new(e))) {
+            Ok(v) => Some(Ok(v)),
+            Err(e) => Some(Err(e)),
         }
     }
-}
-
-fn handle_message(msg: Vec<Vec<u8>>) -> Result<Command> {
-    if msg.len() != 2 {
-        return Err(anyhow!("Command must have two frames"));
-    }
-
-    let command = String::from_utf8(msg[0].clone())?;
-
-    Ok(match command.as_str() {
-        "down" => match gw::DownlinkFrame::decode(&*msg[1]) {
-            Ok(v) => Command::Downlink(v),
-            Err(err) => Command::Error(err.to_string()),
-        },
-        "config" => match gw::GatewayConfiguration::decode(&*msg[1]) {
-            Ok(v) => Command::Configuration(v),
-            Err(err) => Command::Error(err.to_string()),
-        },
-        "gateway_id" => Command::GatewayID,
-        _ => Command::Unknown(command, msg[1].clone()),
-    })
 }

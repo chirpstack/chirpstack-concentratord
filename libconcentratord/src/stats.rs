@@ -3,6 +3,7 @@ use std::sync::{LazyLock, Mutex};
 use std::time::SystemTime;
 
 use anyhow::Result;
+use chirpstack_api::prost_types;
 
 use super::events;
 
@@ -100,7 +101,7 @@ pub fn send_and_reset(
     stats.duty_cycle_stats = duty_cycle_stats;
     stats.metadata.clone_from(metadata);
 
-    events::send_stats(&stats).unwrap();
+    events::send_stats(stats.clone()).unwrap();
 
     // reset stats
     *stats = Default::default();

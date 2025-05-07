@@ -8,7 +8,7 @@ use libconcentratord::signals::Signal;
 use libconcentratord::{events, stats};
 use libloragw_sx1301::hal;
 
-use super::super::wrapper;
+use crate::wrapper;
 
 pub fn handle_loop(
     gateway_id: &[u8],
@@ -30,7 +30,9 @@ pub fn handle_loop(
                     stats::inc_rx_packets_received();
 
                     if !disable_crc_filter && frame.status != hal::CRC::CRCOk {
-                        debug!("Frame received with invalid CRC, see disable_crc_filter configuration option if you want to receive these frames");
+                        debug!(
+                            "Frame received with invalid CRC, see disable_crc_filter configuration option if you want to receive these frames"
+                        );
                         continue;
                     }
 
@@ -60,7 +62,7 @@ pub fn handle_loop(
                     if frame.status == hal::CRC::CRCOk {
                         stats::inc_rx_counts(&proto);
                     }
-                    events::send_uplink(&proto).context("Send uplink")?;
+                    events::send_uplink(proto).context("Send uplink")?;
                 }
             }
             Err(_) => error!("Receive error"),

@@ -8,9 +8,7 @@
 [dependencies]
   log = "0.4"
   zmq = "0.10"
-  chirpstack_api = { version = "4.12", default-features = false }
-  prost = "0.13"
-  prost-types = "0.13"
+  chirpstack_api = { version = "4.12", default-features = false, path = "../../chirpstack/api/rust" }
   hex = "0.4"
   gpiocdev = { version = "0.7", features = ["uapi_v1"] }
   anyhow = "1.0"

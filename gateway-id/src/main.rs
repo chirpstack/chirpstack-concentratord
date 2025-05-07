@@ -1,5 +1,6 @@
 use std::process::exit;
 
+use chirpstack_api::{gw, prost::Message};
 use clap::Parser;
 
 #[derive(Parser)]
@@ -20,9 +21,13 @@ fn main() {
         .connect(&cli.command_url)
         .expect("ZMQ connect error");
 
-    // send 'gateway_id' command with empty payload
-    zmq_sock.send("gateway_id", zmq::SNDMORE).unwrap();
-    zmq_sock.send("", 0).unwrap();
+    // Send command.
+    let cmd = gw::Command {
+        command: Some(gw::command::Command::GetGatewayId(
+            gw::GetGatewayIdRequest {},
+        )),
+    };
+    zmq_sock.send(cmd.encode_to_vec(), 0).unwrap();
 
     // set poller so that we can timeout after 100ms
     let mut items = [zmq_sock.as_poll_item(zmq::POLLIN)];
@@ -32,8 +37,9 @@ fn main() {
         exit(1);
     }
 
-    // read 'gateway_id' response
-    let gateway_id = zmq_sock.recv_bytes(0).unwrap();
-    println!("{}", hex::encode(gateway_id));
+    // Read response.
+    let b = zmq_sock.recv_bytes(0).unwrap();
+    let resp = gw::GetGatewayIdResponse::decode(b.as_slice()).unwrap();
+    println!("{}", resp.gateway_id);
     exit(0);
 }

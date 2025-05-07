@@ -1,7 +1,7 @@
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use anyhow::Result;
-use chirpstack_api::gw;
+use chirpstack_api::{gw, prost_types};
 use libconcentratord::jitqueue;
 use libloragw_sx1302::hal;
 use rand::Rng;

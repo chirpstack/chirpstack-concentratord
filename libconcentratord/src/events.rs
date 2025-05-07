@@ -1,8 +1,8 @@
 use std::sync::{LazyLock, Mutex};
 
 use anyhow::Result;
+use chirpstack_api::{gw, prost::Message};
 use log::info;
-use prost::Message;
 
 use super::socket::ZMQ_CONTEXT;
 
@@ -22,18 +22,20 @@ pub fn bind_socket(bind: &str) -> Result<()> {
     Ok(())
 }
 
-pub fn send_uplink(pl: &chirpstack_api::gw::UplinkFrame) -> Result<()> {
+pub fn send_uplink(pl: chirpstack_api::gw::UplinkFrame) -> Result<()> {
     let pub_guard = ZMQ_PUB.lock().unwrap();
     let publisher = pub_guard.as_ref().unwrap();
 
-    let b = pl.encode_to_vec();
-    publisher.send("up", zmq::SNDMORE).unwrap();
-    publisher.send(b, 0).unwrap();
+    let event = gw::Event {
+        event: Some(gw::event::Event::UplinkFrame(pl)),
+    };
+
+    publisher.send(event.encode_to_vec(), 0).unwrap();
 
     Ok(())
 }
 
-pub fn send_stats(stats: &chirpstack_api::gw::GatewayStats) -> Result<()> {
+pub fn send_stats(stats: chirpstack_api::gw::GatewayStats) -> Result<()> {
     let pub_guard = ZMQ_PUB.lock().unwrap();
     let publisher = pub_guard.as_ref().unwrap();
 
@@ -45,9 +47,11 @@ pub fn send_stats(stats: &chirpstack_api::gw::GatewayStats) -> Result<()> {
         stats.tx_packets_emitted
     );
 
-    let b = stats.encode_to_vec();
-    publisher.send("stats", zmq::SNDMORE).unwrap();
-    publisher.send(b, 0).unwrap();
+    let event = gw::Event {
+        event: Some(gw::event::Event::GatewayStats(stats)),
+    };
+
+    publisher.send(event.encode_to_vec(), 0).unwrap();
 
     Ok(())
 }
