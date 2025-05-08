@@ -1,0 +1,14 @@
+[package]
+  name = "gateway-location"
+  repository = "https://github.com/brocaar/chirpstack-concentratord/"
+  description = "Print the Gateway location"
+  license = "MIT"
+  version = "4.4.8"
+  authors = ["Orne Brocaar <info@brocaar.com>"]
+  edition = "2024"
+  publish = false
+
+[dependencies]
+  zmq = "0.10"
+  clap = { version = "4.5", features = ["derive"] }
+  chirpstack_api = { version = "4.12", default-features = false, path = "../../chirpstack/api/rust" }

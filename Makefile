@@ -95,6 +95,7 @@ version:
 	sed -i 's/^  version.*/  version = "$(VERSION)"/g' ./chirpstack-concentratord-sx1301/Cargo.toml
 	sed -i 's/^  version.*/  version = "$(VERSION)"/g' ./chirpstack-concentratord-sx1302/Cargo.toml
 	sed -i 's/^  version.*/  version = "$(VERSION)"/g' ./gateway-id/Cargo.toml
+	sed -i 's/^  version.*/  version = "$(VERSION)"/g' ./gateway-version/Cargo.toml
 	sed -i 's/^  version.*/  version = "$(VERSION)"/g' ./libconcentratord/Cargo.toml
 	make test
 	git add .

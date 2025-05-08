@@ -3,13 +3,12 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use anyhow::Result;
-use chirpstack_api::{gw, prost::Message};
+use chirpstack_api::{common, gw, prost::Message};
 use libconcentratord::signals::Signal;
 use libconcentratord::{commands, jitqueue, stats};
 use libloragw_2g4::hal;
 
-use super::super::config::vendor;
-use super::super::wrapper;
+use crate::{config::vendor, handler::gps, wrapper};
 
 #[allow(clippy::too_many_arguments)]
 pub fn handle_loop(
@@ -53,7 +52,17 @@ pub fn handle_loop(
                     };
                     resp.encode_to_vec()
                 }
-                Some(gw::command::Command::GetLocation(_)) => Vec::new(),
+                Some(gw::command::Command::GetLocation(_)) => gw::GetLocationResponse {
+                    location: gps::get_coords().map(|v| common::Location {
+                        latitude: v.latitude,
+                        longitude: v.longitude,
+                        altitude: v.altitude.into(),
+                        source: common::LocationSource::Gps.into(),
+                        ..Default::default()
+                    }),
+                    updated_at: None,
+                }
+                .encode_to_vec(),
                 None => Vec::new(),
             },
             Err(e) => match e {

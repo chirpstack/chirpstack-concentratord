@@ -23,6 +23,8 @@ static GPS_COORDS_ERROR: LazyLock<Mutex<gps::Coordinates>> = LazyLock::new(|| {
         altitude: 0,
     })
 });
+static GPS_COORDS_LAST_UPDATE: LazyLock<Mutex<Option<DateTime<Utc>>>> =
+    LazyLock::new(|| Mutex::new(None));
 static GPS_TIME_REF_VALID: LazyLock<Mutex<bool>> = LazyLock::new(|| Mutex::new(false));
 static XTAL_CORRECT_OK: LazyLock<Mutex<bool>> = LazyLock::new(|| Mutex::new(false));
 static XTAL_CORRECT: LazyLock<Mutex<f64>> = LazyLock::new(|| Mutex::new(1.0));
@@ -263,6 +265,11 @@ pub fn get_coords() -> Option<gps::Coordinates> {
     *coords
 }
 
+pub fn get_coords_last_update() -> Option<DateTime<Utc>> {
+    let coords_last_update = GPS_COORDS_LAST_UPDATE.lock().unwrap();
+    *coords_last_update
+}
+
 pub fn get_gps_epoch() -> Result<Duration> {
     if !(*GPS_TIME_REF_VALID.lock().unwrap()) {
         return Err(anyhow!("gps time reference not available"));
@@ -315,6 +322,7 @@ fn gps_process_sync() {
 fn gps_process_coords() {
     let mut coords = GPS_COORDS.lock().unwrap();
     let mut coords_error = GPS_COORDS_ERROR.lock().unwrap();
+    let mut coords_last_update = GPS_COORDS_LAST_UPDATE.lock().unwrap();
 
     let (_, _, c, ce) = match gps::get(false, true) {
         Ok(v) => v,
@@ -327,6 +335,7 @@ fn gps_process_coords() {
 
     *coords = Some(c);
     *coords_error = ce;
+    *coords_last_update = Some(Utc::now());
 
     trace!(
         "GPS coordinates sync completed, coords: {:?}, coords_error: {:?}",

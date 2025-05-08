@@ -1,13 +1,17 @@
 use std::sync::mpsc::{Receiver, Sender};
 use std::sync::{Arc, Mutex};
-use std::time::Duration;
+use std::time::{Duration, SystemTime};
 
 use anyhow::Result;
-use chirpstack_api::{gw, prost::Message};
+use chirpstack_api::{common, gw, prost::Message};
 use libconcentratord::signals::Signal;
 use libconcentratord::{commands, jitqueue, stats};
 
-use crate::{config::vendor, handler::timersync, wrapper};
+use crate::{
+    config::vendor,
+    handler::{gps, timersync},
+    wrapper,
+};
 
 pub fn handle_loop(
     vendor_config: &vendor::Configuration,
@@ -48,7 +52,18 @@ pub fn handle_loop(
                     };
                     resp.encode_to_vec()
                 }
-                Some(gw::command::Command::GetLocation(_)) => Vec::new(),
+                Some(gw::command::Command::GetLocation(_)) => gw::GetLocationResponse {
+                    location: gps::get_coords().map(|v| common::Location {
+                        latitude: v.latitude,
+                        longitude: v.longitude,
+                        altitude: v.altitude.into(),
+                        source: common::LocationSource::Gps.into(),
+                        ..Default::default()
+                    }),
+                    updated_at: gps::get_coords_last_update()
+                        .map(|v| Into::<SystemTime>::into(v).try_into().unwrap_or_default()),
+                }
+                .encode_to_vec(),
                 None => Vec::new(),
             },
             Err(e) => match e {

@@ -566,6 +566,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "gateway-location"
+version = "4.4.8"
+dependencies = [
+ "chirpstack_api",
+ "clap",
+ "zmq",
+]
+
+[[package]]
 name = "generic-array"
 version = "0.14.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
