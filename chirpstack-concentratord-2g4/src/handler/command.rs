@@ -63,7 +63,7 @@ pub fn handle_loop(
                     updated_at: None,
                 }
                 .encode_to_vec(),
-                None => Vec::new(),
+                _ => Vec::new(),
             },
             Err(e) => match e {
                 libconcentratord::error::Error::Timeout => continue,

@@ -61,7 +61,7 @@ pub fn handle_loop(
                         .map(|v| Into::<SystemTime>::into(v).try_into().unwrap_or_default()),
                 }
                 .encode_to_vec(),
-                None => Vec::new(),
+                _ => Vec::new(),
             },
             Err(e) => match e {
                 libconcentratord::error::Error::Timeout => continue,
