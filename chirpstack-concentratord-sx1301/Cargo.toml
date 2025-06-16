@@ -11,7 +11,7 @@
 [dependencies]
   libloragw-sx1301 = { path = "../libloragw-sx1301" }
   libconcentratord = { path = "../libconcentratord" }
-  chirpstack_api = { version = "4.13.0-test.1", default-features = false }
+  chirpstack_api = { version = "4.13", default-features = false }
   serde = { version = "1.0", features = ["derive"] }
   toml = "0.8"
   clap = { version = "4.5", features = ["derive"] }
