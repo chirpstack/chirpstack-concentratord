@@ -61,7 +61,7 @@ pub fn handle_loop(
                         ..Default::default()
                     }),
                     updated_at: gps::get_coords_last_update()
-                        .map(|v| Into::<SystemTime>::into(v).try_into().unwrap_or_default()),
+                        .map(|v| Into::<SystemTime>::into(v).into()),
                 }
                 .encode_to_vec(),
                 _ => Vec::new(),

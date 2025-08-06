@@ -56,7 +56,7 @@ impl Default for Api {
 #[derive(Default, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Gateway {
-    pub gateway_id: Option<String>,
+    pub gateway_id: String,
     pub antenna_gain: i8,
     pub lorawan_public: bool,
     pub model: String,
@@ -175,8 +175,8 @@ pub fn get(filenames: Vec<String>) -> Configuration {
     let mut config: Configuration = toml::from_str(&content).expect("Error parsing config file");
 
     // decode gateway id
-    if let Some(gateway_id) = &config.gateway.gateway_id {
-        let bytes = hex::decode(gateway_id).expect("Could not decode gateway_id");
+    if !config.gateway.gateway_id.is_empty() {
+        let bytes = hex::decode(&config.gateway.gateway_id).expect("Could not decode gateway_id");
         if bytes.len() != 8 {
             panic!("gateway_id must be exactly 8 bytes");
         }

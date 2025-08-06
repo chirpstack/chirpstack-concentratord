@@ -89,7 +89,7 @@ pub struct Gateway {
     pub region: Option<Region>,
     pub model: String,
     pub model_flags: Vec<String>,
-    pub gateway_id: Option<String>,
+    pub gateway_id: String,
 
     pub time_fallback_enabled: bool,
     pub concentrator: Concentrator,
@@ -127,7 +127,7 @@ impl Default for Gateway {
             region: None,
             model: "".into(),
             model_flags: vec![],
-            gateway_id: None,
+            gateway_id: "".into(),
             time_fallback_enabled: false,
             concentrator: Concentrator::default(),
             beacon: Beacon::default(),
@@ -327,8 +327,8 @@ pub fn get(filenames: Vec<String>) -> Configuration {
     let mut config: Configuration = toml::from_str(&content).expect("Error parsing config file");
 
     // decode gateway id
-    if let Some(gateway_id) = &config.gateway.gateway_id {
-        let bytes = hex::decode(gateway_id).expect("Could not decode gateway_id");
+    if !config.gateway.gateway_id.is_empty() {
+        let bytes = hex::decode(&config.gateway.gateway_id).expect("Could not decode gateway_id");
         if bytes.len() != 8 {
             panic!("gateway_id must be exactly 8 bytes");
         }
