@@ -54,31 +54,29 @@ impl Default for Api {
 }
 
 #[derive(Default, Serialize, Deserialize)]
+#[serde(default)]
 pub struct Gateway {
-    #[serde(default)]
+    pub gateway_id: Option<String>,
     pub antenna_gain: i8,
-    #[serde(default)]
     pub lorawan_public: bool,
     pub model: String,
-    #[serde(default)]
     pub model_flags: Vec<String>,
-    #[serde(default)]
     pub time_fallback_enabled: bool,
     pub concentrator: Concentrator,
-    #[serde(default)]
     pub location: Location,
+
+    pub com_dev_path: Option<String>,
+    pub mcu_reset_chip: Option<String>,
+    pub mcu_reset_pin: Option<u32>,
+    pub mcu_boot0_chip: Option<String>,
+    pub mcu_boot0_pin: Option<u32>,
+
     #[serde(skip)]
     pub model_config: vendor::Configuration,
     #[serde(skip)]
     pub config_version: String,
-
-    pub com_dev_path: Option<String>,
-
-    pub mcu_reset_chip: Option<String>,
-    pub mcu_reset_pin: Option<u32>,
-
-    pub mcu_boot0_chip: Option<String>,
-    pub mcu_boot0_pin: Option<u32>,
+    #[serde(skip)]
+    pub gateway_id_bytes: Option<[u8; 8]>,
 }
 
 impl Gateway {
@@ -113,15 +111,16 @@ pub struct Concentrator {
 }
 
 #[derive(Default, Serialize, Deserialize, Debug, PartialEq)]
+#[serde(default)]
 pub struct Channel {
     pub frequency: u32,
     pub bandwidth: u32,
     pub spreading_factor: u32,
-    #[serde(default)]
     pub rssi_offset: f32,
 }
 
 #[derive(Default, Serialize, Deserialize)]
+#[serde(default)]
 pub struct Location {
     pub latitude: f64,
     pub longitude: f64,
@@ -174,6 +173,16 @@ pub fn get(filenames: Vec<String>) -> Configuration {
     }
 
     let mut config: Configuration = toml::from_str(&content).expect("Error parsing config file");
+
+    // decode gateway id
+    if let Some(gateway_id) = &config.gateway.gateway_id {
+        let bytes = hex::decode(gateway_id).expect("Could not decode gateway_id");
+        if bytes.len() != 8 {
+            panic!("gateway_id must be exactly 8 bytes");
+        }
+        let id = bytes.as_slice();
+        config.gateway.gateway_id_bytes = Some(id[0..8].try_into().unwrap());
+    }
 
     // get model configuration
     config.gateway.model_config = match config.gateway.model.as_ref() {

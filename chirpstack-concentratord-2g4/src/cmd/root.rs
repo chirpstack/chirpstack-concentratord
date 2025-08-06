@@ -40,7 +40,11 @@ pub fn run(
     );
 
     // get concentrator eui
-    let gateway_id = concentrator::get_eui().unwrap();
+    let gateway_id = if let Some(gateway_id) = config.gateway.gateway_id_bytes {
+        gateway_id
+    } else {
+        concentrator::get_eui().unwrap()
+    };
 
     info!(
         "Gateway ID retrieved, gateway_id: {:x?}",
