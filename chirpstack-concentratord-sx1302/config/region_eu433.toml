@@ -8,7 +8,7 @@ compulsory_rfu_size=2
 
 # Beacon frequency / frequencies (Hz).
 frequencies=[
-  434665000,
+  433875000,
 ]
 
 # Bandwidth (Hz).
