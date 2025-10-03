@@ -9,6 +9,6 @@
   publish = false
 
 [dependencies]
-  zmq = "0.10"
-  clap = { version = "4.5", features = ["derive"] }
-  chirpstack_api = { version = "4.13", default-features = false }
+  zmq = { workspace = true }
+  clap = { workspace = true }
+  chirpstack_api = { workspace = true }

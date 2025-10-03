@@ -11,18 +11,18 @@
 [dependencies]
   libloragw-2g4 = { path = "../libloragw-2g4" }
   libconcentratord = { path = "../libconcentratord" }
-  chirpstack_api = { version = "4.13", default-features = false }
-  serde = { version = "1.0", features = ["derive"] }
-  toml = "0.9"
-  clap = { version = "4.5", features = ["derive"] }
-  log = "0.4"
-  simple_logger = "5.0"
-  zmq = "0.10"
-  hex = "0.4"
-  chrono = "0.4"
-  humantime-serde = "1.1"
-  syslog = "7.0"
-  signal-hook = "0.3"
-  handlebars = "6.3"
-  rand = "0.9"
-  anyhow = "1.0"
+  chirpstack_api = { workspace = true }
+  serde = { workspace = true }
+  toml = { workspace = true }
+  clap = { workspace = true }
+  log = { workspace = true }
+  simple_logger = { workspace = true }
+  zmq = { workspace = true }
+  hex = { workspace = true }
+  chrono = { workspace = true }
+  humantime-serde = { workspace = true }
+  syslog = { workspace = true }
+  signal-hook = { workspace = true }
+  handlebars = { workspace = true }
+  rand = { workspace = true }
+  anyhow = { workspace = true }
