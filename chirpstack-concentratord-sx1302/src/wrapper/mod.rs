@@ -202,8 +202,8 @@ pub fn downlink_from_proto(df: &gw::DownlinkFrameItem) -> Result<hal::TxPacket> 
         ..Default::default()
     };
 
-    if let Some(timing) = &tx_info.timing {
-        if let Some(params) = &timing.parameters {
+    if let Some(timing) = &tx_info.timing
+        && let Some(params) = &timing.parameters {
             match params {
                 gw::timing::Parameters::Immediately(_) => {
                     packet.tx_mode = hal::TxMode::Immediate;
@@ -253,10 +253,9 @@ pub fn downlink_from_proto(df: &gw::DownlinkFrameItem) -> Result<hal::TxPacket> 
                 }
             }
         }
-    }
 
-    if let Some(modulation) = &tx_info.modulation {
-        if let Some(params) = &modulation.parameters {
+    if let Some(modulation) = &tx_info.modulation
+        && let Some(params) = &modulation.parameters {
             match params {
                 gw::modulation::Parameters::Lora(v) => {
                     packet.modulation = hal::Modulation::LoRa;
@@ -293,7 +292,6 @@ pub fn downlink_from_proto(df: &gw::DownlinkFrameItem) -> Result<hal::TxPacket> 
                 }
             }
         }
-    }
 
     Ok(packet)
 }

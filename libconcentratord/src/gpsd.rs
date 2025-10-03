@@ -46,15 +46,14 @@ pub fn get_reader(server: &str) -> Result<BufReader<TcpStream>> {
     debug!("Watch response: {}", String::from_utf8(b.clone())?);
 
     for device in &resp.devices {
-        if let Some(driver) = &device.driver {
-            if driver == "u-blox" {
+        if let Some(driver) = &device.driver
+            && driver == "u-blox" {
                 let config_str = format!("&{}=b5620601080001200001010000003294\r\n", device.path);
                 debug!("Configuring uBlox device {} for NAV-TIMEGPS", device.path);
                 writer.write_all(config_str.as_bytes())?;
                 writer.flush()?;
                 return Ok(reader);
             }
-        }
     }
 
     Err(anyhow!("No u-blox GNSS device found"))
