@@ -15,17 +15,31 @@
   [workspace.dependencies]
     chirpstack_api = { version = "4.14", default-features = false }
     serde = { version = "1.0", features = ["derive"] }
-    toml = "0.9"
-    clap = { version = "4.5", features = ["derive"] }
+    serde_json = "1.0"
+    toml = { version = "0.9", default-features = false, features = [
+      "std",
+      "parse",
+      "serde",
+    ] }
+    clap = { version = "4.5", default-features = false, features = [
+      "std",
+      "help",
+      "usage",
+      "derive",
+    ] }
     log = "0.4"
-    simple_logger = "5.0"
+    simple_logger = { version = "5.0", default-features = false, features = [
+      "timestamps",
+    ] }
     zmq = "0.10"
     hex = "0.4"
-    chrono = "0.4"
+    chrono = { version = "0.4", default-features = false, features = ["now"] }
     humantime-serde = "1.1"
     syslog = "7.0"
     signal-hook = "0.3"
     handlebars = "6.3"
-    rand = "0.9"
+    getrandom = "0.3"
     anyhow = "1.0"
+    thiserror = "2.0"
     bindgen = "0.72"
+    gpiocdev = { version = "0.7", features = ["uapi_v1"] }
