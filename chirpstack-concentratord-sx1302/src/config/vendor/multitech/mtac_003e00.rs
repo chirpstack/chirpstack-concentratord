@@ -35,7 +35,6 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
         radio_config: vec![
             RadioConfig {
                 tx_min_max_freqs,
-                enable: true,
                 radio_type: hal::RadioType::SX1250,
                 single_input_mode: true,
                 rssi_offset: -215.4,
@@ -163,7 +162,6 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
                 ],
             },
             RadioConfig {
-                enable: true,
                 radio_type: hal::RadioType::SX1250,
                 single_input_mode: false,
                 rssi_offset: -215.4,
