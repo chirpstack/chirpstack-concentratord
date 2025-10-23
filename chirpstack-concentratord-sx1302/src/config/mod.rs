@@ -341,6 +341,7 @@ pub fn get(filenames: Vec<String>) -> Configuration {
         "dragino_pg1302" => vendor::dragino::pg1302::new(&config).unwrap(),
         "embit_emb_lr1302_mpcie" => vendor::embit::emb_lr1302_mpcie::new(&config).unwrap(),
         "miromico_gwc_02_lw_868" => vendor::miromico::gwc_02_lw_868::new(&config).unwrap(),
+        "miromico_gwc_02_lw_915" => vendor::miromico::gwc_02_lw_915::new(&config).unwrap(),
         "multitech_mtac_003e00" => vendor::multitech::mtac_003e00::new(&config).unwrap(),
         "multitech_mtac_003u00" => vendor::multitech::mtac_003u00::new(&config).unwrap(),
         "multitech_mtcap3_003e00" => vendor::multitech::mtcap3_003e00::new(&config).unwrap(),
