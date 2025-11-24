@@ -42,4 +42,4 @@
     anyhow = "1.0"
     thiserror = "2.0"
     bindgen = "0.72"
-    gpiocdev = { version = "0.7", features = ["uapi_v1"] }
+    gpiocdev = { version = "0.8", features = ["uapi_v1"] }
