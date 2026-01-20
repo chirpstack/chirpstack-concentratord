@@ -2,7 +2,7 @@ use anyhow::Result;
 use libloragw_sx1302::{com, hal};
 
 use super::config::vendor::ComType;
-use super::config::{helpers, Configuration};
+use super::config::{Configuration, helpers};
 
 pub fn set_i2c_device_path(config: &Configuration) -> Result<()> {
     let path = config
@@ -41,7 +41,10 @@ pub fn board_setconf(config: &Configuration) -> Result<()> {
 
     info!(
         "Setting board configuration, lorawan_public: {}, clock_source: {}, com_type: {:?}, com_path: {}",
-        board_config.lorawan_public, board_config.clock_source, config.gateway.model_config.com_type, config.gateway.model_config.com_path,
+        board_config.lorawan_public,
+        board_config.clock_source,
+        config.gateway.model_config.com_type,
+        config.gateway.model_config.com_path,
     );
     hal::board_setconf(&board_config)
 }
@@ -73,7 +76,18 @@ pub fn txgain_setconf(config: &Configuration) -> Result<()> {
         }
 
         for tx_gain_config in &radio_config.tx_gain_table {
-            debug!("Configuration TX gain for radio, radio: {}, rf_power: {}, dig_gain: {}, pa_gain: {}, dac_gain: {}, mix_gain: {}, offset_i: {}, offset_q: {}, pwr_idx: {}", i, tx_gain_config.rf_power, tx_gain_config.dig_gain, tx_gain_config.pa_gain, tx_gain_config.dac_gain, tx_gain_config.mix_gain, tx_gain_config.offset_i, tx_gain_config.offset_q, tx_gain_config.pwr_idx);
+            debug!(
+                "Configuration TX gain for radio, radio: {}, rf_power: {}, dig_gain: {}, pa_gain: {}, dac_gain: {}, mix_gain: {}, offset_i: {}, offset_q: {}, pwr_idx: {}",
+                i,
+                tx_gain_config.rf_power,
+                tx_gain_config.dig_gain,
+                tx_gain_config.pa_gain,
+                tx_gain_config.dac_gain,
+                tx_gain_config.mix_gain,
+                tx_gain_config.offset_i,
+                tx_gain_config.offset_q,
+                tx_gain_config.pwr_idx
+            );
         }
 
         hal::txgain_setconf(i as u8, &radio_config.tx_gain_table)?;
@@ -137,7 +151,10 @@ pub fn rxif_setconf(config: &Configuration) -> Result<()> {
             rx_if_config.freq_hz = *chan_freq as i32 - radio_freqs[chan_radio] as i32;
         }
 
-        info!("Configuring multi-SF LoRa channel, channel: {}, enabled: {}, freq: {}, rf_chain: {}, if_freq: {}", i, rx_if_config.enable, chan_freq, rx_if_config.rf_chain, rx_if_config.freq_hz);
+        info!(
+            "Configuring multi-SF LoRa channel, channel: {}, enabled: {}, freq: {}, rf_chain: {}, if_freq: {}",
+            i, rx_if_config.enable, chan_freq, rx_if_config.rf_chain, rx_if_config.freq_hz
+        );
         hal::rxif_setconf(i as u8, &rx_if_config)?;
     }
 
@@ -205,6 +222,57 @@ pub fn rxif_setconf(config: &Configuration) -> Result<()> {
         rx_if_config.freq_hz
     );
     hal::rxif_setconf(9, &rx_if_config)
+}
+
+pub fn sx1261_setconf(config: &Configuration) -> Result<()> {
+    if !config.gateway.lbt.enable || config.gateway.lbt.channels.is_empty() {
+        info!("LBT is disabled");
+        return Ok(());
+    }
+
+    if !config.gateway.model_config.sx1261_config.enable {
+        warn!("LBT is enabled, but is not supported by gateway model");
+        return Ok(());
+    }
+
+    if config.gateway.lbt.channels.len() > 16 {
+        return Err(anyhow!("Max. number of LBT channels is 16"));
+    }
+
+    info!("Configuring LBT");
+
+    let sx1261_conf = hal::SX1261Config {
+        enable: config.gateway.model_config.sx1261_config.enable,
+        spi_path: config
+            .gateway
+            .model_config
+            .sx1261_dev_path
+            .clone()
+            .unwrap_or_default(),
+        rssi_offset: config.gateway.model_config.sx1261_config.rssi_offset,
+        lbt_config: hal::LbtConfig {
+            enable: config.gateway.lbt.enable,
+            rssi_target: config.gateway.lbt.rssi_target,
+            channels: config
+                .gateway
+                .lbt
+                .channels
+                .iter()
+                .map(|v| {
+                    info!("Configuring LBT channel, frequency: {}, bandwidth: {}, scan_time_us: {}, transmit_time_ms: {}", v.frequency, v.bandwidth, v.scan_time_us, v.transmit_time_ms);
+
+                    hal::LbtChannelConfig {
+                        freq_hz: v.frequency,
+                        bandwidth: v.bandwidth,
+                        scan_time: v.scan_time_us.try_into().unwrap(),
+                        transmit_time_ms: v.transmit_time_ms,
+                    }
+                })
+                .collect(),
+        },
+    };
+
+    hal::sx1261_setconf(&sx1261_conf)
 }
 
 pub fn start() -> Result<()> {

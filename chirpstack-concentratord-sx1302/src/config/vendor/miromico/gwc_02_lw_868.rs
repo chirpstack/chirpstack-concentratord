@@ -3,7 +3,7 @@ use libconcentratord::{gnss, region};
 use libloragw_sx1302::hal;
 
 use super::super::super::super::config::{self, Region};
-use super::super::{ComType, Configuration, RadioConfig};
+use super::super::{ComType, Configuration, RadioConfig, SX1261Config};
 
 // source: https://gitlab.com/fmlr/miro_edge/sx1302_hal/-/tree/master/packet_forwarder?ref_type=heads
 pub fn new(conf: &config::Configuration) -> Result<Configuration> {
@@ -170,6 +170,10 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
                 tx_gain_table: vec![],
             },
         ],
+        sx1261_config: SX1261Config {
+            enable: true,
+            rssi_offset: 0,
+        },
         gps: gnss::Device::None,
         com_type: ComType::Usb,
         com_path: conf.gateway.get_com_dev_path("/dev/ttyACM0"),

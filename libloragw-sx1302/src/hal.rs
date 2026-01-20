@@ -2,6 +2,7 @@ use std::convert::TryInto;
 use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
 use std::time::Duration;
+use std::usize;
 
 use anyhow::Result;
 
@@ -282,20 +283,33 @@ impl FineTimestampMode {
     }
 }
 
-#[derive(Debug)]
-pub enum LBTScanTime {
+#[derive(Default, Debug, Clone, Copy)]
+pub enum LbtScanTime {
     /// 128 us
+    #[default]
     Scan128US,
     /// 5000 us
     Scan5000US,
 }
 
-impl LBTScanTime {
-    fn to_hal(&self) -> wrapper::lgw_lbt_scan_time_t {
-        match self {
-            LBTScanTime::Scan128US => wrapper::lgw_lbt_scan_time_t_LGW_LBT_SCAN_TIME_128_US,
-            LBTScanTime::Scan5000US => wrapper::lgw_lbt_scan_time_t_LGW_LBT_SCAN_TIME_5000_US,
+impl From<LbtScanTime> for wrapper::lgw_lbt_scan_time_t {
+    fn from(value: LbtScanTime) -> Self {
+        match value {
+            LbtScanTime::Scan128US => wrapper::lgw_lbt_scan_time_t_LGW_LBT_SCAN_TIME_128_US,
+            LbtScanTime::Scan5000US => wrapper::lgw_lbt_scan_time_t_LGW_LBT_SCAN_TIME_5000_US,
         }
+    }
+}
+
+impl TryFrom<u32> for LbtScanTime {
+    type Error = anyhow::Error;
+
+    fn try_from(value: u32) -> std::result::Result<Self, Self::Error> {
+        Ok(match value {
+            128 => LbtScanTime::Scan128US,
+            5000 => LbtScanTime::Scan5000US,
+            _ => return Err(anyhow!("Invalid scan-time: {}", value)),
+        })
     }
 }
 
@@ -677,54 +691,60 @@ impl TimestampConfig {
 }
 
 /// Structure containing a Listen-Before-Talk channel configuration.
-pub struct LBTChannelConfig {
+#[derive(Default)]
+pub struct LbtChannelConfig {
     /// LBT channel frequency.
     pub freq_hz: u32,
     /// BT channel bandwidth.
     pub bandwidth: Bandwidth,
     /// LBT channel carrier sense time.
-    pub scan_time: LBTScanTime,
+    pub scan_time: LbtScanTime,
     /// LBT channel transmission duration when allowed.
     pub transmit_time_ms: u16,
 }
 
-impl LBTChannelConfig {
+impl LbtChannelConfig {
     fn to_hal(&self) -> wrapper::lgw_conf_chan_lbt_s {
         wrapper::lgw_conf_chan_lbt_s {
             freq_hz: self.freq_hz,
             bandwidth: self.bandwidth.to_hal(),
-            scan_time_us: self.scan_time.to_hal(),
+            scan_time_us: self.scan_time.into(),
             transmit_time_ms: self.transmit_time_ms,
         }
     }
 }
 
 /// Configuration structure for listen-before-talk.
-pub struct LBTConfig {
+pub struct LbtConfig {
     /// Enable or disable LBT.
     pub enable: bool,
     /// RSSI threshold to detect if channel is busy or not (dBm).
     pub rssi_target: i8,
     /// LBT channels configuration.
-    pub channels: Vec<LBTChannelConfig>,
+    pub channels: Vec<LbtChannelConfig>,
 }
 
-impl LBTConfig {
-    fn to_hal(&self) -> Result<wrapper::lgw_conf_lbt_s> {
-        if self.channels.len() > wrapper::LGW_LBT_CHANNEL_NB_MAX as usize {
-            return Err(anyhow!("channels exceeds LGW_LBT_CHANNEL_NB_MAX"));
+impl TryFrom<&LbtConfig> for wrapper::lgw_conf_lbt_s {
+    type Error = anyhow::Error;
+
+    fn try_from(value: &LbtConfig) -> std::result::Result<Self, Self::Error> {
+        if value.channels.len() > wrapper::LGW_LBT_CHANNEL_NB_MAX as usize {
+            return Err(anyhow!(
+                "Maxmimum number of LBT channels is {}",
+                wrapper::LGW_LBT_CHANNEL_NB_MAX
+            ));
         }
 
         Ok(wrapper::lgw_conf_lbt_s {
-            enable: self.enable,
-            rssi_target: self.rssi_target,
-            nb_channel: self.channels.len() as u8,
+            enable: value.enable,
+            rssi_target: value.rssi_target,
+            nb_channel: value.channels.len() as u8,
             channels: {
                 let mut channels: [wrapper::lgw_conf_chan_lbt_s;
                     wrapper::LGW_LBT_CHANNEL_NB_MAX as usize] =
                     [Default::default(); wrapper::LGW_LBT_CHANNEL_NB_MAX as usize];
 
-                for (i, c) in self.channels.iter().enumerate() {
+                for (i, c) in value.channels.iter().enumerate() {
                     channels[i] = c.to_hal();
                 }
 
@@ -743,15 +763,17 @@ pub struct SX1261Config {
     /// Value to be applied to the sx1261 RSSI value (dBm).
     pub rssi_offset: i8,
     /// Listen-before-talk configuration.
-    pub lbt_config: LBTConfig,
+    pub lbt_config: LbtConfig,
 }
 
-impl SX1261Config {
-    fn to_hal(&self) -> Result<wrapper::lgw_conf_sx1261_s> {
+impl TryFrom<&SX1261Config> for wrapper::lgw_conf_sx1261_s {
+    type Error = anyhow::Error;
+
+    fn try_from(value: &SX1261Config) -> std::result::Result<Self, Self::Error> {
         Ok(wrapper::lgw_conf_sx1261_s {
-            enable: self.enable,
+            enable: value.enable,
             spi_path: {
-                let spi_path = CString::new(self.spi_path.clone()).unwrap();
+                let spi_path = CString::new(value.spi_path.clone()).unwrap();
                 let spi_path = spi_path.as_bytes_with_nul();
                 if spi_path.len() > 64 {
                     return Err(anyhow!("spi_path max length is 64"));
@@ -762,8 +784,8 @@ impl SX1261Config {
                 }
                 spi_path_chars
             },
-            rssi_offset: self.rssi_offset,
-            lbt_conf: self.lbt_config.to_hal()?,
+            rssi_offset: value.rssi_offset,
+            lbt_conf: (&value.lbt_config).try_into()?,
         })
     }
 }
@@ -877,7 +899,7 @@ pub fn ftime_setconf(conf: &TimestampConfig) -> Result<()> {
 /// Configure the SX1261 radio for LBT/Spectral Scan.
 pub fn sx1261_setconf(conf: &SX1261Config) -> Result<()> {
     let _guard = mutex::CONCENTATOR.lock().unwrap();
-    let mut conf = conf.to_hal()?;
+    let mut conf = conf.try_into()?;
     let ret = unsafe { wrapper::lgw_sx1261_setconf(&mut conf) };
     if ret != 0 {
         return Err(anyhow!("lgw_sx1261_setconf failed"));

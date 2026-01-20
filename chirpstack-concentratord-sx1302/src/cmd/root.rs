@@ -33,6 +33,7 @@ pub fn run(
     concentrator::board_setconf(config)?;
     concentrator::timestamp_setconf(config)?;
     concentrator::txgain_setconf(config)?;
+    concentrator::sx1261_setconf(config)?;
     concentrator::rxrf_setconf(config)?;
     concentrator::rxif_setconf(config)?;
     concentrator::start()?;
@@ -47,8 +48,7 @@ pub fn run(
     // get concentrator eui
     let gateway_id = if let Some(gateway_id) = config.gateway.gateway_id_bytes {
         gateway_id
-    }
-    else {
+    } else {
         concentrator::get_eui().unwrap()
     };
 
