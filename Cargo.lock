@@ -184,9 +184,9 @@ dependencies = [
 
 [[package]]
 name = "chirpstack_api"
-version = "4.16.1"
+version = "4.16.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "78dc319586ef9fdafa592e08f194b8f6902c9b97b3aa39454913805dc5590d64"
+checksum = "6908d50ddc61dd174cf488e1032e7ca79422e6bec0fb0091392d69496b93dd43"
 dependencies = [
  "getrandom",
  "hex",
@@ -936,7 +936,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "343d3bd7056eda839b03204e68deff7d1b13aba7af2b2fd16890697274262ee7"
 dependencies = [
  "heck",
- "itertools 0.14.0",
+ "itertools 0.13.0",
  "log",
  "multimap",
  "petgraph",
@@ -955,7 +955,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "27c6023962132f4b30eb4c172c91ce92d933da334c59c23cddee82358ddafb0b"
 dependencies = [
  "anyhow",
- "itertools 0.14.0",
+ "itertools 0.13.0",
  "proc-macro2",
  "quote",
  "syn",
