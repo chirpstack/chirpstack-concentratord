@@ -1,0 +1,14 @@
+[Unit]
+Description=ChirpStack Concentratord 2G4
+Documentation=https://www.chirpstack.io/
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=chirpstack
+Group=chirpstack
+ExecStart=/usr/bin/chirpstack-concentratord-2g4 -c /etc/chirpstack-concentratord/chirpstack-concentratord-2g4.toml
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
