@@ -16,7 +16,7 @@
     chirpstack_api = { version = "4.16", default-features = false }
     serde = { version = "1.0", features = ["derive"] }
     serde_json = "1.0"
-    toml = { version = "0.9", default-features = false, features = [
+    toml = { version = "1.0", default-features = false, features = [
       "std",
       "parse",
       "serde",
@@ -38,8 +38,13 @@
     syslog = "7.0"
     signal-hook = "0.4"
     handlebars = "6.4"
-    getrandom = { version = "0.3", features = ["std"] }
+    getrandom = { version = "0.4", features = ["std"] }
     anyhow = "1.0"
     thiserror = "2.0"
     bindgen = "0.72"
     gpiocdev = { version = "0.8", features = ["uapi_v1"] }
+    nmea = { version = "0.7", default-features = false, features = [
+      "std",
+      "GNSS",
+    ] }
+    ublox = { version = "0.9", git = "https://github.com/ublox-rs/ublox.git", rev = "0d59ea8cacba5a0524e96efd59d76e261223c762" }
