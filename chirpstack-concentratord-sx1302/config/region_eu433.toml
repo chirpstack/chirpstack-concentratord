@@ -8,14 +8,14 @@ compulsory_rfu_size=2
 
 # Beacon frequency / frequencies (Hz).
 frequencies=[
-  433875000,
+  434665000,
 ]
 
 # Bandwidth (Hz).
 bandwidth=125000
 
 # Spreading factor.
-spreading_factor=9
+spreading_factor=8
 
 # TX power.
-tx_power=12
+tx_power=27
