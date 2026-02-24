@@ -3,7 +3,7 @@ use libconcentratord::{gnss, region};
 use libloragw_sx1302::hal;
 
 use super::super::super::super::config::{self, Region};
-use super::super::{ComType, Configuration, RadioConfig};
+use super::super::{ComType, Configuration, RadioConfig, SX1261Config};
 
 // source: https://github.com/Lora-net/sx1302_hal/blob/master/packet_forwarder/global_conf.json.sx1250.US915.USB
 pub fn new(conf: &config::Configuration) -> Result<Configuration> {
@@ -25,7 +25,6 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
         radio_config: vec![
             RadioConfig {
                 tx_min_max_freqs,
-                enable: true,
                 radio_type: hal::RadioType::SX1250,
                 single_input_mode: true,
                 rssi_offset: -215.4,
@@ -153,7 +152,6 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
                 ],
             },
             RadioConfig {
-                enable: true,
                 radio_type: hal::RadioType::SX1250,
                 single_input_mode: false,
                 rssi_offset: -215.4,
@@ -169,6 +167,10 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
                 tx_gain_table: vec![],
             },
         ],
+        sx1261_config: SX1261Config {
+            enable: true,
+            rssi_offset: 0,
+        },
         gps: match gps {
             true => conf
                 .gateway

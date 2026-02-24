@@ -3,21 +3,23 @@ use libconcentratord::{gnss, region};
 use libloragw_sx1302::hal;
 
 use super::super::super::super::config::{self, Region};
-use super::super::{ComType, Configuration, RadioConfig};
+use super::super::{ComType, Configuration, RadioConfig, SX1261Config};
 
-// source: https://github.com/Lora-net/sx1302_hal/blob/master/packet_forwarder/global_conf.json.sx1250.US915
+// source: https://gitlab.com/fmlr/miro_edge/sx1302_hal/-/tree/master/packet_forwarder?ref_type=heads
 pub fn new(conf: &config::Configuration) -> Result<Configuration> {
-    let region = conf.gateway.region.unwrap_or(Region::US915);
+    let region = conf.gateway.region.unwrap_or(Region::EU868);
 
     let tx_min_max_freqs = match region {
-        Region::US915 => region::us915::TX_MIN_MAX_FREQS.to_vec(),
-        Region::AU915 => region::au915::TX_MIN_MAX_FREQS.to_vec(),
+        Region::EU868 => region::eu868::TX_MIN_MAX_FREQS.to_vec(),
+        Region::IN865 => region::in865::TX_MIN_MAX_FREQS.to_vec(),
+        Region::RU864 => region::ru864::TX_MIN_MAX_FREQS.to_vec(),
         _ => return Err(anyhow!("Region is not supported: {}", region)),
     };
 
-    let gps = conf.gateway.model_flags.contains(&"GNSS".to_string());
+    let enforce_duty_cycle = conf.gateway.model_flags.contains(&"ENFORCE_DC".to_string());
 
     Ok(Configuration {
+        enforce_duty_cycle,
         radio_count: 2,
         clock_source: 0,
         full_duplex: false,
@@ -27,6 +29,7 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
                 tx_min_max_freqs,
                 radio_type: hal::RadioType::SX1250,
                 single_input_mode: true,
+
                 rssi_offset: -215.4,
                 rssi_temp_compensation: hal::RssiTempCompensationConfig {
                     coeff_a: 0.0,
@@ -167,18 +170,13 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
                 tx_gain_table: vec![],
             },
         ],
-        gps: match gps {
-            true => conf
-                .gateway
-                .get_gnss_dev_path(&gnss::Device::new("/dev/ttyAMA0")),
-            false => gnss::Device::None,
+        sx1261_config: SX1261Config {
+            enable: true,
+            rssi_offset: 0,
         },
-        com_type: ComType::Spi,
-        com_path: conf.gateway.get_com_dev_path("/dev/spidev0.0"),
-        i2c_path: Some(conf.gateway.get_i2c_dev_path("/dev/i2c-1")),
-        i2c_temp_sensor_addr: Some(0x3b),
-        sx1302_reset_pin: conf.gateway.get_sx1302_reset_pin("/dev/gpiochip0", 23),
-        sx1302_power_en_pin: conf.gateway.get_sx1302_power_en_pin("/dev/gpiochip0", 18),
+        gps: gnss::Device::None,
+        com_type: ComType::Usb,
+        com_path: conf.gateway.get_com_dev_path("/dev/ttyACM0"),
         ..Default::default()
     })
 }

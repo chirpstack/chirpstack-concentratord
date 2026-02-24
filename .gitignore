@@ -1,6 +1,6 @@
 # hidden files
 .*
-!.cargo
+!.cargo/config.toml
 !.github
 !.vscode
 

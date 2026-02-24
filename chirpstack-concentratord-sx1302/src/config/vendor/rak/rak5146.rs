@@ -3,7 +3,7 @@ use libconcentratord::{gnss, region};
 use libloragw_sx1302::hal;
 
 use super::super::super::super::config::{self, Region};
-use super::super::{ComType, Configuration, RadioConfig};
+use super::super::{ComType, Configuration, RadioConfig, SX1261Config};
 
 // source:
 // https://github.com/RAKWireless/rak_common_for_gateway/blob/45c93c07f7/lora/rak5146/
@@ -401,6 +401,7 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
     let gps = conf.gateway.model_flags.contains(&"GNSS".to_string());
     let usb = conf.gateway.model_flags.contains(&"USB".to_string());
     let enforce_duty_cycle = conf.gateway.model_flags.contains(&"ENFORCE_DC".to_string());
+    let lbt = conf.gateway.model_flags.contains(&"LBT".to_string());
 
     Ok(Configuration {
         enforce_duty_cycle,
@@ -413,7 +414,6 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
                 tx_min_max_freqs,
                 tx_gain_table,
                 rssi_offset,
-                enable: true,
                 radio_type: hal::RadioType::SX1250,
                 single_input_mode: false,
                 rssi_temp_compensation: hal::RssiTempCompensationConfig {
@@ -427,7 +427,6 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
             },
             RadioConfig {
                 rssi_offset,
-                enable: true,
                 radio_type: hal::RadioType::SX1250,
                 single_input_mode: false,
                 rssi_temp_compensation: hal::RssiTempCompensationConfig {
@@ -442,6 +441,10 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
                 tx_gain_table: vec![],
             },
         ],
+        sx1261_config: SX1261Config {
+            enable: lbt,
+            rssi_offset: 0,
+        },
         gps: match gps {
             true => conf
                 .gateway

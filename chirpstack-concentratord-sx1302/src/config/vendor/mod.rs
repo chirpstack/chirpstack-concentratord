@@ -3,6 +3,7 @@ use libloragw_sx1302::hal;
 
 pub mod dragino;
 pub mod embit;
+pub mod miromico;
 pub mod multitech;
 pub mod rak;
 pub mod seeed;
@@ -23,9 +24,11 @@ pub struct Configuration {
     pub full_duplex: bool,
     pub lora_multi_sf_bandwidth: u32,
     pub radio_config: Vec<RadioConfig>,
+    pub sx1261_config: SX1261Config,
     pub gps: gnss::Device,
     pub com_type: ComType,
     pub com_path: String,
+    pub sx1261_dev_path: Option<String>,
     pub i2c_path: Option<String>,
     pub i2c_temp_sensor_addr: Option<u8>,
     pub sx1302_reset_pin: Option<(String, u32)>,
@@ -38,7 +41,6 @@ pub struct Configuration {
 
 #[derive(Clone)]
 pub struct RadioConfig {
-    pub enable: bool,
     pub radio_type: hal::RadioType,
     pub single_input_mode: bool,
     pub rssi_offset: f32,
@@ -46,4 +48,10 @@ pub struct RadioConfig {
     pub tx_enable: bool,
     pub tx_min_max_freqs: Vec<(u32, u32)>,
     pub tx_gain_table: Vec<hal::TxGainConfig>,
+}
+
+#[derive(Default, Clone)]
+pub struct SX1261Config {
+    pub enable: bool,
+    pub rssi_offset: i8,
 }

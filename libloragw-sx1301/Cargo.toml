@@ -6,7 +6,7 @@
   publish = false
 
 [dependencies]
-  anyhow = "1.0"
+  anyhow = { workspace = true }
 
 [build-dependencies]
-  bindgen = "0.72"
+  bindgen = { workspace = true }

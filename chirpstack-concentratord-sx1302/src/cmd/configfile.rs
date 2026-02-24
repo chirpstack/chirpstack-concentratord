@@ -95,6 +95,7 @@ pub fn run(config: &config::Configuration) {
   # gnss_dev_path="gpsd://localhost:2947"
   # com_dev_path="/dev/spidev0.0"
   # i2c_dev_path="/dev/i2c-1"
+  # sx1261_dev_path="/dev/spidev1.0"
   # sx1302_reset_chip="/dev/gpiochip0"
   # sx1302_reset_pin=17
   # sx1302_power_en_chip="/dev/gpiochip0"
@@ -133,6 +134,31 @@ pub fn run(config: &config::Configuration) {
     latitude={{ gateway.location.latitude }}
     longitude={{ gateway.location.longitude }}
     altitude={{ gateway.location.altitude }}
+
+  # Listen Before Talk configuration.
+  [gateway.lbt]
+
+    # Enable LBT.
+    enable={{gateway.lbt.enable}}
+
+    # RSSI target.
+    rssi_target={{gateway.lbt.rssi_target}}
+
+    # # Channels (can be repeated).
+    # [[gateway.lbt.channels]]
+    #   frequency=868100000
+    #   bandwidth=125000
+    #   scan_time_us=5000
+    #   transmit_time_ms=4000
+
+    {{#each gateway.lbt.channels}}
+    [[gateway.lbt.channels]]
+      frequency={{this.frequency}}
+      bandwidth={{this.bandwidth}}
+      scan_time_us={{this.scan_time_us}}
+      transmit_time_ms={{this.transmit_time_ms}}
+
+    {{/each}}
 "#;
 
     let reg = Handlebars::new();

@@ -1,4 +1,4 @@
-{ pkgs ? import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/nixos-25.05.tar.gz") {} }:
+{ pkgs ? import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/nixos-25.11.tar.gz") {} }:
 
 pkgs.mkShell {
   nativeBuildInputs = [
@@ -14,7 +14,7 @@ pkgs.mkShell {
     pkgs.opkg-utils
   ];
   shellHook = ''
-    export PATH=$PATH:~/.cargo/bin
+    export PATH=$PWD/.cargo/bin:$PATH
   '';
   DOCKER_BUILDKIT = "1";
   NIX_STORE = "/nix/store";

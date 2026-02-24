@@ -4,7 +4,6 @@ use anyhow::Result;
 use chirpstack_api::{gw, prost_types};
 use libconcentratord::jitqueue;
 use libloragw_sx1302::hal;
-use rand::Rng;
 
 use super::handler::gps;
 
@@ -65,8 +64,7 @@ pub fn uplink_to_proto(
     packet: &hal::RxPacket,
     time_fallback: bool,
 ) -> Result<gw::UplinkFrame> {
-    let mut rng = rand::rng();
-    let uplink_id: u32 = rng.random();
+    let uplink_id = getrandom::u32()?;
 
     let time_since_gps_epoch = match gps::cnt2epoch(packet.count_us) {
         Ok(v) => Some(prost_types::Duration {
@@ -202,95 +200,95 @@ pub fn downlink_from_proto(df: &gw::DownlinkFrameItem) -> Result<hal::TxPacket> 
         ..Default::default()
     };
 
-    if let Some(timing) = &tx_info.timing {
-        if let Some(params) = &timing.parameters {
-            match params {
-                gw::timing::Parameters::Immediately(_) => {
-                    packet.tx_mode = hal::TxMode::Immediate;
+    if let Some(timing) = &tx_info.timing
+        && let Some(params) = &timing.parameters
+    {
+        match params {
+            gw::timing::Parameters::Immediately(_) => {
+                packet.tx_mode = hal::TxMode::Immediate;
+            }
+            gw::timing::Parameters::Delay(v) => {
+                packet.tx_mode = hal::TxMode::Timestamped;
+
+                let ctx = &tx_info.context;
+                if ctx.len() != 4 {
+                    return Err(anyhow!("context must be exactly 4 bytes"));
                 }
-                gw::timing::Parameters::Delay(v) => {
-                    packet.tx_mode = hal::TxMode::Timestamped;
 
-                    let ctx = &tx_info.context;
-                    if ctx.len() != 4 {
-                        return Err(anyhow!("context must be exactly 4 bytes"));
+                match &v.delay {
+                    Some(v) => {
+                        let mut array = [0; 4];
+                        array.copy_from_slice(ctx);
+                        packet.count_us = u32::from_be_bytes(array).wrapping_add(
+                            (Duration::from_secs(v.seconds as u64)
+                                + Duration::from_nanos(v.nanos as u64))
+                            .as_micros() as u32,
+                        );
                     }
-
-                    match &v.delay {
-                        Some(v) => {
-                            let mut array = [0; 4];
-                            array.copy_from_slice(ctx);
-                            packet.count_us = u32::from_be_bytes(array).wrapping_add(
-                                (Duration::from_secs(v.seconds as u64)
-                                    + Duration::from_nanos(v.nanos as u64))
-                                .as_micros() as u32,
-                            );
-                        }
-                        None => {
-                            return Err(anyhow!("delay must not be null"));
-                        }
+                    None => {
+                        return Err(anyhow!("delay must not be null"));
                     }
                 }
-                gw::timing::Parameters::GpsEpoch(v) => {
-                    packet.tx_mode = hal::TxMode::Timestamped;
+            }
+            gw::timing::Parameters::GpsEpoch(v) => {
+                packet.tx_mode = hal::TxMode::Timestamped;
 
-                    match v.time_since_gps_epoch.as_ref() {
-                        Some(v) => {
-                            let gps_epoch = Duration::from_secs(v.seconds as u64)
-                                + Duration::from_nanos(v.nanos as u64);
+                match v.time_since_gps_epoch.as_ref() {
+                    Some(v) => {
+                        let gps_epoch = Duration::from_secs(v.seconds as u64)
+                            + Duration::from_nanos(v.nanos as u64);
 
-                            match gps::epoch2cnt(&gps_epoch) {
-                                Ok(v) => {
-                                    packet.count_us = v;
-                                }
-                                Err(err) => return Err(err),
+                        match gps::epoch2cnt(&gps_epoch) {
+                            Ok(v) => {
+                                packet.count_us = v;
                             }
+                            Err(err) => return Err(err),
                         }
-                        None => {
-                            return Err(anyhow!("time_since_gps_epoch must not be null"));
-                        }
+                    }
+                    None => {
+                        return Err(anyhow!("time_since_gps_epoch must not be null"));
                     }
                 }
             }
         }
     }
 
-    if let Some(modulation) = &tx_info.modulation {
-        if let Some(params) = &modulation.parameters {
-            match params {
-                gw::modulation::Parameters::Lora(v) => {
-                    packet.modulation = hal::Modulation::LoRa;
-                    packet.bandwidth = v.bandwidth;
-                    packet.datarate = match v.spreading_factor {
-                        5 => hal::DataRate::SF5,
-                        6 => hal::DataRate::SF6,
-                        7 => hal::DataRate::SF7,
-                        8 => hal::DataRate::SF8,
-                        9 => hal::DataRate::SF9,
-                        10 => hal::DataRate::SF10,
-                        11 => hal::DataRate::SF11,
-                        12 => hal::DataRate::SF12,
-                        _ => return Err(anyhow!("unexpected spreading-factor")),
-                    };
-                    packet.coderate = match v.code_rate() {
-                        gw::CodeRate::Cr45 => hal::CodeRate::LoRa4_5,
-                        gw::CodeRate::Cr46 => hal::CodeRate::LoRa4_6,
-                        gw::CodeRate::Cr47 => hal::CodeRate::LoRa4_7,
-                        gw::CodeRate::Cr48 => hal::CodeRate::LoRa4_8,
-                        _ => hal::CodeRate::Undefined,
-                    };
-                    packet.invert_pol = v.polarization_inversion;
-                    packet.preamble = v.preamble as u16;
-                    packet.no_crc = v.no_crc;
-                }
-                gw::modulation::Parameters::Fsk(v) => {
-                    packet.modulation = hal::Modulation::FSK;
-                    packet.datarate = hal::DataRate::FSK(v.datarate);
-                    packet.f_dev = (v.frequency_deviation / 1000) as u8;
-                }
-                gw::modulation::Parameters::LrFhss(_) => {
-                    return Err(anyhow!("LR-FHSS is not supported for downlink"));
-                }
+    if let Some(modulation) = &tx_info.modulation
+        && let Some(params) = &modulation.parameters
+    {
+        match params {
+            gw::modulation::Parameters::Lora(v) => {
+                packet.modulation = hal::Modulation::LoRa;
+                packet.bandwidth = v.bandwidth;
+                packet.datarate = match v.spreading_factor {
+                    5 => hal::DataRate::SF5,
+                    6 => hal::DataRate::SF6,
+                    7 => hal::DataRate::SF7,
+                    8 => hal::DataRate::SF8,
+                    9 => hal::DataRate::SF9,
+                    10 => hal::DataRate::SF10,
+                    11 => hal::DataRate::SF11,
+                    12 => hal::DataRate::SF12,
+                    _ => return Err(anyhow!("unexpected spreading-factor")),
+                };
+                packet.coderate = match v.code_rate() {
+                    gw::CodeRate::Cr45 => hal::CodeRate::LoRa4_5,
+                    gw::CodeRate::Cr46 => hal::CodeRate::LoRa4_6,
+                    gw::CodeRate::Cr47 => hal::CodeRate::LoRa4_7,
+                    gw::CodeRate::Cr48 => hal::CodeRate::LoRa4_8,
+                    _ => hal::CodeRate::Undefined,
+                };
+                packet.invert_pol = v.polarization_inversion;
+                packet.preamble = v.preamble as u16;
+                packet.no_crc = v.no_crc;
+            }
+            gw::modulation::Parameters::Fsk(v) => {
+                packet.modulation = hal::Modulation::FSK;
+                packet.datarate = hal::DataRate::FSK(v.datarate);
+                packet.f_dev = (v.frequency_deviation / 1000) as u8;
+            }
+            gw::modulation::Parameters::LrFhss(_) => {
+                return Err(anyhow!("LR-FHSS is not supported for downlink"));
             }
         }
     }

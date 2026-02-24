@@ -217,7 +217,7 @@ impl<T: TxPacket + Copy> Queue<T> {
             item.packet.set_tx_mode(TxMode::Timestamped);
 
             // use now + 1 sec
-            let mut asap_count = linear_count + Duration::from_secs(1);
+            let mut asap_count = linear_count + (2 * self.tx_jit_delay);
 
             // eventual collision with currently running packet
             // not anymore in queue but still there
@@ -497,7 +497,7 @@ mod tests {
         assert_eq!(Duration::from_micros(1500 + 40000), item.pre_delay);
         assert_eq!(Duration::from_millis(100), item.post_delay);
         assert_eq!(
-            concentrator_count + Duration::from_secs(1).as_micros() as u32,
+            concentrator_count + Duration::from_millis(80).as_micros() as u32,
             item.packet.get_count_us()
         );
 
@@ -518,7 +518,7 @@ mod tests {
     fn test_enqueue_immediate_u32_wrapping() {
         let mut q: Queue<TxPacketMock> = Queue::new(2, None);
         let concentrator_count = 0_u32.wrapping_sub(
-            (Duration::from_secs(1)
+            (Duration::from_millis(80)
                 + Duration::from_micros(1500 + 40000)
                 + Duration::from_millis(100))
             .as_micros() as u32,

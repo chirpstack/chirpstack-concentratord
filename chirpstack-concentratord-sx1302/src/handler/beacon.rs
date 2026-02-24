@@ -7,7 +7,6 @@ use anyhow::Result;
 use libconcentratord::jitqueue;
 use libconcentratord::signals::Signal;
 use libloragw_sx1302::hal;
-use rand::Rng;
 
 use super::super::{config, wrapper};
 use super::gps;
@@ -71,8 +70,6 @@ fn send_beacon(
     beacon_time: Duration,
     queue: &Arc<Mutex<jitqueue::Queue<wrapper::TxPacket>>>,
 ) -> Result<()> {
-    let mut rng = rand::rng();
-
     let mut beacon_pl = get_beacon(conf.compulsory_rfu_size, beacon_time);
     let data_size = beacon_pl.len();
 
@@ -108,7 +105,7 @@ fn send_beacon(
         payload: data,
         ..Default::default()
     };
-    let tx_packet = wrapper::TxPacket::new(rng.random(), tx_packet);
+    let tx_packet = wrapper::TxPacket::new(getrandom::u32()?, tx_packet);
 
     queue
         .lock()

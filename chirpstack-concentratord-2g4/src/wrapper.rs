@@ -4,7 +4,6 @@ use anyhow::Result;
 use chirpstack_api::{gw, prost_types};
 use libconcentratord::jitqueue;
 use libloragw_2g4::hal;
-use rand::Rng;
 
 #[derive(Copy, Clone)]
 pub struct TxPacket(hal::TxPacket, u32);
@@ -68,8 +67,6 @@ pub fn uplink_to_proto(
     packet: &hal::RxPacket,
     time_fallback: bool,
 ) -> Result<gw::UplinkFrame> {
-    let mut rng = rand::rng();
-
     Ok(gw::UplinkFrame {
         phy_payload: packet.payload[..packet.size as usize].to_vec(),
         tx_info: Some(gw::UplinkTxInfo {
@@ -106,7 +103,7 @@ pub fn uplink_to_proto(
             }),
         }),
         rx_info: Some(gw::UplinkRxInfo {
-            uplink_id: rng.random(),
+            uplink_id: getrandom::u32()?,
             context: packet.count_us.to_be_bytes().to_vec(),
             gateway_id: hex::encode(gateway_id),
             rssi: packet.rssi as i32,
@@ -156,89 +153,89 @@ pub fn downlink_from_proto(
         ..Default::default()
     };
 
-    if let Some(timing) = &tx_info.timing {
-        if let Some(params) = &timing.parameters {
-            match params {
-                gw::timing::Parameters::Immediately(_) => {
-                    packet.tx_mode = hal::TxMode::Immediate;
-                }
-                gw::timing::Parameters::Delay(v) => {
-                    packet.tx_mode = hal::TxMode::Timestamped;
+    if let Some(timing) = &tx_info.timing
+        && let Some(params) = &timing.parameters
+    {
+        match params {
+            gw::timing::Parameters::Immediately(_) => {
+                packet.tx_mode = hal::TxMode::Immediate;
+            }
+            gw::timing::Parameters::Delay(v) => {
+                packet.tx_mode = hal::TxMode::Timestamped;
 
-                    let ctx = &tx_info.context;
-                    if ctx.len() != 4 {
-                        return Err(anyhow!("context must be exactly 4 bytes"));
-                    }
+                let ctx = &tx_info.context;
+                if ctx.len() != 4 {
+                    return Err(anyhow!("context must be exactly 4 bytes"));
+                }
 
-                    match &v.delay {
-                        Some(v) => {
-                            let mut array = [0; 4];
-                            array.copy_from_slice(ctx);
-                            packet.count_us = u32::from_be_bytes(array).wrapping_add(
-                                (Duration::from_secs(v.seconds as u64)
-                                    + Duration::from_nanos(v.nanos as u64))
-                                .as_micros() as u32,
-                            );
-                        }
-                        None => {
-                            return Err(anyhow!("delay must not be null"));
-                        }
+                match &v.delay {
+                    Some(v) => {
+                        let mut array = [0; 4];
+                        array.copy_from_slice(ctx);
+                        packet.count_us = u32::from_be_bytes(array).wrapping_add(
+                            (Duration::from_secs(v.seconds as u64)
+                                + Duration::from_nanos(v.nanos as u64))
+                            .as_micros() as u32,
+                        );
+                    }
+                    None => {
+                        return Err(anyhow!("delay must not be null"));
                     }
                 }
-                gw::timing::Parameters::GpsEpoch(_) => {
-                    return Err(anyhow!("gps epoch timing is not implemented"));
-                }
+            }
+            gw::timing::Parameters::GpsEpoch(_) => {
+                return Err(anyhow!("gps epoch timing is not implemented"));
             }
         }
     }
 
-    if let Some(modulation) = &tx_info.modulation {
-        if let Some(params) = &modulation.parameters {
-            match params {
-                gw::modulation::Parameters::Lora(v) => {
-                    packet.bandwidth = v.bandwidth;
-                    packet.datarate = match v.spreading_factor {
-                        5 => hal::DataRate::SF5,
-                        6 => hal::DataRate::SF6,
-                        7 => hal::DataRate::SF7,
-                        8 => hal::DataRate::SF8,
-                        9 => hal::DataRate::SF9,
-                        10 => hal::DataRate::SF10,
-                        11 => hal::DataRate::SF11,
-                        12 => hal::DataRate::SF12,
+    if let Some(modulation) = &tx_info.modulation
+        && let Some(params) = &modulation.parameters
+    {
+        match params {
+            gw::modulation::Parameters::Lora(v) => {
+                packet.bandwidth = v.bandwidth;
+                packet.datarate = match v.spreading_factor {
+                    5 => hal::DataRate::SF5,
+                    6 => hal::DataRate::SF6,
+                    7 => hal::DataRate::SF7,
+                    8 => hal::DataRate::SF8,
+                    9 => hal::DataRate::SF9,
+                    10 => hal::DataRate::SF10,
+                    11 => hal::DataRate::SF11,
+                    12 => hal::DataRate::SF12,
+                    _ => return Err(anyhow!("unexpected spreading-factor")),
+                };
+                packet.coderate = match v.code_rate() {
+                    gw::CodeRate::Cr45 => hal::CodeRate::LoRa4_5,
+                    gw::CodeRate::Cr46 => hal::CodeRate::LoRa4_6,
+                    gw::CodeRate::Cr47 => hal::CodeRate::LoRa4_7,
+                    gw::CodeRate::Cr48 => hal::CodeRate::LoRa4_8,
+                    gw::CodeRate::CrLi45 => hal::CodeRate::LoRaLi4_5,
+                    gw::CodeRate::CrLi46 => hal::CodeRate::LoRaLi4_6,
+                    gw::CodeRate::CrLi48 => hal::CodeRate::LoRaLi4_8,
+                    _ => return Err(anyhow!("unexpected coderate")),
+                };
+                packet.preamble = if v.preamble > 0 {
+                    v.preamble as u16
+                } else {
+                    match v.spreading_factor {
+                        5 => 12,
+                        6 => 12,
+                        7 => 8,
+                        8 => 8,
+                        9 => 8,
+                        10 => 8,
+                        11 => 8,
+                        12 => 8,
                         _ => return Err(anyhow!("unexpected spreading-factor")),
-                    };
-                    packet.coderate = match v.code_rate() {
-                        gw::CodeRate::Cr45 => hal::CodeRate::LoRa4_5,
-                        gw::CodeRate::Cr46 => hal::CodeRate::LoRa4_6,
-                        gw::CodeRate::Cr47 => hal::CodeRate::LoRa4_7,
-                        gw::CodeRate::Cr48 => hal::CodeRate::LoRa4_8,
-                        gw::CodeRate::CrLi45 => hal::CodeRate::LoRaLi4_5,
-                        gw::CodeRate::CrLi46 => hal::CodeRate::LoRaLi4_6,
-                        gw::CodeRate::CrLi48 => hal::CodeRate::LoRaLi4_8,
-                        _ => return Err(anyhow!("unexpected coderate")),
-                    };
-                    packet.preamble = if v.preamble > 0 {
-                        v.preamble as u16
-                    } else {
-                        match v.spreading_factor {
-                            5 => 12,
-                            6 => 12,
-                            7 => 8,
-                            8 => 8,
-                            9 => 8,
-                            10 => 8,
-                            11 => 8,
-                            12 => 8,
-                            _ => return Err(anyhow!("unexpected spreading-factor")),
-                        }
-                    };
-                    packet.no_crc = v.no_crc;
-                    packet.invert_pol = v.polarization_inversion;
-                }
-                _ => {
-                    return Err(anyhow!("only LORA modulation is implemented"));
-                }
+                    }
+                };
+                packet.no_crc = v.no_crc;
+                packet.invert_pol = v.polarization_inversion;
+            }
+            _ => {
+                return Err(anyhow!("only LORA modulation is implemented"));
             }
         }
     }

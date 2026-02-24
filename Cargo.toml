@@ -1,5 +1,5 @@
 [workspace]
-  resolver = "2"
+  resolver = "3"
   members = [
     "chirpstack-concentratord-2g4",
     "chirpstack-concentratord-sx1301",
@@ -11,3 +11,35 @@
     "libloragw-2g4",
     "libconcentratord",
   ]
+
+  [workspace.dependencies]
+    chirpstack_api = { version = "4.16", default-features = false }
+    serde = { version = "1.0", features = ["derive"] }
+    serde_json = "1.0"
+    toml = { version = "0.9", default-features = false, features = [
+      "std",
+      "parse",
+      "serde",
+    ] }
+    clap = { version = "4.5", default-features = false, features = [
+      "std",
+      "help",
+      "usage",
+      "derive",
+    ] }
+    log = "0.4"
+    simple_logger = { version = "5.1", default-features = false, features = [
+      "timestamps",
+    ] }
+    zmq = "0.10"
+    hex = "0.4"
+    chrono = { version = "0.4", default-features = false, features = ["now"] }
+    humantime-serde = "1.1"
+    syslog = "7.0"
+    signal-hook = "0.4"
+    handlebars = "6.4"
+    getrandom = { version = "0.3", features = ["std"] }
+    anyhow = "1.0"
+    thiserror = "2.0"
+    bindgen = "0.72"
+    gpiocdev = { version = "0.8", features = ["uapi_v1"] }
