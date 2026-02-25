@@ -1,5 +1,5 @@
 [Unit]
-Description=ChirpStack Concentratord 2G4
+Description=ChirpStack Concentratord (2g4)
 Documentation=https://www.chirpstack.io/
 Wants=network-online.target
 After=network-online.target
@@ -7,7 +7,7 @@ After=network-online.target
 [Service]
 User=chirpstack
 Group=chirpstack
-ExecStart=/usr/bin/chirpstack-concentratord-2g4 -c /etc/chirpstack-concentratord/chirpstack-concentratord-2g4.toml
+ExecStart=/usr/bin/chirpstack-concentratord-2g4 -c /etc/chirpstack-concentratord-2g4/concentratord.toml -c /etc/chirpstack-concentratord-2g4/channels.toml -c /etc/chirpstack-concentratord-2g4/region.toml
 Restart=on-failure
 
 [Install]

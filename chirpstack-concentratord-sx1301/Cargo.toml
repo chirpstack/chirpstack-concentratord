@@ -27,23 +27,40 @@
   getrandom = { workspace = true }
   anyhow = { workspace = true }
 
-# Debian packaging.
-[package.metadata.deb]
-assets = [
-    [
+  # Debian packaging.
+  [package.metadata.deb]
+    assets = [
+      [
         "target/release/chirpstack-concentratord-sx1301",
         "usr/bin/chirpstack-concentratord-sx1301",
         "755",
-    ],
-    [
+      ],
+      [
         "./config/concentratord.toml",
-        "etc/chirpstack-concentratord/chirpstack-concentratord-sx1301.toml",
+        "etc/chirpstack-concentratord-sx1301/concentratord.toml",
         "640",
-    ],
-]
-conf-files = [
-    "/etc/chirpstack-concentratord/chirpstack-concentratord-sx1301.toml",
-]
-suggests = "mosquitto"
-maintainer-scripts = "./debian/"
-systemd-units = { enable = true }
+      ],
+      [
+        "./config/region_eu868.toml",
+        "etc/chirpstack-concentratord-sx1301/region.toml",
+        "640",
+      ],
+      [
+        "./config/channels_eu868.toml",
+        "etc/chirpstack-concentratord-sx1301/channels.toml",
+        "640",
+      ],
+      [
+        "./config/*.toml",
+        "etc/chirpstack-concentratord-sx1301/examples",
+        "640",
+      ],
+    ]
+    conf-files = [
+      "/etc/chirpstack-concentratord-sx1301/concentratord.toml",
+      "/etc/chirpstack-concentratord-sx1301/region.toml",
+      "/etc/chirpstack-concentratord-sx1301/channels.toml",
+    ]
+    suggests = "mosquitto"
+    maintainer-scripts = "./debian/"
+    systemd-units = { enable = true }

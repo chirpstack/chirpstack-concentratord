@@ -1,5 +1,5 @@
 [Unit]
-Description=ChirpStack Concentratord SX1301
+Description=ChirpStack Concentratord (SX1301)
 Documentation=https://www.chirpstack.io/
 Wants=network-online.target
 After=network-online.target
@@ -7,7 +7,7 @@ After=network-online.target
 [Service]
 User=chirpstack
 Group=chirpstack
-ExecStart=/usr/bin/chirpstack-concentratord-sx1301 -c /etc/chirpstack-concentratord/chirpstack-concentratord-sx1301.toml
+ExecStart=/usr/bin/chirpstack-concentratord-sx1301 -c /etc/chirpstack-concentratord-sx1301/concentratord.toml -c /etc/chirpstack-concentratord-sx1301/channels.toml -c /etc/chirpstack-concentratord-sx1301/region.toml
 Restart=on-failure
 
 [Install]
