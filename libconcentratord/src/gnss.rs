@@ -243,19 +243,15 @@ fn parse_nmea(b: &[u8]) -> Result<Option<GnssResult>> {
 fn parse_ubx(b: &[u8]) -> Result<Option<GnssResult>> {
     let mut parser = ublox::Parser::default();
     let mut it = parser.consume_ubx(&b);
-    loop {
-        return match it.next() {
-            Some(Ok(packet)) => match packet {
-                ublox::UbxPacket::Proto23(ublox::proto23::PacketRef::NavTimeGps(v)) => {
-                    handle_ubx_nav_timegps(v)
-                }
-                _ => Ok(None),
-            },
-            _ => break,
-        };
+    match it.next() {
+        Some(Ok(packet)) => match packet {
+            ublox::UbxPacket::Proto23(ublox::proto23::PacketRef::NavTimeGps(v)) => {
+                handle_ubx_nav_timegps(v)
+            }
+            _ => Ok(None),
+        },
+        _ => Ok(None),
     }
-
-    Ok(None)
 }
 
 fn handle_nmea_rcm(v: &nmea::sentences::RmcData) -> Result<Option<GnssResult>> {
