@@ -198,11 +198,9 @@ pub fn count_to_epoch(count_us: u32) -> Option<Duration> {
 pub fn epoch_to_count(gps_epoch_now: Duration) -> Option<u32> {
     let gps_epoch = TIME_SINCE_GPS_EPOCH.read().unwrap();
     if let Some((gps_epoch, gps_epoch_count_us)) = gps_epoch.as_ref() {
-        if let Some(diff) = gps_epoch_now.checked_sub(gps_epoch.time_since_gps_epoch) {
-            Some(gps_epoch_count_us.wrapping_add(diff.as_micros() as u32))
-        } else {
-            None
-        }
+        gps_epoch_now
+            .checked_sub(gps_epoch.time_since_gps_epoch)
+            .map(|diff| gps_epoch_count_us.wrapping_add(diff.as_micros() as u32))
     } else {
         None
     }
@@ -234,22 +232,19 @@ fn parse_nmea(b: &[u8]) -> Result<Option<GnssResult>> {
     let v = nmea::parse_bytes(b).map_err(|e| anyhow!("NMEA parse error: {:?}", e))?;
 
     match &v {
-        nmea::ParseResult::RMC(v) => handle_nmea_rcm(&v),
-        nmea::ParseResult::GGA(v) => handle_nmea_gga(&v),
+        nmea::ParseResult::RMC(v) => handle_nmea_rcm(v),
+        nmea::ParseResult::GGA(v) => handle_nmea_gga(v),
         _ => Ok(None),
     }
 }
 
 fn parse_ubx(b: &[u8]) -> Result<Option<GnssResult>> {
     let mut parser = ublox::Parser::default();
-    let mut it = parser.consume_ubx(&b);
+    let mut it = parser.consume_ubx(b);
     match it.next() {
-        Some(Ok(packet)) => match packet {
-            ublox::UbxPacket::Proto23(ublox::proto23::PacketRef::NavTimeGps(v)) => {
-                handle_ubx_nav_timegps(v)
-            }
-            _ => Ok(None),
-        },
+        Some(Ok(ublox::UbxPacket::Proto23(ublox::proto23::PacketRef::NavTimeGps(v)))) => {
+            handle_ubx_nav_timegps(v)
+        }
         _ => Ok(None),
     }
 }
