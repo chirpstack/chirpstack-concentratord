@@ -10,6 +10,7 @@ pkgs.mkShell {
     # cargo-cross can be used once version > 0.2.5, as 0.2.5 does not work well
     # with nightly toolchain. It is for now installed through make dev-dependencies.
     # pkgs.cargo-cross
+    pkgs.cargo-deb
     pkgs.jq
     pkgs.opkg-utils
   ];

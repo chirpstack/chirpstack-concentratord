@@ -26,3 +26,41 @@
   handlebars = { workspace = true }
   getrandom = { workspace = true }
   anyhow = { workspace = true }
+
+  # Debian packaging.
+  [package.metadata.deb]
+    assets = [
+      [
+        "target/release/chirpstack-concentratord-2g4",
+        "usr/bin/chirpstack-concentratord-2g4",
+        "755",
+      ],
+      [
+        "./config/concentratord.toml",
+        "etc/chirpstack-concentratord-2g4/concentratord.toml",
+        "640",
+      ],
+      [
+        "./config/channels_ism2400.toml",
+        "etc/chirpstack-concentratord-2g4/channels.toml",
+        "640",
+      ],
+      [
+        "./config/region_ism2400.toml",
+        "etc/chirpstack-concentratord-2g4/region.toml",
+        "640",
+      ],
+      [
+        "./config/*.toml",
+        "etc/chirpstack-concentratord-2g4/examples",
+        "640",
+      ],
+    ]
+    conf-files = [
+      "/etc/chirpstack-concentratord-2g4/concentratord.toml",
+      "/etc/chirpstack-concentratord-2g4/channels.toml",
+      "/etc/chirpstack-concentratord-2g4/region.toml",
+    ]
+    suggests = "mosquitto"
+    maintainer-scripts = "./debian/"
+    systemd-units = { enable = true }

@@ -1,0 +1,14 @@
+[Unit]
+Description=ChirpStack Concentratord (SX1302)
+Documentation=https://www.chirpstack.io/
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=chirpstack
+Group=chirpstack
+ExecStart=/usr/bin/chirpstack-concentratord-sx1302 -c /etc/chirpstack-concentratord-sx1302/concentratord.toml -c /etc/chirpstack-concentratord-sx1302/channels.toml -c /etc/chirpstack-concentratord-sx1302/region.toml
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
