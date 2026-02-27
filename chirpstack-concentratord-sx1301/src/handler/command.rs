@@ -5,13 +5,9 @@ use std::time::{Duration, SystemTime};
 use anyhow::Result;
 use chirpstack_api::{common, gw, prost::Message};
 use libconcentratord::signals::Signal;
-use libconcentratord::{commands, jitqueue, stats};
+use libconcentratord::{commands, gnss, jitqueue, stats};
 
-use crate::{
-    config::vendor,
-    handler::{gps, timersync},
-    wrapper,
-};
+use crate::{config::vendor, handler::timersync, wrapper};
 
 pub fn handle_loop(
     vendor_config: &vendor::Configuration,
@@ -31,6 +27,8 @@ pub fn handle_loop(
             debug!("Received stop signal, signal: {}", v);
             return Ok(());
         }
+
+        let count_us = timersync::get_concentrator_count();
 
         let resp = match cmd {
             Ok(v) => match v.command {
@@ -53,14 +51,14 @@ pub fn handle_loop(
                     resp.encode_to_vec()
                 }
                 Some(gw::command::Command::GetLocation(_)) => gw::GetLocationResponse {
-                    location: gps::get_coords().map(|v| common::Location {
-                        latitude: v.latitude,
-                        longitude: v.longitude,
-                        altitude: v.altitude.into(),
+                    location: gnss::get_location(count_us).map(|v| common::Location {
+                        latitude: v.lat,
+                        longitude: v.lon,
+                        altitude: v.alt.into(),
                         source: common::LocationSource::Gps.into(),
                         ..Default::default()
                     }),
-                    updated_at: gps::get_coords_last_update()
+                    updated_at: gnss::get_location_last_updated_at()
                         .map(|v| Into::<SystemTime>::into(v).into()),
                 }
                 .encode_to_vec(),

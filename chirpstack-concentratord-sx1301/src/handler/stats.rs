@@ -1,14 +1,14 @@
 use std::collections::HashMap;
-use std::sync::{mpsc::Receiver, Arc, Mutex};
+use std::sync::{Arc, Mutex, mpsc::Receiver};
 use std::time::Duration;
 
 use anyhow::Result;
 
 use chirpstack_api::gw::DutyCycleStats;
 use libconcentratord::signals::Signal;
-use libconcentratord::{jitqueue, stats};
+use libconcentratord::{gnss, jitqueue, stats};
 
-use super::{gps, timersync};
+use super::timersync;
 use crate::wrapper;
 
 pub fn stats_loop(
@@ -29,12 +29,14 @@ pub fn stats_loop(
         }
 
         // fetch the current gps coordinates
-        let loc = gps::get_coords().map(|v| chirpstack_api::common::Location {
-            latitude: v.latitude,
-            longitude: v.longitude,
-            altitude: v.altitude as f64,
-            source: chirpstack_api::common::LocationSource::Gps.into(),
-            ..Default::default()
+        let loc = gnss::get_location(timersync::get_concentrator_count()).map(|v| {
+            chirpstack_api::common::Location {
+                latitude: v.lat,
+                longitude: v.lon,
+                altitude: v.alt.into(),
+                source: chirpstack_api::common::LocationSource::Gps.into(),
+                ..Default::default()
+            }
         });
 
         let dc_stats = get_duty_cycle_stats(&queue)?;

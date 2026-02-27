@@ -33,8 +33,9 @@ pub fn gps_loop(gps_device: gnss::Device, stop_receive: Receiver<Signal>) -> Res
         }
 
         if let Ok(v) = gnss::read(&mut gps_reader)
-            && let Some(v) = v {
-                gnss::sync(&v, hal::get_trigcnt()?)?;
-            }
+            && let Some(v) = v
+        {
+            gnss::sync(&v, hal::get_trigcnt()?)?;
+        }
     }
 }
