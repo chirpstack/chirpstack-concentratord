@@ -4,12 +4,11 @@ use std::thread;
 use std::time::Duration;
 
 use anyhow::Result;
-use libconcentratord::jitqueue;
 use libconcentratord::signals::Signal;
+use libconcentratord::{gnss, jitqueue};
 use libloragw_sx1302::hal;
 
 use super::super::{config, wrapper};
-use super::gps;
 
 const PERIOD: u64 = 128;
 const MARGIN: Duration = Duration::from_secs(5);
@@ -29,10 +28,10 @@ pub fn beacon_loop(
             return Ok(());
         }
 
-        let gps_epoch = match gps::get_gps_epoch() {
-            Ok(v) => v,
-            Err(err) => {
-                debug!("Get GPS epoch error, error: {}", err);
+        let gps_epoch = match gnss::count_to_epoch(hal::get_instcnt()?) {
+            Some(v) => v,
+            None => {
+                debug!("GPS epoch is not available");
                 thread::sleep(Duration::from_secs(1));
                 continue;
             }
@@ -82,7 +81,8 @@ fn send_beacon(
     let tx_packet = hal::TxPacket {
         freq_hz: tx_freq,
         tx_mode: hal::TxMode::OnGPS,
-        count_us: gps::epoch2cnt(&beacon_time)?,
+        count_us: gnss::epoch_to_count(beacon_time)
+            .ok_or_else(|| anyhow!("Epoch to count_us can not be calculated"))?,
         rf_chain: 0,
         rf_power: conf.tx_power as i8,
         modulation: hal::Modulation::LoRa,

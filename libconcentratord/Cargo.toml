@@ -15,3 +15,6 @@
   thiserror = { workspace = true }
   serde = { workspace = true }
   serde_json = { workspace = true }
+  nmea = { workspace = true }
+  ublox = { workspace = true }
+  chrono = { workspace = true }

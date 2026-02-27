@@ -77,7 +77,7 @@ impl Default for Api {
 pub struct Location {
     pub latitude: f64,
     pub longitude: f64,
-    pub altitude: i16,
+    pub altitude: f32,
 }
 
 #[derive(Serialize, Deserialize)]
