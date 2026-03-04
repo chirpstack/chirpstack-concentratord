@@ -1,5 +1,5 @@
 use std::io::BufRead;
-use std::sync::{LazyLock, RwLock};
+use std::sync::{LazyLock, Mutex};
 use std::time::Duration;
 
 use anyhow::{Context, Result};
@@ -9,17 +9,17 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 const GNSS_MAX_AGE: u32 = 30_000_000; // 30 seconds
 
-static TIME_SINCE_GPS_EPOCH: LazyLock<RwLock<Option<(GnssTimeSinceGpsEpoch, u32)>>> =
-    LazyLock::new(|| RwLock::new(None));
+static TIME_SINCE_GPS_EPOCH: LazyLock<Mutex<Option<(GnssTimeSinceGpsEpoch, u32)>>> =
+    LazyLock::new(|| Mutex::new(None));
 
-static GNSS_DATE_TIME: LazyLock<RwLock<Option<(GnssDateTime, u32)>>> =
-    LazyLock::new(|| RwLock::new(None));
+static GNSS_DATE_TIME: LazyLock<Mutex<Option<(GnssDateTime, u32)>>> =
+    LazyLock::new(|| Mutex::new(None));
 
-static GNSS_LOCATION: LazyLock<RwLock<Option<(GnssLocation, u32)>>> =
-    LazyLock::new(|| RwLock::new(None));
+static GNSS_LOCATION: LazyLock<Mutex<Option<(GnssLocation, u32)>>> =
+    LazyLock::new(|| Mutex::new(None));
 
-static STATIC_GNSS_LOCATION: LazyLock<RwLock<Option<GnssLocation>>> =
-    LazyLock::new(|| RwLock::new(None));
+static STATIC_GNSS_LOCATION: LazyLock<Mutex<Option<GnssLocation>>> =
+    LazyLock::new(|| Mutex::new(None));
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum GnssResult {
@@ -132,7 +132,7 @@ pub fn sync(result: &GnssResult, count_us: u32) -> Result<()> {
                 "Syncing GNSS datetime, count_us: {}, datetime: {}",
                 count_us, v.timestamp
             );
-            let mut dt = GNSS_DATE_TIME.write().unwrap();
+            let mut dt = GNSS_DATE_TIME.lock().unwrap();
             *dt = Some((v.clone(), count_us));
         }
         GnssResult::Location(v) => {
@@ -140,7 +140,7 @@ pub fn sync(result: &GnssResult, count_us: u32) -> Result<()> {
                 "Syncing GNSS location, count_us: {}, lat: {}, lon: {}, alt: {}",
                 count_us, v.lat, v.lon, v.alt
             );
-            let mut loc = GNSS_LOCATION.write().unwrap();
+            let mut loc = GNSS_LOCATION.lock().unwrap();
             *loc = Some((v.clone(), count_us));
         }
         GnssResult::TimeSinceGpsEpoch(v) => {
@@ -149,7 +149,7 @@ pub fn sync(result: &GnssResult, count_us: u32) -> Result<()> {
                 count_us,
                 v.time_since_gps_epoch.as_secs()
             );
-            let mut epoch = TIME_SINCE_GPS_EPOCH.write().unwrap();
+            let mut epoch = TIME_SINCE_GPS_EPOCH.lock().unwrap();
             *epoch = Some((v.clone(), count_us));
         }
     }
@@ -162,16 +162,17 @@ pub fn set_static_location(lat: f64, lon: f64, alt: f32) {
         return;
     }
 
-    let mut loc = STATIC_GNSS_LOCATION.write().unwrap();
+    let mut loc = STATIC_GNSS_LOCATION.lock().unwrap();
     *loc = Some(GnssLocation { lat, lon, alt });
 }
 
 pub fn count_to_time(count_us: u32) -> Option<DateTime<Utc>> {
-    let gnss_dt = GNSS_DATE_TIME.read().unwrap();
-    if let Some((gnss_dt, gnss_dt_count_us)) = gnss_dt.as_ref() {
+    let mut gnss_dt_mux = GNSS_DATE_TIME.lock().unwrap();
+    if let Some((gnss_dt, gnss_dt_count_us)) = gnss_dt_mux.as_ref() {
         let (count_us_diff, _) = count_us.overflowing_sub(*gnss_dt_count_us);
         if count_us_diff > GNSS_MAX_AGE {
             debug!("GNSS timestamp is too old");
+            *gnss_dt_mux = None;
             return None;
         }
         Some(gnss_dt.timestamp + Duration::from_micros(count_us_diff as u64))
@@ -182,10 +183,12 @@ pub fn count_to_time(count_us: u32) -> Option<DateTime<Utc>> {
 }
 
 pub fn count_to_epoch(count_us: u32) -> Option<Duration> {
-    let gps_epoch = TIME_SINCE_GPS_EPOCH.read().unwrap();
-    if let Some((gps_epoch, gps_epoch_count_us)) = gps_epoch.as_ref() {
+    let mut gps_epoch_mux = TIME_SINCE_GPS_EPOCH.lock().unwrap();
+
+    if let Some((gps_epoch, gps_epoch_count_us)) = gps_epoch_mux.as_ref() {
         let (count_us_diff, _) = count_us.overflowing_sub(*gps_epoch_count_us);
         if count_us_diff > GNSS_MAX_AGE {
+            *gps_epoch_mux = None;
             return None;
         }
 
@@ -196,8 +199,8 @@ pub fn count_to_epoch(count_us: u32) -> Option<Duration> {
 }
 
 pub fn epoch_to_count(gps_epoch_now: Duration) -> Option<u32> {
-    let gps_epoch = TIME_SINCE_GPS_EPOCH.read().unwrap();
-    if let Some((gps_epoch, gps_epoch_count_us)) = gps_epoch.as_ref() {
+    let gps_epoch_mux = TIME_SINCE_GPS_EPOCH.lock().unwrap();
+    if let Some((gps_epoch, gps_epoch_count_us)) = gps_epoch_mux.as_ref() {
         gps_epoch_now
             .checked_sub(gps_epoch.time_since_gps_epoch)
             .map(|diff| gps_epoch_count_us.wrapping_add(diff.as_micros() as u32))
@@ -207,20 +210,22 @@ pub fn epoch_to_count(gps_epoch_now: Duration) -> Option<u32> {
 }
 
 pub fn get_location(count_us: u32) -> Option<GnssLocation> {
-    let gnss_location = GNSS_LOCATION.read().unwrap();
-    if let Some((gnss_location, gnss_location_count_us)) = gnss_location.as_ref() {
+    let mut gnss_location_mux = GNSS_LOCATION.lock().unwrap();
+    if let Some((gnss_location, gnss_location_count_us)) = gnss_location_mux.as_ref() {
         let (count_us_diff, _) = count_us.overflowing_sub(*gnss_location_count_us);
-        if count_us_diff < GNSS_MAX_AGE {
+        if count_us_diff > GNSS_MAX_AGE {
+            *gnss_location_mux = None;
+            debug!("GNSS location is too old");
+        } else {
             return Some(gnss_location.clone());
         }
     }
 
-    let gnss_location = STATIC_GNSS_LOCATION.read().unwrap();
-    gnss_location.clone()
+    STATIC_GNSS_LOCATION.lock().unwrap().clone()
 }
 
 pub fn get_location_last_updated_at() -> Option<DateTime<Utc>> {
-    let gnss_location = GNSS_LOCATION.read().unwrap();
+    let gnss_location = GNSS_LOCATION.lock().unwrap();
     if let Some((_, gnss_location_count_us)) = gnss_location.as_ref() {
         count_to_time(*gnss_location_count_us)
     } else {
