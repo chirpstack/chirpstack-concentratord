@@ -28,7 +28,7 @@
       "derive",
     ] }
     log = "0.4"
-    simple_logger = { version = "5.1", default-features = false, features = [
+    simple_logger = { version = "5.2", default-features = false, features = [
       "timestamps",
     ] }
     zmq = "0.10"
