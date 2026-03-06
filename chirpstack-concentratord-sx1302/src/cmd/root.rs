@@ -176,10 +176,10 @@ pub fn run(
         }
     }));
 
-    if config.gateway.model_config.gps != gnss::Device::None {
+    if config.gateway.model_config.gnss != gnss::Device::None {
         // gps thread
         threads.push(thread::spawn({
-            let gps = config.gateway.model_config.gps.clone();
+            let gps = config.gateway.model_config.gnss.clone();
             let stop_receive = signal_pool.new_receiver();
             let stop_send = stop_send.clone();
 

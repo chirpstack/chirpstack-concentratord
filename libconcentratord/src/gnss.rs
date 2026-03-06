@@ -3,7 +3,7 @@ use std::sync::{LazyLock, Mutex};
 use std::time::Duration;
 
 use anyhow::{Context, Result};
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, Timelike, Utc};
 use log::{debug, trace};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
@@ -125,32 +125,59 @@ pub fn read(gps_reader: &mut Box<dyn BufRead>) -> Result<Option<GnssResult>> {
     }
 }
 
-pub fn sync(result: &GnssResult, count_us: u32) -> Result<()> {
+pub fn sync(result: &GnssResult, count_us_at_pps: u32) -> Result<()> {
     match result {
         GnssResult::DateTime(v) => {
             debug!(
                 "Syncing GNSS datetime, count_us: {}, datetime: {}",
-                count_us, v.timestamp
+                count_us_at_pps, v.timestamp
             );
+            let mut v = v.clone();
+
+            // Round to second closest to the PPS. It is possible that the GNSS module calculates
+            // the timestamp before the PPS is triggered, but is received after.
+            v.timestamp = v
+                .timestamp
+                .with_nanosecond(if v.timestamp.nanosecond() > 500_000_000 {
+                    // Increment by second.
+                    1_000_000_000
+                } else {
+                    0
+                })
+                .ok_or_else(|| anyhow!("Strip nanoseconds error"))?;
+
             let mut dt = GNSS_DATE_TIME.lock().unwrap();
-            *dt = Some((v.clone(), count_us));
+            *dt = Some((v, count_us_at_pps));
         }
         GnssResult::Location(v) => {
             debug!(
                 "Syncing GNSS location, count_us: {}, lat: {}, lon: {}, alt: {}",
-                count_us, v.lat, v.lon, v.alt
+                count_us_at_pps, v.lat, v.lon, v.alt
             );
             let mut loc = GNSS_LOCATION.lock().unwrap();
-            *loc = Some((v.clone(), count_us));
+            *loc = Some((v.clone(), count_us_at_pps));
         }
         GnssResult::TimeSinceGpsEpoch(v) => {
             debug!(
-                "Syncing GNSS time since GPS epoch, count_us: {}, time_since_gps_epoch_sec: {}",
-                count_us,
-                v.time_since_gps_epoch.as_secs()
+                "Syncing GNSS time since GPS epoch, count_us: {}, time_since_gps_epoch_ns: {}",
+                count_us_at_pps,
+                v.time_since_gps_epoch.as_nanos()
             );
+
+            // Round to second closest to the PPS. It is possible that the GNSS module calculates
+            // the timestamp before the PPS is triggered, but is received after.
+            let mut v = v.clone();
+            v.time_since_gps_epoch = Duration::from_secs(
+                v.time_since_gps_epoch.as_secs()
+                    + if v.time_since_gps_epoch.subsec_nanos() > 500_000_000 {
+                        1
+                    } else {
+                        0
+                    },
+            );
+
             let mut epoch = TIME_SINCE_GPS_EPOCH.lock().unwrap();
-            *epoch = Some((v.clone(), count_us));
+            *epoch = Some((v, count_us_at_pps));
         }
     }
 
