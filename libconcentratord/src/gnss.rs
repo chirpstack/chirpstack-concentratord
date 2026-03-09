@@ -4,10 +4,12 @@ use std::time::Duration;
 
 use anyhow::{Context, Result};
 use chrono::{DateTime, Timelike, Utc};
-use log::{debug, trace};
+use log::{debug, trace, warn};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 const GNSS_MAX_AGE: u32 = 30_000_000; // 30 seconds
+const XERR_INIT_AVG: usize = 16;
+const XERR_FILT_COEF: f64 = 256.0;
 
 static TIME_SINCE_GPS_EPOCH: LazyLock<Mutex<Option<(GnssTimeSinceGpsEpoch, u32)>>> =
     LazyLock::new(|| Mutex::new(None));
@@ -21,28 +23,37 @@ static GNSS_LOCATION: LazyLock<Mutex<Option<(GnssLocation, u32)>>> =
 static STATIC_GNSS_LOCATION: LazyLock<Mutex<Option<GnssLocation>>> =
     LazyLock::new(|| Mutex::new(None));
 
-#[derive(Debug, Clone, PartialEq)]
+static XTAL_CORRECT: LazyLock<Mutex<Option<XtalCorrect>>> = LazyLock::new(|| Mutex::new(None));
+
+#[derive(Debug, Clone)]
 pub enum GnssResult {
     TimeSinceGpsEpoch(GnssTimeSinceGpsEpoch),
     DateTime(GnssDateTime),
     Location(GnssLocation),
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub struct GnssTimeSinceGpsEpoch {
     pub time_since_gps_epoch: Duration,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub struct GnssDateTime {
     pub timestamp: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub struct GnssLocation {
     pub lat: f64,
     pub lon: f64,
     pub alt: f32,
+}
+
+#[derive(Debug, Clone)]
+struct XtalCorrect {
+    init_cpt: usize,
+    init_acc: f64,
+    xtal_correct: f64,
 }
 
 #[derive(Debug, Default, Clone, PartialEq)]
@@ -154,7 +165,9 @@ pub fn sync(result: &GnssResult, count_us_at_pps: u32) -> Result<()> {
                 .ok_or_else(|| anyhow!("Strip nanoseconds error"))?;
 
             let mut dt = GNSS_DATE_TIME.lock().unwrap();
+            let prev_dt = dt.clone();
             *dt = Some((v, count_us_at_pps));
+            calculate_xtal_error(prev_dt, dt.clone().unwrap());
         }
         GnssResult::Location(v) => {
             debug!(
@@ -189,6 +202,69 @@ pub fn sync(result: &GnssResult, count_us_at_pps: u32) -> Result<()> {
     }
 
     Ok(())
+}
+
+fn calculate_xtal_error(prev_dt: Option<(GnssDateTime, u32)>, current_dt: (GnssDateTime, u32)) {
+    if let Some(prev_dt) = prev_dt {
+        let prev_count_us_at_pps = prev_dt.1;
+        let current_count_us_at_pps = current_dt.1;
+        let count_us_delta =
+            (current_dt.0.timestamp - prev_dt.0.timestamp).as_seconds_f64() * 1_000_000f64;
+        if count_us_delta == 0.0 {
+            // Avoid divide by
+            trace!("count_us_delta == 0, skipping xtal error correction");
+            return;
+        }
+
+        let (count_us_diff, _) = current_count_us_at_pps.overflowing_sub(prev_count_us_at_pps);
+        if count_us_diff == 0 {
+            // PPS has not been triggered yet
+            trace!("count_us_diff == 0, skipping xtal error correction");
+            return;
+        }
+
+        let xtal_error = count_us_diff as f64 / count_us_delta;
+        debug!(
+            "xtal error calculated, error: {:.12}, prev_count_us: {}, current_count_us: {}",
+            xtal_error, prev_count_us_at_pps, current_count_us_at_pps
+        );
+        if xtal_error > 1.00001 || xtal_error < 0.99999 {
+            warn!(
+                "xtal error out of expected range, xtal_error: {:.6}",
+                xtal_error
+            );
+            return;
+        }
+
+        let mut xtal_correct = XTAL_CORRECT.lock().unwrap();
+        if let Some(xtal_correct) = xtal_correct.as_mut() {
+            if xtal_correct.init_cpt < XERR_INIT_AVG {
+                xtal_correct.init_cpt += 1;
+                xtal_correct.init_acc += xtal_error;
+            } else if xtal_correct.init_cpt == XERR_INIT_AVG {
+                xtal_correct.xtal_correct = XERR_INIT_AVG as f64 / xtal_correct.init_acc;
+                debug!(
+                    "xtal correction calculated, xtal_correct: {:.12}",
+                    xtal_correct.xtal_correct
+                );
+            } else {
+                let x = 1.0 / xtal_error;
+                xtal_correct.xtal_correct = xtal_correct.xtal_correct
+                    - xtal_correct.xtal_correct / XERR_FILT_COEF
+                    + x / XERR_FILT_COEF;
+                debug!(
+                    "xtal correction calculated, xtal_correct: {:.12}",
+                    xtal_correct.xtal_correct
+                );
+            }
+        } else {
+            *xtal_correct = Some(XtalCorrect {
+                init_cpt: 1,
+                init_acc: xtal_error,
+                xtal_correct: 1.0,
+            })
+        }
+    }
 }
 
 pub fn set_static_location(lat: f64, lon: f64, alt: f32) {
@@ -264,6 +340,14 @@ pub fn get_location_last_updated_at() -> Option<DateTime<Utc>> {
         count_to_time(*gnss_location_count_us)
     } else {
         None
+    }
+}
+
+pub fn get_xtal_correct() -> f64 {
+    if let Some(xtal_correct) = XTAL_CORRECT.lock().unwrap().as_ref() {
+        xtal_correct.xtal_correct
+    } else {
+        1.0
     }
 }
 
