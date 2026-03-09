@@ -1,5 +1,5 @@
 use anyhow::Result;
-use libconcentratord::region;
+use libconcentratord::{gnss, region};
 use libloragw_sx1302::hal;
 
 use super::super::super::super::config::{self, Region};
@@ -170,6 +170,7 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
 
     let usb = conf.gateway.model_flags.contains(&"USB".to_string());
     let enforce_duty_cycle = conf.gateway.model_flags.contains(&"ENFORCE_DC".to_string());
+    let gps = conf.gateway.model_flags.contains(&"GNSS".to_string());
 
     Ok(Configuration {
         enforce_duty_cycle,
@@ -209,6 +210,13 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
                 tx_gain_table: vec![],
             },
         ],
+        gnss: match gps {
+            true => conf
+                .gateway
+                .get_gnss_dev_path(&gnss::Device::new("/dev/ttyAMA0")),
+            false => gnss::Device::None,
+        },
+        gnss_family: gnss::Family::GenericNmea,
         com_type: match usb {
             true => ComType::Usb,
             false => ComType::Spi,

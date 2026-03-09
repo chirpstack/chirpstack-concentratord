@@ -445,7 +445,7 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
             enable: lbt,
             rssi_offset: 0,
         },
-        gps: match gps {
+        gnss: match gps {
             true => conf
                 .gateway
                 .get_gnss_dev_path(&gnss::Device::new("/dev/ttyAMA0")),

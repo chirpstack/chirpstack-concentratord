@@ -546,7 +546,7 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
                 tx_gain_table: vec![],
             },
         ],
-        gps: match gps {
+        gnss: match gps {
             true => conf
                 .gateway
                 .get_gnss_dev_path(&gnss::Device::new("/dev/ttyAMA0")),

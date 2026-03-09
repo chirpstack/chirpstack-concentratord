@@ -53,6 +53,13 @@ pub enum Device {
     Gpsd(String),
 }
 
+#[derive(Default, Clone, PartialEq, Debug)]
+pub enum Family {
+    #[default]
+    Ublox,
+    GenericNmea,
+}
+
 impl Device {
     pub fn new(path: &str) -> Device {
         if path.is_empty() {

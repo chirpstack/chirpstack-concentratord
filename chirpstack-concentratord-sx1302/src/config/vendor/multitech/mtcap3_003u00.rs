@@ -165,7 +165,7 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
                 tx_gain_table: vec![],
             },
         ],
-        gps: gnss::Device::None,
+        gnss: gnss::Device::None,
         com_type: ComType::Spi,
         com_path: conf.gateway.get_com_dev_path("/dev/spidev1.0"),
         reset_commands: Some(vec![
