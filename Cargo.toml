@@ -21,7 +21,7 @@
       "parse",
       "serde",
     ] }
-    clap = { version = "4.5", default-features = false, features = [
+    clap = { version = "4.6", default-features = false, features = [
       "std",
       "help",
       "usage",
