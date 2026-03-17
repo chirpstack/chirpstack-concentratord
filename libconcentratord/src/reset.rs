@@ -104,6 +104,9 @@ pub fn setup_pins(config: Configuration) -> Result<()> {
 }
 
 pub fn reset() -> Result<()> {
+    // Add some sleep to make sure lines are initialized.
+    sleep(Duration::from_millis(100));
+
     let sx1302_power_en = SX1302_POWER_EN.lock().unwrap();
     if sx1302_power_en.is_some() {
         let sx1302_power_en = sx1302_power_en.as_ref().unwrap();
