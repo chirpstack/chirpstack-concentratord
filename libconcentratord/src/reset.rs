@@ -38,7 +38,8 @@ pub fn setup_pins(config: Configuration) -> Result<()> {
         let req = gpiocdev::Request::builder()
             .on_chip(sx130x_reset.0)
             .with_line(sx130x_reset.1)
-            .as_output(gpiocdev::line::Value::Inactive)
+            .with_bias(gpiocdev::line::Bias::PullUp)
+            .as_output(gpiocdev::line::Value::Active)
             .request()?;
 
         let mut sx130x_reset = SX130X_RESET.lock().unwrap();
@@ -126,6 +127,8 @@ pub fn reset() -> Result<()> {
         sx130x.set_lone_value(gpiocdev::line::Value::Active)?;
         sleep(Duration::from_millis(100));
         sx130x.set_lone_value(gpiocdev::line::Value::Inactive)?;
+        sleep(Duration::from_millis(100));
+        sx130x.set_lone_value(gpiocdev::line::Value::Active)?;
         sleep(Duration::from_millis(100));
     }
 
