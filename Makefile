@@ -47,6 +47,12 @@ package-aarch64-unknown-linux-musl:
 	tar -czvf dist/chirpstack-concentratord-sx1302_$(PKG_VERSION)_arm64.tar.gz -C target/aarch64-unknown-linux-musl/release chirpstack-concentratord-sx1302
 	tar -czvf dist/chirpstack-concentratord-2g4_$(PKG_VERSION)_arm64.tar.gz -C target/aarch64-unknown-linux-musl/release chirpstack-concentratord-2g4
 
+	# .deb
+	(cd chirpstack-concentratord-sx1302 && cargo deb --target aarch64-unknown-linux-musl --no-build --no-strip)
+	(cd chirpstack-concentratord-sx1301 && cargo deb --target aarch64-unknown-linux-musl --no-build --no-strip)
+	(cd chirpstack-concentratord-2g4 && cargo deb --target aarch64-unknown-linux-musl --no-build --no-strip)
+	cp target/aarch64-unknown-linux-musl/debian/*.deb ./dist
+
 package-armv5te-unknown-linux-musleabi: package-multitech-conduit \
 	package-multitech-conduit-ap
 
@@ -59,6 +65,12 @@ package-armv7-unknown-linux-musleabihf: package-kerlink-ifemtocell package-multi
 	tar -czvf dist/chirpstack-concentratord-sx1302_$(PKG_VERSION)_armv7hf.tar.gz -C target/armv7-unknown-linux-musleabihf/release chirpstack-concentratord-sx1302
 	tar -czvf dist/chirpstack-concentratord-2g4_$(PKG_VERSION)_armv7hf.tar.gz -C target/armv7-unknown-linux-musleabihf/release chirpstack-concentratord-2g4
 
+	# .deb
+	(cd chirpstack-concentratord-sx1302 && cargo deb --target armv7-unknown-linux-musleabihf --no-build --no-strip)
+	(cd chirpstack-concentratord-sx1301 && cargo deb --target armv7-unknown-linux-musleabihf --no-build --no-strip)
+	(cd chirpstack-concentratord-2g4 && cargo deb --target armv7-unknown-linux-musleabihf --no-build --no-strip)
+	cp target/armv7-unknown-linux-musleabihf/debian/*.deb ./dist
+
 package-x86_64-unknown-linux-musl:
 	$(eval PKG_VERSION := $(shell cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].version'))
 	mkdir -p dist
@@ -67,6 +79,12 @@ package-x86_64-unknown-linux-musl:
 	tar -czvf dist/chirpstack-concentratord-sx1301_$(PKG_VERSION)_amd64.tar.gz -C target/x86_64-unknown-linux-musl/release chirpstack-concentratord-sx1301
 	tar -czvf dist/chirpstack-concentratord-sx1302_$(PKG_VERSION)_amd64.tar.gz -C target/x86_64-unknown-linux-musl/release chirpstack-concentratord-sx1302
 	tar -czvf dist/chirpstack-concentratord-2g4_$(PKG_VERSION)_amd64.tar.gz -C target/x86_64-unknown-linux-musl/release chirpstack-concentratord-2g4
+
+	# .deb
+	(cd chirpstack-concentratord-sx1302 && cargo deb --target x86_64-unknown-linux-musl --no-build --no-strip)
+	(cd chirpstack-concentratord-sx1301 && cargo deb --target x86_64-unknown-linux-musl --no-build --no-strip)
+	(cd chirpstack-concentratord-2g4 && cargo deb --target x86_64-unknown-linux-musl --no-build --no-strip)
+	cp target/x86_64-unknown-linux-musl/debian/*.deb ./dist
 
 package-kerlink-ifemtocell:
 	cd packaging/vendor/kerlink/ifemtocell && ./package.sh

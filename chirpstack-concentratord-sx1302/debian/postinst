@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+# Set config-file permissions
+chown -R chirpstack:chirpstack /etc/chirpstack-concentratord-sx1302
+chmod 750 /etc/chirpstack-concentratord-sx1302
+chmod 640 /etc/chirpstack-concentratord-sx1302/*.toml
+
+#DEBHELPER#

@@ -35,7 +35,7 @@ pub fn run(
     concentrator::start(config)?;
 
     // setup static location
-    handler::gps::set_static_gps_coords(
+    gnss::set_static_location(
         config.gateway.location.latitude,
         config.gateway.location.longitude,
         config.gateway.location.altitude,
@@ -185,21 +185,6 @@ pub fn run(
                 }
 
                 debug!("GPS loop ended");
-            }
-        }));
-
-        // gps validate thread
-        threads.push(thread::spawn({
-            let stop_receive = signal_pool.new_receiver();
-            let stop_send = stop_send.clone();
-
-            move || {
-                if let Err(e) = handler::gps::gps_validate_loop(stop_receive) {
-                    error!("GPS validate loop error: {}", e);
-                    stop_send.send(Signal::Stop).unwrap();
-                }
-
-                debug!("GPS validate loop ended");
             }
         }));
 

@@ -2,7 +2,6 @@ use std::convert::TryInto;
 use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
 use std::time::Duration;
-use std::usize;
 
 use anyhow::Result;
 

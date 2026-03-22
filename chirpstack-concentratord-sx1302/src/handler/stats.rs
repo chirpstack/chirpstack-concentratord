@@ -7,10 +7,9 @@ use anyhow::{Context, Result};
 
 use chirpstack_api::gw::DutyCycleStats;
 use libconcentratord::signals::Signal;
-use libconcentratord::{jitqueue, stats};
+use libconcentratord::{gnss, jitqueue, stats};
 use libloragw_sx1302::hal;
 
-use super::gps;
 use crate::wrapper;
 
 pub fn stats_loop(
@@ -32,13 +31,14 @@ pub fn stats_loop(
         }
 
         // fetch the current gps coordinates
-        let loc = gps::get_coords().map(|v| chirpstack_api::common::Location {
-            latitude: v.latitude,
-            longitude: v.longitude,
-            altitude: v.altitude as f64,
-            source: chirpstack_api::common::LocationSource::Gps.into(),
-            ..Default::default()
-        });
+        let loc =
+            gnss::get_location(hal::get_instcnt()?).map(|v| chirpstack_api::common::Location {
+                latitude: v.lat,
+                longitude: v.lon,
+                altitude: v.alt.into(),
+                source: chirpstack_api::common::LocationSource::Gps.into(),
+                ..Default::default()
+            });
 
         // fetch the concentrator temperature.
         if get_temperature {

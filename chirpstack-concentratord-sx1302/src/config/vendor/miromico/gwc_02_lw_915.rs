@@ -178,7 +178,7 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
             enable: true,
             rssi_offset: 0,
         },
-        gps: gnss::Device::None,
+        gnss: gnss::Device::None,
         com_type: ComType::Usb,
         com_path: conf.gateway.get_com_dev_path("/dev/ttyACM0"),
         ..Default::default()

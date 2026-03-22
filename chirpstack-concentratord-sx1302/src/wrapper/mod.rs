@@ -1,11 +1,9 @@
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use std::time::{Duration, SystemTime};
 
 use anyhow::Result;
 use chirpstack_api::{gw, prost_types};
-use libconcentratord::jitqueue;
+use libconcentratord::{gnss, jitqueue};
 use libloragw_sx1302::hal;
-
-use super::handler::gps;
 
 #[derive(Copy, Clone)]
 pub struct TxPacket(hal::TxPacket, u32);
@@ -66,19 +64,11 @@ pub fn uplink_to_proto(
 ) -> Result<gw::UplinkFrame> {
     let uplink_id = getrandom::u32()?;
 
-    let time_since_gps_epoch = match gps::cnt2epoch(packet.count_us) {
-        Ok(v) => Some(prost_types::Duration {
+    let time_since_gps_epoch =
+        gnss::count_to_epoch(packet.count_us).map(|v| prost_types::Duration {
             seconds: v.as_secs() as i64,
             nanos: v.subsec_nanos() as i32,
-        }),
-        Err(err) => {
-            debug!(
-                "Could not get GPS epoch, uplink_id: {}, error: {}",
-                uplink_id, err
-            );
-            None
-        }
-    };
+        });
 
     Ok(gw::UplinkFrame {
         phy_payload: packet.payload[..packet.size as usize].to_vec(),
@@ -132,27 +122,15 @@ pub fn uplink_to_proto(
             snr: packet.snr,
             channel: packet.if_chain as u32,
             rf_chain: packet.rf_chain as u32,
-            gw_time: match gps::cnt2time(packet.count_us) {
-                Ok(v) => {
-                    let v = v.duration_since(UNIX_EPOCH).unwrap();
-                    Some(prost_types::Timestamp {
-                        seconds: v.as_secs() as i64,
-                        nanos: v.subsec_nanos() as i32,
-                    })
-                }
-                Err(err) => {
-                    debug!(
-                        "Could not get GPS time, uplink_id: {}, error: {}",
-                        uplink_id, err
-                    );
-
+            gw_time: gnss::count_to_time(packet.count_us)
+                .map(|v| Into::<SystemTime>::into(v).into())
+                .or_else(|| {
                     if time_fallback {
                         Some(prost_types::Timestamp::from(SystemTime::now()))
                     } else {
                         None
                     }
-                }
-            },
+                }),
             fine_time_since_gps_epoch: match packet.ftime_received {
                 true => Some(prost_types::Duration {
                     nanos: packet.ftime as i32,
@@ -237,13 +215,8 @@ pub fn downlink_from_proto(df: &gw::DownlinkFrameItem) -> Result<hal::TxPacket> 
                     Some(v) => {
                         let gps_epoch = Duration::from_secs(v.seconds as u64)
                             + Duration::from_nanos(v.nanos as u64);
-
-                        match gps::epoch2cnt(&gps_epoch) {
-                            Ok(v) => {
-                                packet.count_us = v;
-                            }
-                            Err(err) => return Err(err),
-                        }
+                        packet.count_us = gnss::epoch_to_count(gps_epoch)
+                            .ok_or_else(|| anyhow!("Epoch to count_us can not be calcuated"))?;
                     }
                     None => {
                         return Err(anyhow!("time_since_gps_epoch must not be null"));

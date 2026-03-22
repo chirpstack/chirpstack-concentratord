@@ -198,7 +198,7 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
                 tx_gain_table: vec![],
             },
         ],
-        gps: gnss::Device::None,
+        gnss: gnss::Device::None,
         com_type: match usb {
             true => ComType::Usb,
             false => ComType::Spi,

@@ -77,7 +77,8 @@ impl Default for Api {
 pub struct Location {
     pub latitude: f64,
     pub longitude: f64,
-    pub altitude: i16,
+    #[serde(default)]
+    pub altitude: f32,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -273,6 +274,7 @@ pub struct LbtChannel {
 }
 
 #[derive(Serialize, Deserialize)]
+#[serde(default)]
 pub struct FineTimestamp {
     pub enable: bool,
     pub mode: String, // HIGH_CAPACITY or ALL_SF

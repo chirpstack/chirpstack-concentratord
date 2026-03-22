@@ -138,6 +138,7 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
     };
 
     let enforce_duty_cycle = conf.gateway.model_flags.contains(&"ENFORCE_DC".to_string());
+    let gps = conf.gateway.model_flags.contains(&"GNSS".to_string());
 
     Ok(Configuration {
         enforce_duty_cycle,
@@ -177,7 +178,13 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
                 tx_gain_table: vec![],
             },
         ],
-        gps: gnss::Device::None,
+        gnss: match gps {
+            true => conf
+                .gateway
+                .get_gnss_dev_path(&gnss::Device::new("/dev/ttyAMA0")),
+            false => gnss::Device::None,
+        },
+        gnss_family: gnss::Family::GenericNmea,
         com_type: ComType::Spi,
         com_path: conf.gateway.get_com_dev_path("/dev/spidev0.0"),
         sx1302_reset_pin: conf.gateway.get_sx1302_reset_pin("/dev/gpiochip0", 23),
