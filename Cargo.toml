@@ -13,15 +13,15 @@
   ]
 
   [workspace.dependencies]
-    chirpstack_api = { version = "4.16", default-features = false }
+    chirpstack_api = { version = "4.17", default-features = false }
     serde = { version = "1.0", features = ["derive"] }
     serde_json = "1.0"
-    toml = { version = "1.0", default-features = false, features = [
+    toml = { version = "1.1", default-features = false, features = [
       "std",
       "parse",
       "serde",
     ] }
-    clap = { version = "4.5", default-features = false, features = [
+    clap = { version = "4.6", default-features = false, features = [
       "std",
       "help",
       "usage",
@@ -47,4 +47,4 @@
       "std",
       "GNSS",
     ] }
-    ublox = { version = "0.9", git = "https://github.com/ublox-rs/ublox.git", rev = "0d59ea8cacba5a0524e96efd59d76e261223c762" }
+    ublox = { version = "0.10" }
