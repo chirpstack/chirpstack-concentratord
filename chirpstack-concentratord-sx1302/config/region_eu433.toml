@@ -12,8 +12,8 @@
   # Bandwidth (Hz).
   bandwidth = 125000
 
-  # Spreading factor.
-  spreading_factor = 9
+# Spreading factor.
+spreading_factor=8
 
-  # TX power.
-  tx_power = 12
+# TX power.
+tx_power=27
