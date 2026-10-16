@@ -13,7 +13,7 @@
   ]
 
   [workspace.dependencies]
-    chirpstack_api = { version = "4.17", default-features = false }
+    chirpstack_api = { version = "4.19", default-features = false }
     serde = { version = "1.0", features = ["derive"] }
     serde_json = "1.0"
     toml = { version = "1.1", default-features = false, features = [
@@ -41,9 +41,9 @@
     getrandom = { version = "0.4", features = ["std"] }
     anyhow = "1.0"
     thiserror = "2.0"
-    bindgen = "0.72"
+    bindgen = "0.73"
     gpiocdev = { version = "0.8", features = ["uapi_v1"] }
-    nmea = { version = "0.7", default-features = false, features = [
+    nmea = { version = "0.8", default-features = false, features = [
       "std",
       "GNSS",
     ] }
