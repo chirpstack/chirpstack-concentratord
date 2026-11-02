@@ -58,7 +58,7 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
                     hal::TxGainConfig {
                         rf_power: 14,
                         pa_gain: 0,
-                        pwr_idx: 17,
+                        pwr_idx: 18,
                         ..Default::default()
                     },
                     // 3
@@ -72,14 +72,14 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
                     hal::TxGainConfig {
                         rf_power: 16,
                         pa_gain: 0,
-                        pwr_idx: 20,
+                        pwr_idx: 21,
                         ..Default::default()
                     },
                     // 5
                     hal::TxGainConfig {
                         rf_power: 17,
-                        pa_gain: 0,
-                        pwr_idx: 22,
+                        pa_gain: 1,
+                        pwr_idx: 0,
                         ..Default::default()
                     },
                     // 6
@@ -128,28 +128,28 @@ pub fn new(conf: &config::Configuration) -> Result<Configuration> {
                     hal::TxGainConfig {
                         rf_power: 24,
                         pa_gain: 1,
-                        pwr_idx: 7,
+                        pwr_idx: 8,
                         ..Default::default()
                     },
                     // 13
                     hal::TxGainConfig {
                         rf_power: 25,
                         pa_gain: 1,
-                        pwr_idx: 9,
+                        pwr_idx: 10,
                         ..Default::default()
                     },
                     // 14
                     hal::TxGainConfig {
                         rf_power: 26,
                         pa_gain: 1,
-                        pwr_idx: 11,
+                        pwr_idx: 12,
                         ..Default::default()
                     },
                     // 15
                     hal::TxGainConfig {
                         rf_power: 27,
                         pa_gain: 1,
-                        pwr_idx: 14,
+                        pwr_idx: 15,
                         ..Default::default()
                     },
                 ],
