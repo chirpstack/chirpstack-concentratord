@@ -262,7 +262,13 @@ pub fn downlink_from_proto(df: &gw::DownlinkFrameItem) -> Result<hal::TxPacket> 
                 };
 
                 packet.invert_pol = v.polarization_inversion;
-                packet.preamble = v.preamble as u16;
+                packet.preamble = if v.preamble == 0 {
+                    8
+                } else if v.preamble < 6 {
+                    6
+                } else {
+                    v.preamble as u16
+                };
                 packet.no_crc = v.no_crc;
             }
             gw::modulation::Parameters::Fsk(v) => {
